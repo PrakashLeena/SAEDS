@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Shield, ShieldOff, Trash2, Ban, CheckCircle, Edit } from 'lucide-react';
+import { Search, Shield, ShieldOff, Trash2, Ban, CheckCircle } from 'lucide-react';
 import { userAPI } from '../../services/api';
 
 const UserManagement = () => {
@@ -15,7 +15,27 @@ const UserManagement = () => {
   }, []);
 
   useEffect(() => {
-    filterUsers();
+    // derive filtered users from current state and filters
+    let filtered = [...users];
+
+    if (searchTerm) {
+      filtered = filtered.filter(
+        (user) =>
+          user.displayName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          user.email.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    }
+
+    if (filterRole !== 'all') {
+      filtered = filtered.filter((user) => user.role === filterRole);
+    }
+
+    if (filterStatus !== 'all') {
+      const isActive = filterStatus === 'active';
+      filtered = filtered.filter((user) => user.isActive === isActive);
+    }
+
+    setFilteredUsers(filtered);
   }, [searchTerm, filterRole, filterStatus, users]);
 
   const fetchUsers = async () => {
@@ -30,31 +50,7 @@ const UserManagement = () => {
     }
   };
 
-  const filterUsers = () => {
-    let filtered = [...users];
-
-    // Search filter
-    if (searchTerm) {
-      filtered = filtered.filter(
-        (user) =>
-          user.displayName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          user.email.toLowerCase().includes(searchTerm.toLowerCase())
-      );
-    }
-
-    // Role filter
-    if (filterRole !== 'all') {
-      filtered = filtered.filter((user) => user.role === filterRole);
-    }
-
-    // Status filter
-    if (filterStatus !== 'all') {
-      const isActive = filterStatus === 'active';
-      filtered = filtered.filter((user) => user.isActive === isActive);
-    }
-
-    setFilteredUsers(filtered);
-  };
+  // filtering handled inside useEffect above
 
   const handleToggleRole = async (userId) => {
     try {

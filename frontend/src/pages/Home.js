@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowRight, BookOpen, Users, Calendar, Heart, Lightbulb, Globe, TrendingUp } from 'lucide-react';
+import { ArrowRight, BookOpen, Users, Calendar, Heart, Globe, TrendingUp } from 'lucide-react';
 import HeroSlider from '../components/HeroSlider';
 // Members will be fetched from the backend
 import api from '../services/api';

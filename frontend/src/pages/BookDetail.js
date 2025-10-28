@@ -149,7 +149,7 @@ const BookDetail = () => {
                     if (!url) return;
 
                     try {
-                      const dlRes = await api.book.incrementDownload(book._id || id, { firebaseUid: currentUser ? currentUser.uid : undefined });
+                      await api.book.incrementDownload(book._id || id, { firebaseUid: currentUser ? currentUser.uid : undefined });
                       // refresh stats count
                       const statsRes = await api.book.getStats(id);
                       if (statsRes && statsRes.data) setDownloadsCount(statsRes.data.downloads || 0);

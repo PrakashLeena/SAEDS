@@ -16,22 +16,7 @@ const ActivityManagement = () => {
   }, []);
 
   useEffect(() => {
-    filterActivities();
-  }, [searchTerm, filterCategory, filterStatus, activities]);
-
-  const fetchActivities = async () => {
-    try {
-      const { data } = await activityAPI.getAll();
-      setActivities(data);
-      setFilteredActivities(data);
-    } catch (error) {
-      console.error('Error fetching activities:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const filterActivities = () => {
+    // derive filtered activities from current state and filters
     let filtered = [...activities];
 
     if (searchTerm) {
@@ -51,7 +36,21 @@ const ActivityManagement = () => {
     }
 
     setFilteredActivities(filtered);
+  }, [searchTerm, filterCategory, filterStatus, activities]);
+
+  const fetchActivities = async () => {
+    try {
+      const { data } = await activityAPI.getAll();
+      setActivities(data);
+      setFilteredActivities(data);
+    } catch (error) {
+      console.error('Error fetching activities:', error);
+    } finally {
+      setLoading(false);
+    }
   };
+
+  // filtering handled in useEffect above
 
   const handleDeleteActivity = async (activityId, activityTitle) => {
     if (window.confirm(`Are you sure you want to delete "${activityTitle}"?`)) {

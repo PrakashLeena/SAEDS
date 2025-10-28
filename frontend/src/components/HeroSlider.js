@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { ChevronLeft, ChevronRight, Circle } from 'lucide-react';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { heroSlides } from '../data/slider';
 
 const HeroSlider = () => {

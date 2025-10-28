@@ -47,27 +47,25 @@ const BookForm = () => {
   const [selectedFolder, setSelectedFolder] = useState('');
 
   useEffect(() => {
-    if (isEdit) {
-      fetchBook();
-    }
     setSections(flattenSections(elibraryFolders));
-  }, [id]);
-
-  const fetchBook = async () => {
-    try {
-      const { data } = await bookAPI.getById(id);
-      setFormData({
-        ...data,
-        tags: data.tags?.join(', ') || '',
-        folderId: data.folderId || '',
-        folderTitle: data.folderTitle || '',
-      });
-      setSelectedFolder(data.folderId || '');
-    } catch (error) {
-      console.error('Error fetching book:', error);
-      setError('Failed to load book data');
+    if (isEdit) {
+      (async () => {
+        try {
+          const { data } = await bookAPI.getById(id);
+          setFormData({
+            ...data,
+            tags: data.tags?.join(', ') || '',
+            folderId: data.folderId || '',
+            folderTitle: data.folderTitle || '',
+          });
+          setSelectedFolder(data.folderId || '');
+        } catch (error) {
+          console.error('Error fetching book:', error);
+          setError('Failed to load book data');
+        }
+      })();
     }
-  };
+  }, [id, isEdit]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;

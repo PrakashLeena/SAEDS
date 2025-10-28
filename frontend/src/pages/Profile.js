@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { User, Mail, Calendar, BookOpen, Download, Heart, Award, Edit, LogOut } from 'lucide-react';
+import { Mail, Calendar, BookOpen, Download, Heart, Award, Edit, LogOut } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { books } from '../data/books';

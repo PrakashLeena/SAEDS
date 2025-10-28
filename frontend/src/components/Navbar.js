@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Search, User, Menu, X, Home, Library, Calendar, Image, LogIn, Shield, Mail } from 'lucide-react';
+import { Search, User, Menu, X, Home, Library, Image, LogIn, Shield, Mail } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { userAPI } from '../services/api';
 import img from '../assets/images/logo.png'
@@ -12,21 +12,18 @@ const Navbar = () => {
   const { currentUser } = useAuth();
 
   useEffect(() => {
-    checkAdminStatus();
-  }, [currentUser]);
-
-  const checkAdminStatus = async () => {
-    if (currentUser) {
+    const check = async () => {
+      if (!currentUser) { setIsAdmin(false); return; }
       try {
         const { data } = await userAPI.getByFirebaseUid(currentUser.uid);
-        setIsAdmin(data.role === 'admin');
+        setIsAdmin(data && data.role === 'admin');
       } catch (error) {
         console.error('Error checking admin status:', error);
+        setIsAdmin(false);
       }
-    } else {
-      setIsAdmin(false);
-    }
-  };
+    };
+    check();
+  }, [currentUser]);
 
   const isActive = (path) => location.pathname === path;
 

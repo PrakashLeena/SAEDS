@@ -17,7 +17,22 @@ const BookManagement = () => {
   }, []);
 
   useEffect(() => {
-    filterBooks();
+    // derive filtered books from current state and filters
+    let filtered = [...books];
+
+    if (searchTerm) {
+      filtered = filtered.filter(
+        (book) =>
+          book.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          book.author.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    }
+
+    if (filterCategory !== 'all') {
+      filtered = filtered.filter((book) => book.category === filterCategory);
+    }
+
+    setFilteredBooks(filtered);
   }, [searchTerm, filterCategory, books]);
 
   const fetchBooks = async () => {
@@ -41,23 +56,7 @@ const BookManagement = () => {
     }
   };
 
-  const filterBooks = () => {
-    let filtered = [...books];
-
-    if (searchTerm) {
-      filtered = filtered.filter(
-        (book) =>
-          book.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          book.author.toLowerCase().includes(searchTerm.toLowerCase())
-      );
-    }
-
-    if (filterCategory !== 'all') {
-      filtered = filtered.filter((book) => book.category === filterCategory);
-    }
-
-    setFilteredBooks(filtered);
-  };
+  // filtering handled inside useEffect above
 
   const handleDeleteBook = async (bookId, bookTitle) => {
     if (window.confirm(`Are you sure you want to delete "${bookTitle}"?`)) {

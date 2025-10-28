@@ -26,23 +26,20 @@ const ActivityForm = () => {
   const [previewUrl, setPreviewUrl] = useState('');
 
   useEffect(() => {
-    if (isEdit) {
-      fetchActivity();
-    }
-  }, [id]);
-
-  const fetchActivity = async () => {
-    try {
-      const { data } = await activityAPI.getById(id);
-      setFormData({
-        ...data,
-        date: new Date(data.date).toISOString().split('T')[0],
-      });
-    } catch (error) {
-      console.error('Error fetching activity:', error);
-      setError('Failed to load activity data');
-    }
-  };
+    if (!isEdit) return;
+    (async () => {
+      try {
+        const { data } = await activityAPI.getById(id);
+        setFormData({
+          ...data,
+          date: new Date(data.date).toISOString().split('T')[0],
+        });
+      } catch (error) {
+        console.error('Error fetching activity:', error);
+        setError('Failed to load activity data');
+      }
+    })();
+  }, [id, isEdit]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { ArrowLeft, Save, Upload, X } from 'lucide-react';
+import { ArrowLeft, Upload } from 'lucide-react';
 import { memberAPI, uploadAPI } from '../../services/api';
 
 const MemberForm = () => {
@@ -14,20 +14,19 @@ const MemberForm = () => {
   const [photoPreview, setPhotoPreview] = useState('');
 
   useEffect(() => {
-    if (isEdit) loadMember();
-  }, [id]);
-
-  const loadMember = async () => {
-    try {
-      const res = await memberAPI.getAll();
-      if (res && res.success) {
-        const m = res.data.find(x => x._id === id);
-        if (m) setFormData({ name: m.name, email: m.email, phone: m.phone || '', photoURL: m.photoURL || '', notes: m.notes || '' });
+    if (!isEdit) return;
+    (async () => {
+      try {
+        const res = await memberAPI.getAll();
+        if (res && res.success) {
+          const m = res.data.find(x => x._id === id);
+          if (m) setFormData({ name: m.name, email: m.email, phone: m.phone || '', photoURL: m.photoURL || '', notes: m.notes || '' });
+        }
+      } catch (err) {
+        console.error('Failed to load member', err);
       }
-    } catch (err) {
-      console.error('Failed to load member', err);
-    }
-  };
+    })();
+  }, [id, isEdit]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
