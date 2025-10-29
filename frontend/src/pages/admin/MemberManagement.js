@@ -60,6 +60,7 @@ const MemberManagement = () => {
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Member</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">University / Role</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Since</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Phone</th>
                     <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
                   </tr>
@@ -75,9 +76,18 @@ const MemberManagement = () => {
                           </div>
                         </div>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap">{m.email}</td>
-                      <td className="px-6 py-4 whitespace-nowrap">{m.universityOrRole}</td>
-                      <td className="px-6 py-4 whitespace-nowrap">{m.phone}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{m.email || '-'}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{m.universityOrRole || '-'}</td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        {m.since ? (
+                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary-100 text-primary-800">
+                            {m.since}
+                          </span>
+                        ) : (
+                          <span className="text-sm text-gray-400">-</span>
+                        )}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{m.phone || '-'}</td>
                       <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                         <div className="flex items-center justify-end space-x-2">
                           <button onClick={() => navigate(`/admin/members/edit/${m._id}`)} className="p-2 text-primary-600 hover:bg-primary-50 rounded"><Edit className="h-4 w-4" /></button>

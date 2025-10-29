@@ -8,7 +8,7 @@ const MemberForm = () => {
   const navigate = useNavigate();
   const isEdit = Boolean(id);
 
-  const [formData, setFormData] = useState({ name: '', email: '', phone: '', photoURL: '', universityOrRole: '', notes: '' });
+  const [formData, setFormData] = useState({ name: '', email: '', phone: '', photoURL: '', universityOrRole: '', since: '', notes: '' });
   const [loading, setLoading] = useState(false);
   const [imageFile, setImageFile] = useState(null);
   const [photoPreview, setPhotoPreview] = useState('');
@@ -20,7 +20,7 @@ const MemberForm = () => {
         const res = await memberAPI.getAll();
         if (res && res.success) {
           const m = res.data.find(x => x._id === id);
-          if (m) setFormData({ name: m.name, email: m.email, phone: m.phone || '', photoURL: m.photoURL || '', notes: m.notes || '' });
+          if (m) setFormData({ name: m.name, email: m.email || '', phone: m.phone || '', photoURL: m.photoURL || '', universityOrRole: m.universityOrRole || '', since: m.since || '', notes: m.notes || '' });
         }
       } catch (err) {
         console.error('Failed to load member', err);
@@ -93,17 +93,31 @@ const MemberForm = () => {
             <input name="name" value={formData.name} onChange={handleChange} required className="w-full px-3 py-2 border rounded" />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700">Email</label>
-            <input name="email" value={formData.email} onChange={handleChange} required type="email" className="w-full px-3 py-2 border rounded" />
+            <label className="block text-sm font-medium text-gray-700">Email (optional)</label>
+            <input name="email" value={formData.email} onChange={handleChange} type="email" className="w-full px-3 py-2 border rounded" placeholder="member@example.com" />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700">Phone</label>
-            <input name="phone" value={formData.phone} onChange={handleChange} className="w-full px-3 py-2 border rounded" />
+            <label className="block text-sm font-medium text-gray-700">Phone (optional)</label>
+            <input name="phone" value={formData.phone} onChange={handleChange} type="tel" className="w-full px-3 py-2 border rounded" placeholder="+1234567890" />
           </div>
 
           <div>
             <label className="block text-sm font-medium text-gray-700">University / Job role</label>
             <input name="universityOrRole" value={formData.universityOrRole} onChange={handleChange} className="w-full px-3 py-2 border rounded" placeholder="e.g., University of X / Software Engineer" />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700">Member Since (Year)</label>
+            <input 
+              name="since" 
+              value={formData.since} 
+              onChange={handleChange} 
+              type="number" 
+              min="1900" 
+              max={new Date().getFullYear()} 
+              className="w-full px-3 py-2 border rounded" 
+              placeholder={`e.g., ${new Date().getFullYear()}`}
+            />
           </div>
 
           <div>
