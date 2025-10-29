@@ -159,7 +159,7 @@ const GalleryManagement = () => {
                 <p className="text-xs text-gray-500 mb-2">{img.description}</p>
                 <div className="flex items-center justify-between">
                   <a href={img.url} target="_blank" rel="noreferrer" className="text-xs text-primary-600">Open</a>
-                  <a href={`${process.env.REACT_APP_API_URL || 'http://localhost:5000/api'}/upload/download/${img._id}`} className="text-xs text-primary-600">Download</a>
+                  <a href={`${process.env.REACT_APP_API_URL}/upload/download/${img._id}`} className="text-xs text-primary-600">Download</a>
                   <button onClick={() => handleDelete(img._id)} className="text-xs text-red-600">Delete</button>
                 </div>
               </div>

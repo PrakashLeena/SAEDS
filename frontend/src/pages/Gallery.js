@@ -123,7 +123,7 @@ const Gallery = () => {
                       <p className="text-sm text-gray-600 mb-3">{img.description}</p>
                       <div className="flex items-center justify-between">
                         <a
-                          href={`${process.env.REACT_APP_API_URL || 'http://localhost:5000/api'}/upload/download/${img._id}`}
+                          href={`${process.env.REACT_APP_API_URL}/upload/download/${img._id}`}
                           className="text-sm bg-primary-600 text-white px-3 py-1 rounded hover:bg-primary-700"
                         >
                           Download
