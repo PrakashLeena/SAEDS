@@ -15,25 +15,25 @@ app.use((req, res, next) => {
   // Get frontend URL from environment variable or use default
   const frontendUrl = process.env.FRONTEND_URL || 'https://saeds-klj8.vercel.app';
   
-  const allowedOrigins = [
-    frontendUrl,
-    'https://saeds-klj8.vercel.app',
-    'https://saeds-klj8-*.vercel.app', // For Vercel preview deployments
-    'http://localhost:3000',
-    'http://localhost:3002'
-  ];
-
   const origin = req.headers.origin;
-  if (allowedOrigins.some(allowed => 
-    origin === allowed || 
-    (allowed.includes('*') && origin && origin.endsWith(allowed.split('*')[1]))
-  )) {
-    res.setHeader('Access-Control-Allow-Origin', origin);
-  }
   
-  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS');
-  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, x-firebase-uid');
-  res.header('Access-Control-Allow-Credentials', 'true');
+  // Check if origin is allowed
+  const isAllowed = 
+    origin === frontendUrl ||
+    origin === 'https://saeds-klj8.vercel.app' ||
+    origin === 'http://localhost:3000' ||
+    origin === 'http://localhost:3002' ||
+    // Allow all Vercel preview deployments for saeds-klj8
+    (origin && origin.match(/^https:\/\/saeds-klj8-[a-z0-9-]+-[a-z0-9-]+\.vercel\.app$/)) ||
+    // Allow all preview deployments with the pattern
+    (origin && origin.includes('a-g-prakash-leenas-projects.vercel.app'));
+  
+  if (isAllowed) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, x-firebase-uid');
+    res.setHeader('Access-Control-Allow-Credentials', 'true');
+  }
   
   // Handle preflight requests
   if (req.method === 'OPTIONS') {
