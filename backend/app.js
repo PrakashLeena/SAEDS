@@ -11,12 +11,26 @@ const app = express();
 connectDB();
 
 // Middleware
-const allowedOrigins = [process.env.FRONTEND_URL, 'http://localhost:3000', 'http://localhost:3002'].filter(Boolean);
+const allowedOrigins = [
+  process.env.FRONTEND_URL,
+  'http://localhost:3000',
+  'http://localhost:3002'
+].filter(Boolean);
+
 app.use(cors({
   origin: (origin, callback) => {
+    // Allow requests with no origin (mobile apps, Postman, etc.)
     if (!origin) return callback(null, true);
+    
+    // Allow if origin is in allowed list
     if (allowedOrigins.includes(origin)) return callback(null, true);
+    
+    // In development, allow all origins
     if (process.env.NODE_ENV !== 'production') return callback(null, true);
+    
+    // In production, check if origin matches Vercel pattern
+    if (origin.includes('vercel.app')) return callback(null, true);
+    
     callback(new Error('Not allowed by CORS'));
   },
   credentials: true,
