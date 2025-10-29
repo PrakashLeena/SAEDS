@@ -194,30 +194,30 @@ const HeroSlider = () => {
       {/* Navigation Arrows */}
       <button
         onClick={prevSlide}
-        className="slider-nav-btn absolute left-2 sm:left-4 top-1/2 -translate-y-1/2 bg-white/20 hover:bg-white/30 text-white p-2 sm:p-3 rounded-full z-10 backdrop-blur-sm touch-manipulation"
+        className="slider-nav-btn absolute left-1 sm:left-4 top-1/2 -translate-y-1/2 bg-white/20 hover:bg-white/30 text-white p-1.5 sm:p-3 rounded-full z-10 backdrop-blur-sm touch-manipulation"
         aria-label="Previous slide"
       >
-        <ChevronLeft className="h-5 w-5 sm:h-6 sm:w-6" />
+        <ChevronLeft className="h-4 w-4 sm:h-6 sm:w-6" />
       </button>
 
       <button
         onClick={nextSlide}
-        className="slider-nav-btn absolute right-2 sm:right-4 top-1/2 -translate-y-1/2 bg-white/20 hover:bg-white/30 text-white p-2 sm:p-3 rounded-full z-10 backdrop-blur-sm touch-manipulation"
+        className="slider-nav-btn absolute right-1 sm:right-4 top-1/2 -translate-y-1/2 bg-white/20 hover:bg-white/30 text-white p-1.5 sm:p-3 rounded-full z-10 backdrop-blur-sm touch-manipulation"
         aria-label="Next slide"
       >
-        <ChevronRight className="h-5 w-5 sm:h-6 sm:w-6" />
+        <ChevronRight className="h-4 w-4 sm:h-6 sm:w-6" />
       </button>
 
       {/* Dots Navigation */}
-      <div className="absolute bottom-4 sm:bottom-6 md:bottom-8 left-1/2 -translate-x-1/2 flex space-x-2 sm:space-x-3 z-10">
+      <div className="absolute bottom-3 sm:bottom-6 md:bottom-8 left-1/2 -translate-x-1/2 flex space-x-1.5 sm:space-x-3 z-10">
         {heroSlides.map((_, index) => (
           <button
             key={index}
             onClick={() => goToSlide(index)}
             className={`slider-dot touch-manipulation ${
               index === currentSlide
-                ? 'slider-dot-active w-8 sm:w-10 md:w-12 h-2 sm:h-2.5 md:h-3 bg-white rounded-full'
-                : 'w-2 sm:w-2.5 md:w-3 h-2 sm:h-2.5 md:h-3 bg-white/50 rounded-full hover:bg-white/75'
+                ? 'slider-dot-active w-6 sm:w-10 md:w-12 h-1.5 sm:h-2.5 md:h-3 bg-white rounded-full'
+                : 'w-1.5 sm:w-2.5 md:w-3 h-1.5 sm:h-2.5 md:h-3 bg-white/50 rounded-full hover:bg-white/75'
             }`}
             aria-label={`Go to slide ${index + 1}`}
           />
