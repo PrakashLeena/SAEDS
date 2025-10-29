@@ -126,7 +126,7 @@ const Home = () => {
                 const avatar = member.photoURL || 'https://via.placeholder.com/150';
                 const role = member.universityOrRole || '';
                 const bio = member.notes || '';
-                const joined = member.joinedAt ? new Date(member.joinedAt).getFullYear() : '';
+                const sinceYear = member.since || (member.joinedAt ? new Date(member.joinedAt).getFullYear() : '');
                 return (
                   <div 
                     key={member._id || index} 
@@ -144,13 +144,17 @@ const Home = () => {
                         <p className="text-sm text-primary-600 font-medium">{role}</p>
                       </div>
                     </div>
-                    <p className="text-gray-600 text-sm mb-4">{bio}</p>
-                    <div className="flex items-center justify-between text-sm">
+                    {bio && <p className="text-gray-600 text-sm mb-4 line-clamp-2">{bio}</p>}
+                    <div className="flex items-center justify-between text-sm mt-4">
                       <div className="flex items-center space-x-1 text-gray-500">
                         <TrendingUp className="h-4 w-4" />
-                        <span>Contributions</span>
+                        <span>Member</span>
                       </div>
-                      <span className="text-gray-400">Since {joined}</span>
+                      {sinceYear && (
+                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary-100 text-primary-800">
+                          Since {sinceYear}
+                        </span>
+                      )}
                     </div>
                   </div>
                 );
