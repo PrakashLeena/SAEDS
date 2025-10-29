@@ -16,8 +16,8 @@ router.get('/', async (req, res) => {
 // Create member (admin)
 router.post('/', async (req, res) => {
   try {
-    const { name, email, phone, photoURL, notes, createdByFirebaseUid } = req.body || {};
-    if (!name || !email) return res.status(400).json({ success: false, message: 'name and email required' });
+    const { name, email, phone, photoURL, universityOrRole, since, notes, createdByFirebaseUid } = req.body || {};
+    if (!name) return res.status(400).json({ success: false, message: 'name is required' });
 
     let createdBy = null;
     if (createdByFirebaseUid) {
@@ -25,7 +25,16 @@ router.post('/', async (req, res) => {
       if (user) createdBy = user._id;
     }
 
-    const member = new Member({ name, email, phone: phone || '', photoURL: photoURL || '', notes: notes || '', createdBy });
+    const member = new Member({ 
+      name, 
+      email: email || '', 
+      phone: phone || '', 
+      photoURL: photoURL || '', 
+      universityOrRole: universityOrRole || '',
+      since: since || null,
+      notes: notes || '', 
+      createdBy 
+    });
     await member.save();
     res.status(201).json({ success: true, data: member });
   } catch (err) {
