@@ -12,7 +12,11 @@ connectDB();
 
 // Enable CORS for all routes
 app.use((req, res, next) => {
+  // Get frontend URL from environment variable or use default
+  const frontendUrl = process.env.FRONTEND_URL || 'https://saeds-klj8.vercel.app';
+  
   const allowedOrigins = [
+    frontendUrl,
     'https://saeds-klj8.vercel.app',
     'https://saeds-klj8-*.vercel.app', // For Vercel preview deployments
     'http://localhost:3000',

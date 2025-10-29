@@ -6,8 +6,12 @@ const server = createServer(app);
 
 // Vercel serverless function handler
 module.exports = async (req, res) => {
+  // Get frontend URL from environment variable or use default
+  const frontendUrl = process.env.FRONTEND_URL || 'https://saeds-klj8.vercel.app';
+  
   // Set CORS headers
   const allowedOrigins = [
+    frontendUrl,
     'https://saeds-klj8.vercel.app',
     'https://saeds-klj8-*.vercel.app',
     'http://localhost:3000',
