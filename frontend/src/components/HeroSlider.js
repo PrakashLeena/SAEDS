@@ -31,6 +31,14 @@ const HeroSlider = () => {
 
   const onTouchMove = (e) => {
     setTouchEnd(e.targetTouches[0].clientX);
+    
+    // Prevent vertical scrolling while swiping horizontally
+    if (touchStart) {
+      const distance = Math.abs(touchStart - e.targetTouches[0].clientX);
+      if (distance > 10) {
+        e.preventDefault();
+      }
+    }
   };
 
   const onTouchEnd = () => {
@@ -45,6 +53,10 @@ const HeroSlider = () => {
     } else if (isRightSwipe) {
       prevSlide();
     }
+    
+    // Reset touch states
+    setTouchStart(0);
+    setTouchEnd(0);
   };
 
   const goToSlide = (index) => {
@@ -102,7 +114,7 @@ const HeroSlider = () => {
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
               <div className="max-w-3xl">
                 <h1
-                  className={`text-4xl md:text-6xl lg:text-7xl font-bold text-white mb-4 text-shadow-lg transition-all duration-700 delay-300 ${
+                  className={`text-2xl sm:text-3xl md:text-5xl lg:text-6xl xl:text-7xl font-bold text-white mb-2 sm:mb-3 md:mb-4 text-shadow-lg transition-all duration-700 delay-300 leading-tight ${
                     index === currentSlide
                       ? 'translate-x-0 opacity-100'
                       : '-translate-x-10 opacity-0'
@@ -111,7 +123,7 @@ const HeroSlider = () => {
                   {slide.title}
                 </h1>
                 <p
-                  className={`text-2xl md:text-3xl text-primary-200 mb-4 text-shadow-md transition-all duration-700 delay-500 ${
+                  className={`text-base sm:text-lg md:text-xl lg:text-2xl text-primary-200 mb-2 sm:mb-3 md:mb-4 text-shadow-md transition-all duration-700 delay-500 ${
                     index === currentSlide
                       ? 'translate-x-0 opacity-100'
                       : '-translate-x-10 opacity-0'
@@ -120,7 +132,7 @@ const HeroSlider = () => {
                   {slide.subtitle}
                 </p>
                 <p
-                  className={`text-lg md:text-xl text-gray-200 mb-8 text-shadow-md transition-all duration-700 delay-700 ${
+                  className={`text-sm sm:text-base md:text-lg lg:text-xl text-gray-200 mb-4 sm:mb-6 md:mb-8 text-shadow-md transition-all duration-700 delay-700 line-clamp-2 sm:line-clamp-3 md:line-clamp-none ${
                     index === currentSlide
                       ? 'translate-x-0 opacity-100'
                       : '-translate-x-10 opacity-0'
@@ -131,7 +143,7 @@ const HeroSlider = () => {
 
                 {/* CTA Buttons */}
                 <div
-                  className={`flex flex-col sm:flex-row gap-4 transition-all duration-700 delay-900 ${
+                  className={`flex flex-col sm:flex-row gap-2 sm:gap-3 md:gap-4 transition-all duration-700 delay-900 ${
                     index === currentSlide
                       ? 'translate-y-0 opacity-100'
                       : 'translate-y-10 opacity-0'
@@ -140,14 +152,16 @@ const HeroSlider = () => {
                   {slide.cta.primary.link.startsWith('#') ? (
                     <a
                       href={slide.cta.primary.link}
-                      className="btn-primary bg-primary-600 text-white px-8 py-4 rounded-lg font-semibold hover:bg-primary-700 transition-all hover:scale-105 text-center shadow-lg relative z-10"
+                      className="btn-primary bg-primary-600 text-white px-4 py-2.5 sm:px-6 sm:py-3 md:px-8 md:py-4 rounded-lg text-sm sm:text-base font-semibold hover:bg-primary-700 transition-all hover:scale-105 text-center shadow-lg relative z-10 touch-manipulation"
+                      onClick={(e) => e.stopPropagation()}
                     >
                       {slide.cta.primary.text}
                     </a>
                   ) : (
                     <Link
                       to={slide.cta.primary.link}
-                      className="btn-primary bg-primary-600 text-white px-8 py-4 rounded-lg font-semibold hover:bg-primary-700 transition-all hover:scale-105 text-center shadow-lg relative z-10"
+                      className="btn-primary bg-primary-600 text-white px-4 py-2.5 sm:px-6 sm:py-3 md:px-8 md:py-4 rounded-lg text-sm sm:text-base font-semibold hover:bg-primary-700 transition-all hover:scale-105 text-center shadow-lg relative z-10 touch-manipulation"
+                      onClick={(e) => e.stopPropagation()}
                     >
                       {slide.cta.primary.text}
                     </Link>
@@ -156,14 +170,16 @@ const HeroSlider = () => {
                   {slide.cta.secondary.link.startsWith('#') ? (
                     <a
                       href={slide.cta.secondary.link}
-                      className="btn-secondary bg-white/10 text-white px-8 py-4 rounded-lg font-semibold hover:bg-white/20 transition-all hover:scale-105 text-center border-2 border-white/30 shadow-lg"
+                      className="btn-secondary bg-white/10 text-white px-4 py-2.5 sm:px-6 sm:py-3 md:px-8 md:py-4 rounded-lg text-sm sm:text-base font-semibold hover:bg-white/20 transition-all hover:scale-105 text-center border-2 border-white/30 shadow-lg touch-manipulation"
+                      onClick={(e) => e.stopPropagation()}
                     >
                       {slide.cta.secondary.text}
                     </a>
                   ) : (
                     <Link
                       to={slide.cta.secondary.link}
-                      className="btn-secondary bg-white/10 text-white px-8 py-4 rounded-lg font-semibold hover:bg-white/20 transition-all hover:scale-105 text-center border-2 border-white/30 shadow-lg"
+                      className="btn-secondary bg-white/10 text-white px-4 py-2.5 sm:px-6 sm:py-3 md:px-8 md:py-4 rounded-lg text-sm sm:text-base font-semibold hover:bg-white/20 transition-all hover:scale-105 text-center border-2 border-white/30 shadow-lg touch-manipulation"
+                      onClick={(e) => e.stopPropagation()}
                     >
                       {slide.cta.secondary.text}
                     </Link>
@@ -178,30 +194,30 @@ const HeroSlider = () => {
       {/* Navigation Arrows */}
       <button
         onClick={prevSlide}
-        className="slider-nav-btn absolute left-4 top-1/2 -translate-y-1/2 bg-white/20 hover:bg-white/30 text-white p-3 rounded-full z-10"
+        className="slider-nav-btn absolute left-2 sm:left-4 top-1/2 -translate-y-1/2 bg-white/20 hover:bg-white/30 text-white p-2 sm:p-3 rounded-full z-10 backdrop-blur-sm touch-manipulation"
         aria-label="Previous slide"
       >
-        <ChevronLeft className="h-6 w-6" />
+        <ChevronLeft className="h-5 w-5 sm:h-6 sm:w-6" />
       </button>
 
       <button
         onClick={nextSlide}
-        className="slider-nav-btn absolute right-4 top-1/2 -translate-y-1/2 bg-white/20 hover:bg-white/30 text-white p-3 rounded-full z-10"
+        className="slider-nav-btn absolute right-2 sm:right-4 top-1/2 -translate-y-1/2 bg-white/20 hover:bg-white/30 text-white p-2 sm:p-3 rounded-full z-10 backdrop-blur-sm touch-manipulation"
         aria-label="Next slide"
       >
-        <ChevronRight className="h-6 w-6" />
+        <ChevronRight className="h-5 w-5 sm:h-6 sm:w-6" />
       </button>
 
       {/* Dots Navigation */}
-      <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex space-x-3 z-10">
+      <div className="absolute bottom-4 sm:bottom-6 md:bottom-8 left-1/2 -translate-x-1/2 flex space-x-2 sm:space-x-3 z-10">
         {heroSlides.map((_, index) => (
           <button
             key={index}
             onClick={() => goToSlide(index)}
-            className={`slider-dot ${
+            className={`slider-dot touch-manipulation ${
               index === currentSlide
-                ? 'slider-dot-active w-12 h-3 bg-white rounded-full'
-                : 'w-3 h-3 bg-white/50 rounded-full hover:bg-white/75'
+                ? 'slider-dot-active w-8 sm:w-10 md:w-12 h-2 sm:h-2.5 md:h-3 bg-white rounded-full'
+                : 'w-2 sm:w-2.5 md:w-3 h-2 sm:h-2.5 md:h-3 bg-white/50 rounded-full hover:bg-white/75'
             }`}
             aria-label={`Go to slide ${index + 1}`}
           />
@@ -209,7 +225,7 @@ const HeroSlider = () => {
       </div>
 
       {/* Slide Counter */}
-      <div className="slide-counter absolute top-8 right-8 bg-black/30 text-white px-4 py-2 rounded-full text-sm font-semibold">
+      <div className="slide-counter absolute top-2 right-2 sm:top-4 sm:right-4 md:top-8 md:right-8 bg-black/40 backdrop-blur-sm text-white px-2 py-1 sm:px-3 sm:py-1.5 md:px-4 md:py-2 rounded-full text-xs sm:text-sm font-semibold">
         {currentSlide + 1} / {heroSlides.length}
       </div>
     </div>

@@ -272,16 +272,34 @@ html {
   /* Reduce slider height for small screens */
   .slider-container {
     height: 450px !important;
+    touch-action: pan-y pinch-zoom;
   }
 
   /* Optimize image display */
   .slider-image {
     object-position: center center;
+    object-fit: cover;
     transform: scale(1.05);
+    will-change: transform;
   }
 
   .slider-image-active {
-    transform: scale(1.15);
+    transform: scale(1.1);
+  }
+
+  /* Prevent text overflow on mobile */
+  .slider-container h1,
+  .slider-container h2,
+  .slider-container p {
+    overflow-wrap: break-word;
+    word-wrap: break-word;
+    hyphens: auto;
+  }
+
+  /* Ensure content doesn't overflow */
+  .slider-container .max-w-3xl {
+    max-width: 100%;
+    padding: 0 0.5rem;
   }
 
   /* Adjust text sizes for mobile */
