@@ -28,30 +28,30 @@ const uploadToCloudinary = (buffer, folder, resourceType = 'image') => {
   });
 };
 
-// Upload activity image and save locally (for environments where Cloudinary isn't used)
-const fs = require('fs');
-const path = require('path');
-
+// Upload activity image to Cloudinary (serverless-friendly)
 router.post('/activity-image', upload.single('image'), async (req, res) => {
   try {
-    if (!req.file) return res.status(400).json({ success: false, message: 'No image uploaded' });
+    if (!req.file) {
+      return res.status(400).json({ success: false, message: 'No image uploaded' });
+    }
 
-    const uploadsDir = path.join(__dirname, '..', 'uploads', 'activities');
-    fs.mkdirSync(uploadsDir, { recursive: true });
+    const result = await uploadToCloudinary(
+      req.file.buffer,
+      'saeds/activities',
+      'image'
+    );
 
-    // Sanitize filename and create unique name
-    const safeName = req.file.originalname.replace(/[^a-z0-9.\-\_]/gi, '-');
-    const filename = `${Date.now()}-${safeName}`;
-    const filepath = path.join(uploadsDir, filename);
-
-    fs.writeFileSync(filepath, req.file.buffer);
-
-    const fullUrl = `${req.protocol}://${req.get('host')}/uploads/activities/${filename}`;
-
-    return res.json({ success: true, data: { url: fullUrl, filename } });
+    return res.json({
+      success: true,
+      message: 'Activity image uploaded successfully',
+      data: {
+        url: result.secure_url,
+        publicId: result.public_id,
+      },
+    });
   } catch (err) {
-    console.error('Error saving activity image locally:', err);
-    return res.status(500).json({ success: false, message: 'Failed to save image', error: err.message });
+    console.error('Error uploading activity image to Cloudinary:', err);
+    return res.status(500).json({ success: false, message: 'Failed to upload image', error: err.message });
   }
 });
 
