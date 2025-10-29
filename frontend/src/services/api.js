@@ -1,8 +1,5 @@
-// If REACT_APP_API_URL is set (recommended in production), use it.
-// Otherwise default to a relative `/api` path so the frontend can work when
-// the backend is deployed as serverless functions under the same domain
-// (for example when Vercel serves static frontend and serverless API together).
-const API_URL = process.env.REACT_APP_API_URL || '/api';
+// Use Vercel backend URL in production, fallback to environment variable or localhost
+const API_URL = 'https://saeds-backend.vercel.app/api' || process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
 
 // Helper function for API calls
 const apiCall = async (endpoint, options = {}) => {

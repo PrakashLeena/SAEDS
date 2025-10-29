@@ -8,6 +8,7 @@ import Home from './pages/Home';
 import Browse from './pages/Browse';
 import BrowseSection from './pages/BrowseSection';
 import BookDetail from './pages/BookDetail';
+import ConnectionTest from './components/ConnectionTest';
 import Favorites from './pages/Favorites';
 import Profile from './pages/Profile';
 import Activity from './pages/Activity';
@@ -41,6 +42,7 @@ function App() {
             <Routes>
               <Route path="/" element={<Home />} />
               <Route path="/browse" element={<Browse />} />
+              <Route path="/test-connection" element={<ConnectionTest />} />
               <Route path="/browse/section/:folderId" element={<BrowseSection />} />
               <Route path="/book/:id" element={<BookDetail />} />
               <Route path="/favorites" element={<Favorites />} />

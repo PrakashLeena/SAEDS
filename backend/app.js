@@ -10,11 +10,12 @@ const app = express();
 // Connect to MongoDB (serverless-friendly: will reuse connection when possible)
 connectDB();
 
-// Middleware
+// Middleware - CORS Configuration
 const allowedOrigins = [
   process.env.FRONTEND_URL,
   'http://localhost:3000',
-  'http://localhost:3002'
+  'http://localhost:3002',
+  'https://saeds-klj8.vercel.app'  // Your Vercel frontend URL
 ].filter(Boolean);
 
 app.use(cors({
@@ -28,12 +29,16 @@ app.use(cors({
     // In development, allow all origins
     if (process.env.NODE_ENV !== 'production') return callback(null, true);
     
-    // In production, check if origin matches Vercel pattern
-    if (origin.includes('vercel.app')) return callback(null, true);
+    // In production, allow any vercel.app subdomain
+    if (origin.endsWith('.vercel.app')) return callback(null, true);
     
+    console.log('Blocked by CORS:', origin);
     callback(new Error('Not allowed by CORS'));
   },
   credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept'],
+  exposedHeaders: ['Content-Range', 'X-Total-Count']
 }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
