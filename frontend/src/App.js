@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
+import ErrorBoundary from './components/ErrorBoundary';
 import Home from './pages/Home';
 import Browse from './pages/Browse';
 import BrowseSection from './pages/BrowseSection';
@@ -33,6 +34,7 @@ function App() {
   return (
     <Router>
       <AuthProvider>
+        <ErrorBoundary>
         <div className="flex flex-col min-h-screen">
           <Navbar />
           <main className="flex-grow">
@@ -70,6 +72,7 @@ function App() {
           </main>
           <Footer />
         </div>
+        </ErrorBoundary>
       </AuthProvider>
     </Router>
   );
