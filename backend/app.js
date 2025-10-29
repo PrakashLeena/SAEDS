@@ -10,36 +10,34 @@ const app = express();
 // Connect to MongoDB (serverless-friendly: will reuse connection when possible)
 connectDB();
 
-// Middleware - CORS Configuration
-const allowedOrigins = [
-  process.env.FRONTEND_URL,
-  'http://localhost:3000',
-  'http://localhost:3002',
-  'https://saeds-klj8.vercel.app'  // Your Vercel frontend URL
-].filter(Boolean);
+// Enable CORS for all routes
+app.use((req, res, next) => {
+  const allowedOrigins = [
+    'https://saeds-klj8.vercel.app',
+    'https://saeds-klj8-*.vercel.app', // For Vercel preview deployments
+    'http://localhost:3000',
+    'http://localhost:3002'
+  ];
 
-app.use(cors({
-  origin: (origin, callback) => {
-    // Allow requests with no origin (mobile apps, Postman, etc.)
-    if (!origin) return callback(null, true);
-    
-    // Allow if origin is in allowed list
-    if (allowedOrigins.includes(origin)) return callback(null, true);
-    
-    // In development, allow all origins
-    if (process.env.NODE_ENV !== 'production') return callback(null, true);
-    
-    // In production, allow any vercel.app subdomain
-    if (origin.endsWith('.vercel.app')) return callback(null, true);
-    
-    console.log('Blocked by CORS:', origin);
-    callback(new Error('Not allowed by CORS'));
-  },
-  credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept'],
-  exposedHeaders: ['Content-Range', 'X-Total-Count']
-}));
+  const origin = req.headers.origin;
+  if (allowedOrigins.some(allowed => 
+    origin === allowed || 
+    (allowed.includes('*') && origin && origin.endsWith(allowed.split('*')[1]))
+  )) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+  }
+  
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, x-firebase-uid');
+  res.header('Access-Control-Allow-Credentials', 'true');
+  
+  // Handle preflight requests
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end();
+  }
+  
+  next();
+});
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 

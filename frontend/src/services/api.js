@@ -1,26 +1,64 @@
-// Use Vercel backend URL in production, fallback to environment variable or localhost
-const API_URL = 'https://saeds-backend.vercel.app/api' || process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
+// API Configuration
+const API_URL = process.env.REACT_APP_API_URL || 'https://saeds-backend.vercel.app/api';
+
+// Helper function to get auth token
+const getAuthToken = () => {
+  // Get token from localStorage or your auth context
+  return localStorage.getItem('token') || '';
+};
 
 // Helper function for API calls
 const apiCall = async (endpoint, options = {}) => {
+  const token = getAuthToken();
+  
+  // Set default headers
+  const headers = {
+    'Content-Type': 'application/json',
+    ...(token && { 'Authorization': `Bearer ${token}` }),
+    ...(options.headers || {})
+  };
+  
+  const config = {
+    ...options,
+    headers,
+    credentials: 'include' // Important for cookies/auth
+  };
+  
   try {
-    const response = await fetch(`${API_URL}${endpoint}`, {
-      headers: {
-        'Content-Type': 'application/json',
-        ...options.headers,
-      },
-      ...options,
-    });
-
-    const data = await response.json();
-
-    if (!response.ok) {
-      throw new Error(data.message || 'API request failed');
+    const response = await fetch(`${API_URL}${endpoint}`, config);
+    
+    // Handle 401 Unauthorized
+    if (response.status === 401) {
+      // Handle token refresh or redirect to login
+      console.error('Authentication required');
+      // You might want to redirect to login here
+      // window.location.href = '/login';
+      throw new Error('Authentication required');
     }
-
-    return data;
+    
+    // Handle other error statuses
+    if (!response.ok) {
+      let errorData;
+      try {
+        errorData = await response.json();
+      } catch (e) {
+        errorData = { message: response.statusText };
+      }
+      throw new Error(errorData.message || 'Something went wrong');
+    }
+    
+    // Handle empty responses
+    const contentType = response.headers.get('content-type');
+    if (contentType && contentType.includes('application/json')) {
+      return await response.json();
+    }
+    
+    return await response.text();
   } catch (error) {
-    console.error('API Error:', error);
+    console.error('API call failed:', error);
+    if (error.name === 'TypeError' && error.message === 'Failed to fetch') {
+      throw new Error('Unable to connect to the server. Please check your internet connection.');
+    }
     throw error;
   }
 };
