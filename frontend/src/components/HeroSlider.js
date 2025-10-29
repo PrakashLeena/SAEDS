@@ -6,6 +6,11 @@ import { heroSlides } from '../data/slider';
 const HeroSlider = () => {
   const [currentSlide, setCurrentSlide] = useState(0);
   const [isAutoPlaying, setIsAutoPlaying] = useState(true);
+  const [touchStart, setTouchStart] = useState(0);
+  const [touchEnd, setTouchEnd] = useState(0);
+
+  // Minimum swipe distance (in px)
+  const minSwipeDistance = 50;
 
   // Auto-play functionality
   useEffect(() => {
@@ -17,6 +22,30 @@ const HeroSlider = () => {
 
     return () => clearInterval(interval);
   }, [isAutoPlaying]);
+
+  // Touch handlers for mobile swipe
+  const onTouchStart = (e) => {
+    setTouchEnd(0); // Reset touch end
+    setTouchStart(e.targetTouches[0].clientX);
+  };
+
+  const onTouchMove = (e) => {
+    setTouchEnd(e.targetTouches[0].clientX);
+  };
+
+  const onTouchEnd = () => {
+    if (!touchStart || !touchEnd) return;
+    
+    const distance = touchStart - touchEnd;
+    const isLeftSwipe = distance > minSwipeDistance;
+    const isRightSwipe = distance < -minSwipeDistance;
+
+    if (isLeftSwipe) {
+      nextSlide();
+    } else if (isRightSwipe) {
+      prevSlide();
+    }
+  };
 
   const goToSlide = (index) => {
     setCurrentSlide(index);
@@ -38,7 +67,12 @@ const HeroSlider = () => {
   };
 
   return (
-    <div className="relative h-[600px] md:h-[700px] overflow-hidden bg-gray-900">
+    <div 
+      className="slider-container relative h-[450px] sm:h-[500px] md:h-[600px] lg:h-[700px] overflow-hidden bg-gray-900"
+      onTouchStart={onTouchStart}
+      onTouchMove={onTouchMove}
+      onTouchEnd={onTouchEnd}
+    >
       {/* Slides */}
       {heroSlides.map((slide, index) => (
         <div
