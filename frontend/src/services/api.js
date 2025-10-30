@@ -385,6 +385,16 @@ export const memberAPI = {
   delete: (id) => apiCall(`/members/${id}`, { method: 'DELETE' }),
 };
 
+// Achievement API
+export const achievementAPI = {
+  getAll: () => apiCall('/achievements'),
+  getAllAdmin: () => apiCall('/achievements/all'),
+  getById: (id) => apiCall(`/achievements/${id}`),
+  create: (payload) => apiCall('/achievements', { method: 'POST', body: JSON.stringify(payload) }),
+  update: (id, payload) => apiCall(`/achievements/${id}`, { method: 'PUT', body: JSON.stringify(payload) }),
+  delete: (id) => apiCall(`/achievements/${id}`, { method: 'DELETE' }),
+};
+
 // Export all APIs (single default export including memberAPI)
 const defaultExport = {
   user: userAPI,
@@ -399,6 +409,7 @@ const defaultExport = {
   stats: statsAPI,
   healthCheck,
   member: memberAPI,
+  achievement: achievementAPI,
 };
 
 export default defaultExport;

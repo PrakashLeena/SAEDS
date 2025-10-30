@@ -26,6 +26,8 @@ import ActivityManagement from './pages/admin/ActivityManagement';
 import ActivityForm from './pages/admin/ActivityForm';
 import MemberManagement from './pages/admin/MemberManagement';
 import MemberForm from './pages/admin/MemberForm';
+import AchievementManagement from './pages/admin/AchievementManagement';
+import AchievementForm from './pages/admin/AchievementForm';
 import Gallery from './pages/Gallery';
 import GalleryManagement from './pages/admin/GalleryManagement';
 import ElibraryManagement from './pages/admin/ElibraryManagement';
@@ -69,6 +71,9 @@ function App() {
               <Route path="/admin/members" element={<ProtectedRoute requireAdmin={true}><MemberManagement /></ProtectedRoute>} />
               <Route path="/admin/members/add" element={<ProtectedRoute requireAdmin={true}><MemberForm /></ProtectedRoute>} />
               <Route path="/admin/members/edit/:id" element={<ProtectedRoute requireAdmin={true}><MemberForm /></ProtectedRoute>} />
+              <Route path="/admin/achievements" element={<ProtectedRoute requireAdmin={true}><AchievementManagement /></ProtectedRoute>} />
+              <Route path="/admin/achievements/add" element={<ProtectedRoute requireAdmin={true}><AchievementForm /></ProtectedRoute>} />
+              <Route path="/admin/achievements/edit/:id" element={<ProtectedRoute requireAdmin={true}><AchievementForm /></ProtectedRoute>} />
               <Route path="/admin/gallery" element={<ProtectedRoute requireAdmin={true}><GalleryManagement /></ProtectedRoute>} />
               <Route path="/admin/elibrary" element={<ProtectedRoute requireAdmin={true}><ElibraryManagement /></ProtectedRoute>} />
             </Routes>

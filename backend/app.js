@@ -57,6 +57,7 @@ const contactRoutes = require('./routes/contactRoutes');
 const statsRoutes = require('./routes/statsRoutes');
 const membershipRoutes = require('./routes/membershipRoutes');
 const memberRoutes = require('./routes/memberRoutes');
+const achievementRoutes = require('./routes/achievementRoutes');
 
 // API Routes
 app.use('/api/users', userRoutes);
@@ -67,6 +68,7 @@ app.use('/api/contact', contactRoutes);
 app.use('/api/stats', statsRoutes);
 app.use('/api/membership', membershipRoutes);
 app.use('/api/members', memberRoutes);
+app.use('/api/achievements', achievementRoutes);
 
 // Health check route
 app.get('/api/health', (req, res) => {

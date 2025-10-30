@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowRight, BookOpen, Users, Calendar, Heart, Globe, TrendingUp } from 'lucide-react';
+import { ArrowRight, BookOpen, Users, Calendar, Heart, Globe, TrendingUp, Trophy, Award, Medal, Star } from 'lucide-react';
 import HeroSlider from '../components/HeroSlider';
 import JoinModal from '../components/JoinModal';
 // Members will be fetched from the backend
@@ -12,6 +12,8 @@ const Home = () => {
   const [aboutRef, aboutVisible] = useScrollAnimation();
   const [membersRef, membersVisible] = useScrollAnimation();
   const [members, setMembers] = useState([]);
+  const [achievementsRef, achievementsVisible] = useScrollAnimation();
+  const [achievements, setAchievements] = useState([]);
   const [servicesRef, servicesVisible] = useScrollAnimation();
   const [booksRef, booksVisible] = useScrollAnimation();
   const [activeMembers, setActiveMembers] = useState('5,000+');
@@ -54,6 +56,20 @@ const Home = () => {
     };
 
     fetchMembers();
+    
+    // fetch achievements from backend
+    const fetchAchievements = async () => {
+      try {
+        const res = await api.achievement.getAll();
+        if (!mounted) return;
+        const list = (res && res.data) ? res.data : [];
+        setAchievements(list);
+      } catch (err) {
+        console.error('Failed to fetch achievements:', err);
+      }
+    };
+
+    fetchAchievements();
     return () => { mounted = false; };
   }, []);
 
@@ -144,6 +160,57 @@ const Home = () => {
         </div>
       </section>
 
+      {/* Achievements Section */}
+      <section ref={achievementsRef} className="py-16 bg-gradient-to-br from-primary-600 to-primary-800 text-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className={`text-center mb-12 transition-all duration-700 ${achievementsVisible ? 'animate-fade-in-up' : 'opacity-0'}`}>
+            <h2 className="text-3xl md:text-4xl font-bold mb-4">
+              Our Achievements
+            </h2>
+            <p className="text-lg text-primary-100">
+              Milestones we've reached together as a community
+            </p>
+          </div>
+
+          {achievements.length === 0 ? (
+            <div className={`text-center py-12 transition-all duration-700 ${achievementsVisible ? 'animate-fade-in' : 'opacity-0'}`}>
+              <Trophy className="h-16 w-16 mx-auto mb-4 text-primary-200" />
+              <p className="text-primary-100">No achievements to display yet.</p>
+            </div>
+          ) : (
+            <div className={`grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6 transition-all duration-700 ${achievementsVisible ? 'opacity-100' : 'opacity-0'}`}>
+              {achievements.map((achievement, index) => {
+                // Icon mapping
+                const iconMap = {
+                  trophy: Trophy,
+                  award: Award,
+                  medal: Medal,
+                  star: Star,
+                };
+                const IconComponent = iconMap[achievement.icon] || Trophy;
+
+                return (
+                  <div
+                    key={achievement._id || index}
+                    className={`bg-white/10 backdrop-blur-sm rounded-xl p-4 md:p-6 text-center hover:bg-white/20 transition-all hover:scale-105 ${achievementsVisible ? 'animate-fade-in-up' : ''}`}
+                    style={{ animationDelay: `${index * 100}ms` }}
+                  >
+                    <div className="flex justify-center mb-3 md:mb-4">
+                      <div className="bg-white/20 p-3 md:p-4 rounded-full">
+                        <IconComponent className="h-6 w-6 md:h-8 md:w-8 text-white" />
+                      </div>
+                    </div>
+                    <h3 className="text-2xl md:text-4xl font-bold mb-2">{achievement.value}</h3>
+                    <p className="text-sm md:text-base font-semibold mb-1">{achievement.title}</p>
+                    <p className="text-xs md:text-sm text-primary-100">{achievement.description}</p>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      </section>
+
   {/* Featured Members Section */}
   <section id="members" ref={membersRef} className="py-16 bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -171,7 +238,7 @@ const Home = () => {
               <div 
                 className={`flex gap-6 animate-scroll-horizontal transition-all duration-700 ${membersVisible ? 'opacity-100' : 'opacity-0'}`}
                 style={{
-                  animation: members.length > 3 ? 'scroll-horizontal 30s linear infinite' : 'none'
+                  animation: members.length > 3 ? 'scroll-horizontal 15s linear infinite' : 'none'
                 }}
               >
                 {/* Duplicate members for seamless loop */}

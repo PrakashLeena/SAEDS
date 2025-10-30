@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Users, BookOpen, Calendar, TrendingUp, UserPlus, Plus } from 'lucide-react';
+import { Users, BookOpen, Calendar, TrendingUp, UserPlus, Plus, Trophy } from 'lucide-react';
 import { userAPI, bookAPI, activityAPI } from '../../services/api';
 
 const AdminDashboard = () => {
@@ -91,7 +91,7 @@ const AdminDashboard = () => {
         </div>
 
         {/* Quick Actions */}
-  <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
           <Link
             to="/admin/members/add"
             className="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow flex items-center space-x-4 border-2 border-transparent hover:border-primary-500"
@@ -128,6 +128,19 @@ const AdminDashboard = () => {
             <div>
               <h3 className="font-semibold text-gray-900">Add Activity</h3>
               <p className="text-sm text-gray-600">Create new event</p>
+            </div>
+          </Link>
+
+          <Link
+            to="/admin/achievements/add"
+            className="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow flex items-center space-x-4 border-2 border-transparent hover:border-yellow-500"
+          >
+            <div className="bg-yellow-100 p-3 rounded-full">
+              <Trophy className="h-6 w-6 text-yellow-600" />
+            </div>
+            <div>
+              <h3 className="font-semibold text-gray-900">Add Achievement</h3>
+              <p className="text-sm text-gray-600">Create milestone</p>
             </div>
           </Link>
 
