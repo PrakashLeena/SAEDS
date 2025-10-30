@@ -23,13 +23,16 @@ const ProtectedRoute = ({ children, requireAdmin = false }) => {
 
   // If admin access is required, check admin email
   if (requireAdmin) {
+    // IMPORTANT: Only these emails have admin access
+    // Add or remove admin emails here (all lowercase)
     const adminEmails = [
       'kibo@gmail.com',
       'saedsmail2025@gmail.com',
-      // Add more admin emails here
     ];
 
-    const isAdmin = adminEmails.includes(currentUser.email?.toLowerCase());
+    // Check if current user's email is in the admin list (case-insensitive)
+    const userEmail = currentUser?.email?.toLowerCase()?.trim();
+    const isAdmin = userEmail && adminEmails.includes(userEmail);
 
     if (!isAdmin) {
       return (
