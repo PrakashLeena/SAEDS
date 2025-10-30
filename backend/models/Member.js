@@ -9,6 +9,7 @@ const memberSchema = new mongoose.Schema({
   since: { type: Number, min: 1900, max: new Date().getFullYear() + 1 }, // Year member joined
   joinedAt: { type: Date, default: Date.now },
   notes: { type: String, default: '' },
+  order: { type: Number, default: 0 }, // Display order for drag-and-drop reordering
   createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },
 });
 

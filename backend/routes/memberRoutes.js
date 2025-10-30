@@ -6,7 +6,8 @@ const User = require('../models/User');
 // List members
 router.get('/', async (req, res) => {
   try {
-    const members = await Member.find().sort({ joinedAt: -1 });
+    // Sort by order field (ascending), then by joinedAt (descending) as fallback
+    const members = await Member.find().sort({ order: 1, joinedAt: -1 });
     res.json({ success: true, data: members });
   } catch (err) {
     res.status(500).json({ success: false, message: 'Failed to list members', error: err.message });
@@ -25,6 +26,10 @@ router.post('/', async (req, res) => {
       if (user) createdBy = user._id;
     }
 
+    // Get the highest order value and add 1 for new member
+    const maxOrderMember = await Member.findOne().sort({ order: -1 }).select('order');
+    const newOrder = maxOrderMember ? (maxOrderMember.order || 0) + 1 : 0;
+
     const member = new Member({ 
       name, 
       email: email || '', 
@@ -33,6 +38,7 @@ router.post('/', async (req, res) => {
       universityOrRole: universityOrRole || '',
       since: since || null,
       notes: notes || '', 
+      order: newOrder,
       createdBy 
     });
     await member.save();
