@@ -268,13 +268,7 @@ const Home = () => {
                 <span className="font-semibold text-primary-600 ml-2">Plus:</span> A vast collection of reference books and educational resources
               </p>
             </div>
-            <Link
-              to="/browse"
-              className="text-primary-600 hover:text-primary-700 font-medium flex items-center space-x-1 hover:gap-2 transition-all"
-            >
-              <span>View All Books</span>
-              <ArrowRight className="h-4 w-4" />
-            </Link>
+           
           </div>
 
           <div className={`text-center py-12 transition-all duration-700 ${booksVisible ? 'opacity-100' : 'opacity-0'}`}>

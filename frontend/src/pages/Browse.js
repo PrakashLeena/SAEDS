@@ -239,9 +239,7 @@ const Browse = () => {
         ) : (
           <div className="text-center py-12">
             <p className="text-gray-600">No books found. Use the Admin panel to add books or upload files to the E-Library.</p>
-            <div className="mt-4">
-              <Link to="/admin/books" className="text-primary-600 hover:underline">Go to Admin → Books</Link>
-            </div>
+            
           </div>
         )}
       </div>
