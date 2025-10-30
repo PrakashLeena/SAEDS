@@ -82,16 +82,22 @@ const HeroSlider = ({ onOpenJoinModal }) => {
     e.preventDefault();
     e.stopPropagation();
     
+    console.log('Button clicked with link:', link);
+    
     // Handle scroll to section
     if (link.startsWith('#')) {
       const targetId = link.substring(1);
+      console.log('Scrolling to section:', targetId);
       const element = document.getElementById(targetId);
       if (element) {
         element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      } else {
+        console.warn('Element not found:', targetId);
       }
     }
     // Handle join modal
     else if (link === '/join' && onOpenJoinModal) {
+      console.log('Opening join modal');
       onOpenJoinModal();
     }
   };
