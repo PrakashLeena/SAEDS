@@ -12,7 +12,7 @@ export const heroSlides = [
     image: img1,
     cta: {
       // Changed to target the members section on the Home page
-      primary: { text: "Explore Community", link: "#members" },
+      primary: { text: "Explore Community", link: "#services" },
       secondary: { text: "Join Us", link: "/join" }
     }
   },

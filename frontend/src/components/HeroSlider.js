@@ -173,39 +173,41 @@ const HeroSlider = ({ onOpenJoinModal }) => {
                       : 'translate-y-10 opacity-0'
                   }`}
                 >
+                  {/* Primary Button */}
                   {slide.cta.primary.link.startsWith('#') || slide.cta.primary.link === '/join' ? (
-                  <button
-                    onClick={(e) => handleButtonClick(e, slide.cta.primary.link)}
-                    className="btn-primary bg-primary-600 text-white px-4 py-2.5 sm:px-6 sm:py-3 md:px-8 md:py-4 rounded-lg text-sm sm:text-base font-semibold hover:bg-primary-700 transition-all hover:scale-105 text-center shadow-lg relative z-10 touch-manipulation"
-                  >
-                    {slide.cta.primary.text}
-                  </button>
-                ) : (
-                  <Link
-                    to={slide.cta.primary.link}
-                    className="btn-primary bg-primary-600 text-white px-4 py-2.5 sm:px-6 sm:py-3 md:px-8 md:py-4 rounded-lg text-sm sm:text-base font-semibold hover:bg-primary-700 transition-all hover:scale-105 text-center shadow-lg relative z-10 touch-manipulation"
-                    onClick={(e) => e.stopPropagation()}
-                  >
-                    {slide.cta.primary.text}
-                  </Link>
-                )}  
+                    <button
+                      onClick={(e) => handleButtonClick(e, slide.cta.primary.link)}
+                      className="btn-primary bg-primary-600 text-white px-4 py-2.5 sm:px-6 sm:py-3 md:px-8 md:py-4 rounded-lg text-sm sm:text-base font-semibold hover:bg-primary-700 transition-all hover:scale-105 text-center shadow-lg relative z-10 touch-manipulation"
+                    >
+                      {slide.cta.primary.text}
+                    </button>
+                  ) : (
+                    <Link
+                      to={slide.cta.primary.link}
+                      className="btn-primary bg-primary-600 text-white px-4 py-2.5 sm:px-6 sm:py-3 md:px-8 md:py-4 rounded-lg text-sm sm:text-base font-semibold hover:bg-primary-700 transition-all hover:scale-105 text-center shadow-lg relative z-10 touch-manipulation"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      {slide.cta.primary.text}
+                    </Link>
+                  )}
 
+                  {/* Secondary Button */}
                   {slide.cta.secondary.link.startsWith('#') || slide.cta.secondary.link === '/join' ? (
-                  <button
-                    onClick={(e) => handleButtonClick(e, slide.cta.secondary.link)}
-                    className="btn-secondary bg-white/10 text-white px-4 py-2.5 sm:px-6 sm:py-3 md:px-8 md:py-4 rounded-lg text-sm sm:text-base font-semibold hover:bg-white/20 transition-all hover:scale-105 text-center border-2 border-white/30 shadow-lg touch-manipulation"
-                  >
-                    {slide.cta.secondary.text}
-                  </button>
-                ) : (
-                  <Link
-                    to={slide.cta.secondary.link}
-                    className="btn-secondary bg-white/10 text-white px-4 py-2.5 sm:px-6 sm:py-3 md:px-8 md:py-4 rounded-lg text-sm sm:text-base font-semibold hover:bg-white/20 transition-all hover:scale-105 text-center border-2 border-white/30 shadow-lg touch-manipulation"
-                    onClick={(e) => e.stopPropagation()}
-                  >
-                    {slide.cta.secondary.text}
-                  </Link>
-                )}  
+                    <button
+                      onClick={(e) => handleButtonClick(e, slide.cta.secondary.link)}
+                      className="btn-secondary bg-white/10 text-white px-4 py-2.5 sm:px-6 sm:py-3 md:px-8 md:py-4 rounded-lg text-sm sm:text-base font-semibold hover:bg-white/20 transition-all hover:scale-105 text-center border-2 border-white/30 shadow-lg touch-manipulation"
+                    >
+                      {slide.cta.secondary.text}
+                    </button>
+                  ) : (
+                    <Link
+                      to={slide.cta.secondary.link}
+                      className="btn-secondary bg-white/10 text-white px-4 py-2.5 sm:px-6 sm:py-3 md:px-8 md:py-4 rounded-lg text-sm sm:text-base font-semibold hover:bg-white/20 transition-all hover:scale-105 text-center border-2 border-white/30 shadow-lg touch-manipulation"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      {slide.cta.secondary.text}
+                    </Link>
+                  )}
                 </div>
               </div>
             </div>
