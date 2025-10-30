@@ -4,6 +4,7 @@ import { AuthProvider } from './context/AuthContext';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import ErrorBoundary from './components/ErrorBoundary';
+import ProtectedRoute from './components/ProtectedRoute';
 import Home from './pages/Home';
 import Browse from './pages/Browse';
 import BrowseSection from './pages/BrowseSection';
@@ -55,21 +56,21 @@ function App() {
               <Route path="/signin" element={<SignIn />} />
               <Route path="/signup" element={<SignUp />} />
               
-              {/* Admin Routes */}
-              <Route path="/admin" element={<AdminDashboard />} />
-              <Route path="/admin/users" element={<UserManagement />} />
-              <Route path="/admin/users/add" element={<UserForm />} />
-              <Route path="/admin/books" element={<BookManagement />} />
-              <Route path="/admin/books/add" element={<BookForm />} />
-              <Route path="/admin/books/edit/:id" element={<BookForm />} />
-              <Route path="/admin/activities" element={<ActivityManagement />} />
-              <Route path="/admin/activities/add" element={<ActivityForm />} />
-              <Route path="/admin/activities/edit/:id" element={<ActivityForm />} />
-              <Route path="/admin/members" element={<MemberManagement />} />
-              <Route path="/admin/members/add" element={<MemberForm />} />
-              <Route path="/admin/members/edit/:id" element={<MemberForm />} />
-              <Route path="/admin/gallery" element={<GalleryManagement />} />
-              <Route path="/admin/elibrary" element={<ElibraryManagement />} />
+              {/* Admin Routes - Protected */}
+              <Route path="/admin" element={<ProtectedRoute requireAdmin={true}><AdminDashboard /></ProtectedRoute>} />
+              <Route path="/admin/users" element={<ProtectedRoute requireAdmin={true}><UserManagement /></ProtectedRoute>} />
+              <Route path="/admin/users/add" element={<ProtectedRoute requireAdmin={true}><UserForm /></ProtectedRoute>} />
+              <Route path="/admin/books" element={<ProtectedRoute requireAdmin={true}><BookManagement /></ProtectedRoute>} />
+              <Route path="/admin/books/add" element={<ProtectedRoute requireAdmin={true}><BookForm /></ProtectedRoute>} />
+              <Route path="/admin/books/edit/:id" element={<ProtectedRoute requireAdmin={true}><BookForm /></ProtectedRoute>} />
+              <Route path="/admin/activities" element={<ProtectedRoute requireAdmin={true}><ActivityManagement /></ProtectedRoute>} />
+              <Route path="/admin/activities/add" element={<ProtectedRoute requireAdmin={true}><ActivityForm /></ProtectedRoute>} />
+              <Route path="/admin/activities/edit/:id" element={<ProtectedRoute requireAdmin={true}><ActivityForm /></ProtectedRoute>} />
+              <Route path="/admin/members" element={<ProtectedRoute requireAdmin={true}><MemberManagement /></ProtectedRoute>} />
+              <Route path="/admin/members/add" element={<ProtectedRoute requireAdmin={true}><MemberForm /></ProtectedRoute>} />
+              <Route path="/admin/members/edit/:id" element={<ProtectedRoute requireAdmin={true}><MemberForm /></ProtectedRoute>} />
+              <Route path="/admin/gallery" element={<ProtectedRoute requireAdmin={true}><GalleryManagement /></ProtectedRoute>} />
+              <Route path="/admin/elibrary" element={<ProtectedRoute requireAdmin={true}><ElibraryManagement /></ProtectedRoute>} />
             </Routes>
           </main>
           <Footer />
