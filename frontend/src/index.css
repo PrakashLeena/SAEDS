@@ -263,6 +263,25 @@ html {
   text-shadow: 1px 2px 4px rgba(0, 0, 0, 0.4);
 }
 
+/* Horizontal scroll animation for members section */
+@keyframes scroll-horizontal {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.animate-scroll-horizontal {
+  will-change: transform;
+}
+
+/* Pause animation on hover */
+.animate-scroll-horizontal:hover {
+  animation-play-state: paused !important;
+}
+
 /* ============================================
    MOBILE-OPTIMIZED SLIDER STYLES
    ============================================ */

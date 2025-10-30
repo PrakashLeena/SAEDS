@@ -68,35 +68,35 @@ const Home = () => {
       {/* Mission and Vision Section */}
       <section className="py-16 bg-gradient-to-br from-primary-50 via-white to-primary-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 lg:gap-12">
+          <div className="grid grid-cols-2 gap-4 md:gap-8 lg:gap-12">
             {/* Mission */}
-            <div className="bg-white rounded-2xl shadow-xl p-8 md:p-10 border-t-4 border-primary-600 hover:shadow-2xl transition-all duration-300 hover:-translate-y-1">
-              <div className="flex items-center justify-center mb-6">
-                <div className="bg-primary-100 p-4 rounded-full">
-                  <TrendingUp className="h-10 w-10 text-primary-600" />
+            <div className="bg-white rounded-2xl shadow-xl p-4 sm:p-6 md:p-10 border-t-4 border-primary-600 hover:shadow-2xl transition-all duration-300 hover:-translate-y-1">
+              <div className="flex items-center justify-center mb-3 md:mb-6">
+                <div className="bg-primary-100 p-2 sm:p-3 md:p-4 rounded-full">
+                  <TrendingUp className="h-6 w-6 sm:h-8 sm:w-8 md:h-10 md:w-10 text-primary-600" />
                 </div>
               </div>
-              <h2 className="text-2xl md:text-3xl font-bold text-center text-gray-900 mb-4">
+              <h2 className="text-sm sm:text-xl md:text-3xl font-bold text-center text-gray-900 mb-2 md:mb-4">
                 OUR MISSION
               </h2>
-              <div className="h-1 w-20 bg-primary-600 mx-auto mb-6"></div>
-              <p className="text-center text-lg md:text-xl font-semibold text-primary-700 leading-relaxed">
+              <div className="h-0.5 md:h-1 w-12 md:w-20 bg-primary-600 mx-auto mb-3 md:mb-6"></div>
+              <p className="text-center text-xs sm:text-base md:text-xl font-semibold text-primary-700 leading-relaxed">
                 TOGETHER WE MAKE A DIFFERENCE
               </p>
             </div>
 
             {/* Vision */}
-            <div className="bg-white rounded-2xl shadow-xl p-8 md:p-10 border-t-4 border-green-600 hover:shadow-2xl transition-all duration-300 hover:-translate-y-1">
-              <div className="flex items-center justify-center mb-6">
-                <div className="bg-green-100 p-4 rounded-full">
-                  <BookOpen className="h-10 w-10 text-green-600" />
+            <div className="bg-white rounded-2xl shadow-xl p-4 sm:p-6 md:p-10 border-t-4 border-green-600 hover:shadow-2xl transition-all duration-300 hover:-translate-y-1">
+              <div className="flex items-center justify-center mb-3 md:mb-6">
+                <div className="bg-green-100 p-2 sm:p-3 md:p-4 rounded-full">
+                  <BookOpen className="h-6 w-6 sm:h-8 sm:w-8 md:h-10 md:w-10 text-green-600" />
                 </div>
               </div>
-              <h2 className="text-2xl md:text-3xl font-bold text-center text-gray-900 mb-4">
+              <h2 className="text-sm sm:text-xl md:text-3xl font-bold text-center text-gray-900 mb-2 md:mb-4">
                 OUR VISION
               </h2>
-              <div className="h-1 w-20 bg-green-600 mx-auto mb-6"></div>
-              <p className="text-center text-base md:text-lg font-medium text-gray-700 leading-relaxed">
+              <div className="h-0.5 md:h-1 w-12 md:w-20 bg-green-600 mx-auto mb-3 md:mb-6"></div>
+              <p className="text-center text-xs sm:text-sm md:text-lg font-medium text-gray-700 leading-relaxed">
                 CREATING A BETTER-EDUCATED AND THRIVING SOCIETY FOR OUR VILLAGE, 
                 EMPOWERING EVERYONE THROUGH ACCESSIBLE AND QUALITY EDUCATION.
               </p>
@@ -118,27 +118,27 @@ const Home = () => {
             </p>
           </div>
           
-          <div className={`grid grid-cols-1 md:grid-cols-3 gap-8 text-center transition-all duration-700 delay-200 ${aboutVisible ? 'animate-fade-in' : 'opacity-0'}`}>
-            <div className="p-6">
-              <div className="flex justify-center mb-4">
-                <Users className="h-12 w-12 text-primary-600" />
+          <div className={`grid grid-cols-3 gap-2 sm:gap-4 md:gap-8 text-center transition-all duration-700 delay-200 ${aboutVisible ? 'animate-fade-in' : 'opacity-0'}`}>
+            <div className="p-2 sm:p-4 md:p-6">
+              <div className="flex justify-center mb-2 md:mb-4">
+                <Users className="h-6 w-6 sm:h-8 sm:w-8 md:h-12 md:w-12 text-primary-600" />
               </div>
-              <h3 className="text-3xl font-bold text-gray-900 mb-2">{activeMembers}</h3>
-              <p className="text-gray-600">Active Members</p>
+              <h3 className="text-lg sm:text-2xl md:text-3xl font-bold text-gray-900 mb-1 md:mb-2">{activeMembers}</h3>
+              <p className="text-xs sm:text-sm md:text-base text-gray-600">Active Members</p>
             </div>
-            <div className="p-6">
-              <div className="flex justify-center mb-4">
-                <Calendar className="h-12 w-12 text-primary-600" />
+            <div className="p-2 sm:p-4 md:p-6">
+              <div className="flex justify-center mb-2 md:mb-4">
+                <Calendar className="h-6 w-6 sm:h-8 sm:w-8 md:h-12 md:w-12 text-primary-600" />
               </div>
-              <h3 className="text-3xl font-bold text-gray-900 mb-2">{eventsHosted}</h3>
-              <p className="text-gray-600">Events Hosted</p>
+              <h3 className="text-lg sm:text-2xl md:text-3xl font-bold text-gray-900 mb-1 md:mb-2">{eventsHosted}</h3>
+              <p className="text-xs sm:text-sm md:text-base text-gray-600">Events Hosted</p>
             </div>
-            <div className="p-6">
-              <div className="flex justify-center mb-4">
-                <Heart className="h-12 w-12 text-primary-600" />
+            <div className="p-2 sm:p-4 md:p-6">
+              <div className="flex justify-center mb-2 md:mb-4">
+                <Heart className="h-6 w-6 sm:h-8 sm:w-8 md:h-12 md:w-12 text-primary-600" />
               </div>
-              <h3 className="text-3xl font-bold text-gray-900 mb-2">100%</h3>
-              <p className="text-gray-600">Community Driven</p>
+              <h3 className="text-lg sm:text-2xl md:text-3xl font-bold text-gray-900 mb-1 md:mb-2">100%</h3>
+              <p className="text-xs sm:text-sm md:text-base text-gray-600">Community Driven</p>
             </div>
           </div>
         </div>
@@ -156,56 +156,64 @@ const Home = () => {
             </p>
           </div>
 
-          <div className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 transition-all duration-700 ${membersVisible ? 'opacity-100' : 'opacity-0'}`}>
-            {(!members || members.length === 0) ? (
-              <div className="col-span-full bg-white rounded-lg shadow-md p-6 text-center">
-                <p className="text-gray-600">We don't have featured members yet. View all members to explore the community.</p>
-                <div className="mt-4">
-                  <Link to="/profile" className="inline-flex items-center space-x-2 text-primary-600 hover:text-primary-700 font-medium">
-                    <span>View All Members</span>
-                  </Link>
-                </div>
+          {(!members || members.length === 0) ? (
+            <div className="bg-white rounded-lg shadow-md p-6 text-center">
+              <p className="text-gray-600">We don't have featured members yet. View all members to explore the community.</p>
+              <div className="mt-4">
+                <Link to="/profile" className="inline-flex items-center space-x-2 text-primary-600 hover:text-primary-700 font-medium">
+                  <span>View All Members</span>
+                </Link>
               </div>
-            ) : (
-              members.map((member, index) => {
-                const avatar = member.photoURL || 'https://via.placeholder.com/150';
-                const role = member.universityOrRole || '';
-                const bio = member.notes || '';
-                const sinceYear = member.since || (member.joinedAt ? new Date(member.joinedAt).getFullYear() : '');
-                return (
-                  <div 
-                    key={member._id || index} 
-                    className={`bg-white rounded-lg shadow-md p-6 hover:shadow-xl transition-all hover:-translate-y-2 ${membersVisible ? 'animate-fade-in-up' : ''}`}
-                    style={{animationDelay: `${index * 100}ms`}}
-                  >
-                    <div className="flex items-center space-x-4 mb-4">
-                      <img
-                        src={avatar}
-                        alt={member.name}
-                        className="w-16 h-16 rounded-full object-cover border-2 border-primary-200"
-                      />
-                      <div className="flex-1">
-                        <h3 className="text-lg font-bold text-gray-900">{member.name}</h3>
-                        <p className="text-sm text-primary-600 font-medium">{role}</p>
+            </div>
+          ) : (
+            <div className="relative overflow-hidden">
+              {/* Scrollable Container */}
+              <div 
+                className={`flex gap-6 animate-scroll-horizontal transition-all duration-700 ${membersVisible ? 'opacity-100' : 'opacity-0'}`}
+                style={{
+                  animation: members.length > 3 ? 'scroll-horizontal 30s linear infinite' : 'none'
+                }}
+              >
+                {/* Duplicate members for seamless loop */}
+                {[...members, ...members].map((member, index) => {
+                  const avatar = member.photoURL || 'https://via.placeholder.com/150';
+                  const role = member.universityOrRole || '';
+                  const bio = member.notes || '';
+                  const sinceYear = member.since || (member.joinedAt ? new Date(member.joinedAt).getFullYear() : '');
+                  return (
+                    <div 
+                      key={`${member._id || index}-${index}`}
+                      className="flex-shrink-0 w-80 bg-white rounded-lg shadow-md p-6 hover:shadow-xl transition-all hover:-translate-y-2"
+                    >
+                      <div className="flex items-center space-x-4 mb-4">
+                        <img
+                          src={avatar}
+                          alt={member.name}
+                          className="w-16 h-16 rounded-full object-cover border-2 border-primary-200"
+                        />
+                        <div className="flex-1">
+                          <h3 className="text-lg font-bold text-gray-900">{member.name}</h3>
+                          <p className="text-sm text-primary-600 font-medium">{role}</p>
+                        </div>
+                      </div>
+                      {bio && <p className="text-gray-600 text-sm mb-4 line-clamp-2">{bio}</p>}
+                      <div className="flex items-center justify-between text-sm mt-4">
+                        <div className="flex items-center space-x-1 text-gray-500">
+                          <TrendingUp className="h-4 w-4" />
+                          <span>Member</span>
+                        </div>
+                        {sinceYear && (
+                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary-100 text-primary-800">
+                            Since {sinceYear}
+                          </span>
+                        )}
                       </div>
                     </div>
-                    {bio && <p className="text-gray-600 text-sm mb-4 line-clamp-2">{bio}</p>}
-                    <div className="flex items-center justify-between text-sm mt-4">
-                      <div className="flex items-center space-x-1 text-gray-500">
-                        <TrendingUp className="h-4 w-4" />
-                        <span>Member</span>
-                      </div>
-                      {sinceYear && (
-                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary-100 text-primary-800">
-                          Since {sinceYear}
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                );
-              })
-            )}
-          </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
 
           <div className={`text-center mt-8 transition-all duration-700 delay-300 ${membersVisible ? 'animate-fade-in' : 'opacity-0'}`}>
             <Link
