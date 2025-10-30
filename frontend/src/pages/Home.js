@@ -179,7 +179,29 @@ const Home = () => {
         </div>
       </section>
 
-      {/* Recent Community Activity removed */}
+      {/* Community Activities Section */}
+      <section id="activity" className="py-16 bg-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+              Community Activities & Events
+            </h2>
+            <p className="text-lg text-gray-600">
+              Join our workshops, seminars, and networking events
+            </p>
+          </div>
+          <div className="text-center py-8">
+            <p className="text-gray-600 mb-6">Explore our upcoming events and activities</p>
+            <Link
+              to="/activity"
+              className="inline-flex items-center space-x-2 bg-primary-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-primary-700 transition-colors"
+            >
+              <Calendar className="h-5 w-5" />
+              <span>View All Activities</span>
+            </Link>
+          </div>
+        </div>
+      </section>
 
       {/* Community Services Section */}
       <section ref={servicesRef} id="services" className="py-16 bg-gray-50">
@@ -256,7 +278,7 @@ const Home = () => {
       </section>
 
       {/* Featured Books from E-Library (demo lists removed) */}
-      <section ref={booksRef} className="py-16 bg-white">
+      <section id="browse" ref={booksRef} className="py-16 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className={`flex justify-between items-center mb-8 transition-all duration-700 ${booksVisible ? 'animate-fade-in-up' : 'opacity-0'}`}>
             <div>

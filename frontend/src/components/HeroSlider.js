@@ -120,7 +120,7 @@ const HeroSlider = ({ onOpenJoinModal }) => {
           }`}
         >
           {/* Background Image */}
-          <div className="absolute inset-0">
+          <div className="absolute inset-0 z-0">
             <img
               src={slide.image}
               alt={slide.title}
@@ -128,17 +128,18 @@ const HeroSlider = ({ onOpenJoinModal }) => {
                 index === currentSlide ? 'slider-image-active' : ''
               }`}
             />
-            {/* Overlay */}
+            {/* Overlay - Stronger for mobile visibility */}
+            <div className="absolute inset-0 bg-black/60 md:bg-black/40"></div>
             <div className="absolute inset-0 gradient-overlay-dark"></div>
             <div className="absolute inset-0 gradient-overlay-primary"></div>
           </div>
 
           {/* Content */}
-          <div className="relative h-full flex items-center">
+          <div className="relative z-10 h-full flex items-center">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
               <div className="max-w-3xl">
                 <h1
-                  className={`text-2xl sm:text-3xl md:text-5xl lg:text-6xl xl:text-7xl font-bold text-white mb-2 sm:mb-3 md:mb-4 text-shadow-lg transition-all duration-700 delay-300 leading-tight ${
+                  className={`text-xl sm:text-3xl md:text-5xl lg:text-6xl xl:text-7xl font-bold text-white mb-2 sm:mb-3 md:mb-4 drop-shadow-2xl transition-all duration-700 delay-300 leading-tight ${
                     index === currentSlide
                       ? 'translate-x-0 opacity-100'
                       : '-translate-x-10 opacity-0'
