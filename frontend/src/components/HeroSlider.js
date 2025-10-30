@@ -139,7 +139,7 @@ const HeroSlider = ({ onOpenJoinModal }) => {
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
               <div className="max-w-3xl">
                 <h1
-                  className={`text-xl sm:text-3xl md:text-5xl lg:text-6xl xl:text-7xl font-bold text-white mb-2 sm:mb-3 md:mb-4 drop-shadow-2xl transition-all duration-700 delay-300 leading-tight ${
+                  className={`text-lg sm:text-2xl md:text-4xl lg:text-5xl xl:text-6xl font-bold text-white mb-2 sm:mb-3 md:mb-4 drop-shadow-2xl transition-all duration-700 delay-300 leading-tight ${
                     index === currentSlide
                       ? 'translate-x-0 opacity-100'
                       : '-translate-x-10 opacity-0'
@@ -148,7 +148,7 @@ const HeroSlider = ({ onOpenJoinModal }) => {
                   {slide.title}
                 </h1>
                 <p
-                  className={`text-base sm:text-lg md:text-xl lg:text-2xl text-primary-200 mb-2 sm:mb-3 md:mb-4 text-shadow-md transition-all duration-700 delay-500 ${
+                  className={`text-sm sm:text-base md:text-lg lg:text-xl text-primary-200 mb-2 sm:mb-3 md:mb-4 text-shadow-md transition-all duration-700 delay-500 ${
                     index === currentSlide
                       ? 'translate-x-0 opacity-100'
                       : '-translate-x-10 opacity-0'
@@ -157,7 +157,7 @@ const HeroSlider = ({ onOpenJoinModal }) => {
                   {slide.subtitle}
                 </p>
                 <p
-                  className={`text-sm sm:text-base md:text-lg lg:text-xl text-gray-200 mb-4 sm:mb-6 md:mb-8 text-shadow-md transition-all duration-700 delay-700 line-clamp-2 sm:line-clamp-3 md:line-clamp-none ${
+                  className={`text-xs sm:text-sm md:text-base lg:text-lg text-gray-200 mb-3 sm:mb-4 md:mb-6 text-shadow-md transition-all duration-700 delay-700 line-clamp-2 sm:line-clamp-3 md:line-clamp-none ${
                     index === currentSlide
                       ? 'translate-x-0 opacity-100'
                       : '-translate-x-10 opacity-0'
@@ -178,14 +178,14 @@ const HeroSlider = ({ onOpenJoinModal }) => {
                   {slide.cta.primary.link.startsWith('#') || slide.cta.primary.link === '/join' ? (
                     <button
                       onClick={(e) => handleButtonClick(e, slide.cta.primary.link)}
-                      className="btn-primary bg-primary-600 text-white px-4 py-2.5 sm:px-6 sm:py-3 md:px-8 md:py-4 rounded-lg text-sm sm:text-base font-semibold hover:bg-primary-700 transition-all hover:scale-105 text-center shadow-lg relative z-10 touch-manipulation"
+                      className="btn-primary bg-primary-600 text-white px-3 py-2 sm:px-5 sm:py-2.5 md:px-6 md:py-3 rounded-lg text-xs sm:text-sm font-semibold hover:bg-primary-700 transition-all hover:scale-105 text-center shadow-lg relative z-10 touch-manipulation"
                     >
                       {slide.cta.primary.text}
                     </button>
                   ) : (
                     <Link
                       to={slide.cta.primary.link}
-                      className="btn-primary bg-primary-600 text-white px-4 py-2.5 sm:px-6 sm:py-3 md:px-8 md:py-4 rounded-lg text-sm sm:text-base font-semibold hover:bg-primary-700 transition-all hover:scale-105 text-center shadow-lg relative z-10 touch-manipulation"
+                      className="btn-primary bg-primary-600 text-white px-3 py-2 sm:px-5 sm:py-2.5 md:px-6 md:py-3 rounded-lg text-xs sm:text-sm font-semibold hover:bg-primary-700 transition-all hover:scale-105 text-center shadow-lg relative z-10 touch-manipulation"
                       onClick={(e) => e.stopPropagation()}
                     >
                       {slide.cta.primary.text}
@@ -196,14 +196,14 @@ const HeroSlider = ({ onOpenJoinModal }) => {
                   {slide.cta.secondary.link.startsWith('#') || slide.cta.secondary.link === '/join' ? (
                     <button
                       onClick={(e) => handleButtonClick(e, slide.cta.secondary.link)}
-                      className="btn-secondary bg-white/10 text-white px-4 py-2.5 sm:px-6 sm:py-3 md:px-8 md:py-4 rounded-lg text-sm sm:text-base font-semibold hover:bg-white/20 transition-all hover:scale-105 text-center border-2 border-white/30 shadow-lg touch-manipulation"
+                      className="btn-secondary bg-white/10 text-white px-3 py-2 sm:px-5 sm:py-2.5 md:px-6 md:py-3 rounded-lg text-xs sm:text-sm font-semibold hover:bg-white/20 transition-all hover:scale-105 text-center border-2 border-white/30 shadow-lg touch-manipulation"
                     >
                       {slide.cta.secondary.text}
                     </button>
                   ) : (
                     <Link
                       to={slide.cta.secondary.link}
-                      className="btn-secondary bg-white/10 text-white px-4 py-2.5 sm:px-6 sm:py-3 md:px-8 md:py-4 rounded-lg text-sm sm:text-base font-semibold hover:bg-white/20 transition-all hover:scale-105 text-center border-2 border-white/30 shadow-lg touch-manipulation"
+                      className="btn-secondary bg-white/10 text-white px-3 py-2 sm:px-5 sm:py-2.5 md:px-6 md:py-3 rounded-lg text-xs sm:text-sm font-semibold hover:bg-white/20 transition-all hover:scale-105 text-center border-2 border-white/30 shadow-lg touch-manipulation"
                       onClick={(e) => e.stopPropagation()}
                     >
                       {slide.cta.secondary.text}
