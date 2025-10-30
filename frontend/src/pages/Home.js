@@ -197,11 +197,13 @@ const Home = () => {
                   >
                     <div className="flex justify-center mb-3 md:mb-4">
                       {achievement.imageURL ? (
-                        <img
-                          src={achievement.imageURL}
-                          alt={achievement.title}
-                          className="h-12 w-12 md:h-16 md:w-16 object-cover rounded-full border-2 border-white/30"
-                        />
+                        <div className="bg-white/20 p-2 rounded-lg">
+                          <img
+                            src={achievement.imageURL}
+                            alt={achievement.title}
+                            className="h-16 w-16 md:h-20 md:w-20 object-contain"
+                          />
+                        </div>
                       ) : (
                         <div className="bg-white/20 p-3 md:p-4 rounded-full">
                           <IconComponent className="h-6 w-6 md:h-8 md:w-8 text-white" />
