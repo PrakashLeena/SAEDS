@@ -65,6 +65,46 @@ const Home = () => {
       {/* Join Modal */}
       <JoinModal isOpen={isJoinModalOpen} onClose={() => setIsJoinModalOpen(false)} />
 
+      {/* Mission and Vision Section */}
+      <section className="py-16 bg-gradient-to-br from-primary-50 via-white to-primary-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 lg:gap-12">
+            {/* Mission */}
+            <div className="bg-white rounded-2xl shadow-xl p-8 md:p-10 border-t-4 border-primary-600 hover:shadow-2xl transition-all duration-300 hover:-translate-y-1">
+              <div className="flex items-center justify-center mb-6">
+                <div className="bg-primary-100 p-4 rounded-full">
+                  <TrendingUp className="h-10 w-10 text-primary-600" />
+                </div>
+              </div>
+              <h2 className="text-2xl md:text-3xl font-bold text-center text-gray-900 mb-4">
+                OUR MISSION
+              </h2>
+              <div className="h-1 w-20 bg-primary-600 mx-auto mb-6"></div>
+              <p className="text-center text-lg md:text-xl font-semibold text-primary-700 leading-relaxed">
+                TOGETHER WE MAKE A DIFFERENCE
+              </p>
+            </div>
+
+            {/* Vision */}
+            <div className="bg-white rounded-2xl shadow-xl p-8 md:p-10 border-t-4 border-green-600 hover:shadow-2xl transition-all duration-300 hover:-translate-y-1">
+              <div className="flex items-center justify-center mb-6">
+                <div className="bg-green-100 p-4 rounded-full">
+                  <BookOpen className="h-10 w-10 text-green-600" />
+                </div>
+              </div>
+              <h2 className="text-2xl md:text-3xl font-bold text-center text-gray-900 mb-4">
+                OUR VISION
+              </h2>
+              <div className="h-1 w-20 bg-green-600 mx-auto mb-6"></div>
+              <p className="text-center text-base md:text-lg font-medium text-gray-700 leading-relaxed">
+                CREATING A BETTER-EDUCATED AND THRIVING SOCIETY FOR OUR VILLAGE, 
+                EMPOWERING EVERYONE THROUGH ACCESSIBLE AND QUALITY EDUCATION.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* About Community Section */}
       <section ref={aboutRef} className="bg-white py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">

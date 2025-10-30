@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { Edit, Trash2, Plus } from 'lucide-react';
+import { Edit, Trash2, Plus, GripVertical } from 'lucide-react';
 import { memberAPI } from '../../services/api';
 import { Link, useNavigate } from 'react-router-dom';
 
 const MemberManagement = () => {
   const [members, setMembers] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [draggedIndex, setDraggedIndex] = useState(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -15,7 +16,16 @@ const MemberManagement = () => {
   const fetchMembers = async () => {
     try {
       const res = await memberAPI.getAll();
-      if (res && res.success) setMembers(res.data || []);
+      if (res && res.success) {
+        // Sort by order field if it exists, otherwise by creation date
+        const sorted = (res.data || []).sort((a, b) => {
+          if (a.order !== undefined && b.order !== undefined) {
+            return a.order - b.order;
+          }
+          return 0;
+        });
+        setMembers(sorted);
+      }
     } catch (err) {
       console.error('Error loading members', err);
     } finally {
@@ -34,6 +44,59 @@ const MemberManagement = () => {
     }
   };
 
+  const handleDragStart = (e, index) => {
+    setDraggedIndex(index);
+    e.dataTransfer.effectAllowed = 'move';
+  };
+
+  const handleDragOver = (e, index) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+  };
+
+  const handleDrop = async (e, dropIndex) => {
+    e.preventDefault();
+    
+    if (draggedIndex === null || draggedIndex === dropIndex) {
+      setDraggedIndex(null);
+      return;
+    }
+
+    const newMembers = [...members];
+    const draggedMember = newMembers[draggedIndex];
+    
+    // Remove from old position
+    newMembers.splice(draggedIndex, 1);
+    // Insert at new position
+    newMembers.splice(dropIndex, 0, draggedMember);
+    
+    // Update order field for all members
+    const updatedMembers = newMembers.map((member, idx) => ({
+      ...member,
+      order: idx
+    }));
+    
+    setMembers(updatedMembers);
+    setDraggedIndex(null);
+    
+    // Save new order to backend
+    try {
+      await Promise.all(
+        updatedMembers.map(member => 
+          memberAPI.update(member._id, { order: member.order })
+        )
+      );
+    } catch (err) {
+      console.error('Failed to update order', err);
+      alert('Failed to save new order');
+      fetchMembers(); // Reload on error
+    }
+  };
+
+  const handleDragEnd = () => {
+    setDraggedIndex(null);
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 py-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -41,6 +104,10 @@ const MemberManagement = () => {
           <div>
             <h1 className="text-3xl font-bold text-gray-900">Members</h1>
             <p className="text-gray-600 mt-1">Community members managed by admins</p>
+            <p className="text-sm text-primary-600 mt-2 flex items-center">
+              <GripVertical className="h-4 w-4 mr-1" />
+              Drag and drop rows to reorder members
+            </p>
           </div>
           <div>
             <Link to="/admin/members/add" className="inline-flex items-center px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700">
@@ -57,6 +124,7 @@ const MemberManagement = () => {
               <table className="min-w-full divide-y divide-gray-200">
                 <thead className="bg-gray-50">
                   <tr>
+                    <th className="px-2 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Order</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Member</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">University / Role</th>
@@ -66,8 +134,23 @@ const MemberManagement = () => {
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
-                  {members.map((m) => (
-                    <tr key={m._id} className="hover:bg-gray-50">
+                  {members.map((m, index) => (
+                    <tr 
+                      key={m._id} 
+                      className={`hover:bg-gray-50 cursor-move transition-all ${
+                        draggedIndex === index ? 'opacity-50 bg-primary-50' : ''
+                      }`}
+                      draggable
+                      onDragStart={(e) => handleDragStart(e, index)}
+                      onDragOver={(e) => handleDragOver(e, index)}
+                      onDrop={(e) => handleDrop(e, index)}
+                      onDragEnd={handleDragEnd}
+                    >
+                      <td className="px-2 py-4 whitespace-nowrap">
+                        <div className="flex items-center justify-center text-gray-400 hover:text-gray-600">
+                          <GripVertical className="h-5 w-5" />
+                        </div>
+                      </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center">
                           <img src={m.photoURL || 'https://via.placeholder.com/48'} alt={m.name} className="h-10 w-10 rounded-full object-cover" />
