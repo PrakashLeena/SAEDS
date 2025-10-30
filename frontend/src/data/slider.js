@@ -23,8 +23,8 @@ export const heroSlides = [
     description: "Participate in engaging events and connect with like-minded individuals",
     image: img2,
     cta: {
-      primary: { text: "View Activities", link: "/activity" },
-      secondary: { text: "Upcoming Events", link: "/activity" }
+      primary: { text: "View Activities", link: "#activity" },
+      secondary: { text: "Upcoming Events", link: "#activity" }
     }
   },
   {
@@ -35,7 +35,7 @@ export const heroSlides = [
     image: img3,
     cta: {
       primary: { text: "Meet Members", link: "#services" },
-      secondary: { text: "Find Mentors", link: "/profile" }
+      secondary: { text: "Find Mentors", link: "#profile" }
     }
   },
   {
@@ -46,7 +46,7 @@ export const heroSlides = [
     image: img4,
     cta: {
       primary: { text: "Explore Resources", link: "#services" },
-      secondary: { text: "Start Learning", link: "/browse" }
+      secondary: { text: "Start Learning", link: "#browse" }
     }
   },
   {
@@ -56,7 +56,7 @@ export const heroSlides = [
     description: "Browse our extensive collection of books, journals, and educational resources",
     image: "https://images.unsplash.com/photo-1507842217343-583bb7270b66?w=1920&h=1080&fit=crop",
     cta: {
-      primary: { text: "Browse Library", link: "/browse" },
+      primary: { text: "Browse Library", link: "#browse" },
       secondary: { text: "Learn More", link: "#services" }
     }
   }

@@ -262,6 +262,9 @@ const Home = () => {
             <div>
               <h2 className="text-3xl font-bold text-gray-900 mb-2">Featured from E-Library</h2>
               <p className="text-gray-600">Discover popular books from our digital collection</p>
+              <p className="text-gray-600 mt-2">
+                Advanced level past papers, model papers, guides and elaboration. Ordinary level past papers, model papers, and common books also available.
+              </p>
             </div>
             <Link
               to="/browse"
