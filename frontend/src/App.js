@@ -33,6 +33,7 @@ import GalleryManagement from './pages/admin/GalleryManagement';
 import ElibraryManagement from './pages/admin/ElibraryManagement';
 import JoinUs from './pages/JoinUs';
 import JoinSuccess from './pages/JoinSuccess';
+import Members from './pages/Members';
 
 function App() {
   return (
@@ -50,6 +51,7 @@ function App() {
               <Route path="/book/:id" element={<BookDetail />} />
               <Route path="/favorites" element={<Favorites />} />
               <Route path="/profile" element={<Profile />} />
+              <Route path="/members" element={<Members />} />
               <Route path="/activity" element={<Activity />} />
               <Route path="/contact" element={<Contact />} />
               <Route path="/gallery" element={<Gallery />} />

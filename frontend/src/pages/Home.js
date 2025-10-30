@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowRight, BookOpen, Users, Calendar, Heart, Globe, TrendingUp, Trophy, Award, Medal, Star } from 'lucide-react';
 import HeroSlider from '../components/HeroSlider';
@@ -22,54 +22,37 @@ const Home = () => {
 
   useEffect(() => {
     let mounted = true;
-    const fetchStats = async () => {
-      try {
-        const res = await api.stats.getOverview();
-        if (!mounted) return;
-        const { activeMembers: a, eventsHosted: e } = res.data || {};
 
-        const fmt = (n) => {
-          if (typeof n !== 'number') return n || '0';
-          if (n >= 1000) return `${Math.round(n / 100) / 10}k+`.replace('.0k', 'k+');
-          return `${n}+`;
-        };
-
-        if (typeof a !== 'undefined') setActiveMembers(fmt(a));
-        if (typeof e !== 'undefined') setEventsHosted(fmt(e));
-      } catch (err) {
-        console.error('Failed to fetch stats:', err);
-      }
+    const fmt = (n) => {
+      if (typeof n !== 'number') return n || '0';
+      if (n >= 1000) return `${Math.round(n / 100) / 10}k+`.replace('.0k', 'k+');
+      return `${n}+`;
     };
 
-    fetchStats();
-    // fetch featured members from backend
-    const fetchMembers = async () => {
-      try {
-        const res = await api.member.getAll();
-        if (!mounted) return;
-        const list = (res && res.data) ? res.data : [];
-        // show up to 6 featured members
-        setMembers(list.slice(0, 6));
-      } catch (err) {
-        console.error('Failed to fetch members:', err);
-      }
-    };
+    // Fetch all data in parallel for better performance
+    Promise.all([
+      api.stats.getOverview(),
+      api.member.getAll(),
+      api.achievement.getAll()
+    ]).then(([statsRes, membersRes, achievementsRes]) => {
+      if (!mounted) return;
+      
+      // Set stats
+      const { activeMembers: a, eventsHosted: e } = statsRes?.data || {};
+      if (typeof a !== 'undefined') setActiveMembers(fmt(a));
+      if (typeof e !== 'undefined') setEventsHosted(fmt(e));
+      
+      // Set members (first 6)
+      const membersList = membersRes?.data || [];
+      setMembers(membersList.slice(0, 6));
+      
+      // Set achievements
+      const achievementsList = achievementsRes?.data || [];
+      setAchievements(achievementsList);
+    }).catch(err => {
+      console.error('Failed to fetch data:', err);
+    });
 
-    fetchMembers();
-    
-    // fetch achievements from backend
-    const fetchAchievements = async () => {
-      try {
-        const res = await api.achievement.getAll();
-        if (!mounted) return;
-        const list = (res && res.data) ? res.data : [];
-        setAchievements(list);
-      } catch (err) {
-        console.error('Failed to fetch achievements:', err);
-      }
-    };
-
-    fetchAchievements();
     return () => { mounted = false; };
   }, []);
 
@@ -237,7 +220,7 @@ const Home = () => {
             <div className="bg-white rounded-lg shadow-md p-6 text-center">
               <p className="text-gray-600">We don't have featured members yet. View all members to explore the community.</p>
               <div className="mt-4">
-                <Link to="/profile" className="inline-flex items-center space-x-2 text-primary-600 hover:text-primary-700 font-medium">
+                <Link to="/members" className="inline-flex items-center space-x-2 text-primary-600 hover:text-primary-700 font-medium">
                   <span>View All Members</span>
                 </Link>
               </div>
@@ -248,7 +231,7 @@ const Home = () => {
               <div 
                 className={`flex gap-6 animate-scroll-horizontal transition-all duration-700 ${membersVisible ? 'opacity-100' : 'opacity-0'}`}
                 style={{
-                  animation: members.length > 3 ? 'scroll-horizontal 15s linear infinite' : 'none'
+                  animation: members.length > 3 ? 'scroll-horizontal 8s linear infinite' : 'none'
                 }}
               >
                 {/* Duplicate members for seamless loop */}
@@ -294,7 +277,7 @@ const Home = () => {
 
           <div className={`text-center mt-8 transition-all duration-700 delay-300 ${membersVisible ? 'animate-fade-in' : 'opacity-0'}`}>
             <Link
-              to="/profile"
+              to="/members"
               className="inline-flex items-center space-x-2 text-primary-600 hover:text-primary-700 font-medium hover:gap-3 transition-all"
             >
               <span>View All Members</span>

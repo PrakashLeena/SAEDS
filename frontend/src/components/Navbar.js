@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Search, User, Menu, X, Home, Library, Image, LogIn, Shield, Mail } from 'lucide-react';
+import { Search, User, Menu, X, Home, Library, Image, LogIn, Shield, Mail, Users } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { userAPI } from '../services/api';
 import img from '../assets/images/logo.png'
@@ -29,6 +29,7 @@ const Navbar = () => {
 
   const navLinks = [
     { path: '/', label: 'Home', icon: Home },
+    { path: '/members', label: 'Members', icon: Users },
     { path: '/activity', label: 'Activities', icon: Image },
     { path: '/gallery', label: 'Gallery', icon: Image },
     { path: '/browse', label: 'E-Library', icon: Library },
