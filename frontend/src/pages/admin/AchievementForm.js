@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { achievementAPI } from '../../services/api';
-import { ArrowLeft, Save } from 'lucide-react';
+import { achievementAPI, uploadAPI } from '../../services/api';
+import { ArrowLeft, Save, Upload, X } from 'lucide-react';
 
 const AchievementForm = () => {
   const { id } = useParams();
@@ -13,12 +13,16 @@ const AchievementForm = () => {
     description: '',
     value: '',
     icon: 'trophy',
+    imageURL: '',
     category: 'general',
     isActive: true
   });
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [uploading, setUploading] = useState(false);
+  const [imageFile, setImageFile] = useState(null);
+  const [imagePreview, setImagePreview] = useState('');
 
   useEffect(() => {
     if (isEdit) {
@@ -36,9 +40,13 @@ const AchievementForm = () => {
           description: res.data.description || '',
           value: res.data.value || '',
           icon: res.data.icon || 'trophy',
+          imageURL: res.data.imageURL || '',
           category: res.data.category || 'general',
           isActive: res.data.isActive !== undefined ? res.data.isActive : true
         });
+        if (res.data.imageURL) {
+          setImagePreview(res.data.imageURL);
+        }
       }
     } catch (err) {
       console.error('Failed to fetch achievement', err);
@@ -56,6 +64,45 @@ const AchievementForm = () => {
     }));
   };
 
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setImageFile(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImagePreview(reader.result);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleRemoveImage = () => {
+    setImageFile(null);
+    setImagePreview('');
+    setFormData(prev => ({ ...prev, imageURL: '' }));
+  };
+
+  const uploadImage = async () => {
+    if (!imageFile) return null;
+    
+    try {
+      setUploading(true);
+      const formDataUpload = new FormData();
+      formDataUpload.append('image', imageFile);
+      
+      const res = await uploadAPI.uploadImage(formDataUpload);
+      if (res && res.success) {
+        return res.imageUrl;
+      }
+      return null;
+    } catch (err) {
+      console.error('Failed to upload image', err);
+      return null;
+    } finally {
+      setUploading(false);
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
@@ -67,10 +114,25 @@ const AchievementForm = () => {
 
     try {
       setLoading(true);
+      
+      // Upload image if new file selected
+      let imageURL = formData.imageURL;
+      if (imageFile) {
+        const uploadedURL = await uploadImage();
+        if (uploadedURL) {
+          imageURL = uploadedURL;
+        }
+      }
+      
+      const dataToSubmit = {
+        ...formData,
+        imageURL
+      };
+      
       if (isEdit) {
-        await achievementAPI.update(id, formData);
+        await achievementAPI.update(id, dataToSubmit);
       } else {
-        await achievementAPI.create(formData);
+        await achievementAPI.create(dataToSubmit);
       }
       navigate('/admin/achievements');
     } catch (err) {
@@ -139,7 +201,7 @@ const AchievementForm = () => {
           {/* Value */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Value <span className="text-red-500">*</span>
+              Achievement <span className="text-red-500">*</span>
             </label>
             <input
               type="text"
@@ -147,7 +209,7 @@ const AchievementForm = () => {
               value={formData.value}
               onChange={handleChange}
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-              placeholder="e.g., 100+, 5 Years, 50+"
+              placeholder=""
               required
             />
             <p className="mt-1 text-sm text-gray-500">The number or value to display prominently</p>
@@ -164,11 +226,56 @@ const AchievementForm = () => {
               onChange={handleChange}
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
             >
-              <option value="trophy">Trophy</option>
-              <option value="award">Award</option>
-              <option value="medal">Medal</option>
-              <option value="star">Star</option>
+              <option value="trophy">GCE A/L</option>
+              <option value="award">GCE O/L</option>
+              <option value="medal">University Enterence</option>
+              <option value="star">graduation</option>
+              <option value="star">Others</option>
             </select>
+            <p className="mt-1 text-sm text-gray-500">Icon will be used if no image is uploaded</p>
+          </div>
+
+          {/* Image Upload */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Achievement Image (Optional)
+            </label>
+            
+            {imagePreview ? (
+              <div className="relative inline-block">
+                <img
+                  src={imagePreview}
+                  alt="Achievement preview"
+                  className="w-32 h-32 object-cover rounded-lg border-2 border-gray-300"
+                />
+                <button
+                  type="button"
+                  onClick={handleRemoveImage}
+                  className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
+            ) : (
+              <div className="flex items-center justify-center w-full">
+                <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100">
+                  <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                    <Upload className="h-8 w-8 text-gray-400 mb-2" />
+                    <p className="mb-2 text-sm text-gray-500">
+                      <span className="font-semibold">Click to upload</span> or drag and drop
+                    </p>
+                    <p className="text-xs text-gray-500">PNG, JPG, GIF up to 10MB</p>
+                  </div>
+                  <input
+                    type="file"
+                    className="hidden"
+                    accept="image/*"
+                    onChange={handleImageChange}
+                  />
+                </label>
+              </div>
+            )}
+            <p className="mt-1 text-sm text-gray-500">Upload a custom image instead of using an icon</p>
           </div>
 
           {/* Category */}

@@ -122,7 +122,7 @@ const AchievementManagement = () => {
                     <th className="px-2 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Order</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Title</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Value</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Icon</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Icon/Image</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Category</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
                     <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
@@ -153,8 +153,16 @@ const AchievementManagement = () => {
                       <td className="px-6 py-4 whitespace-nowrap">
                         <span className="text-lg font-bold text-primary-600">{achievement.value}</span>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {achievement.icon}
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        {achievement.imageURL ? (
+                          <img 
+                            src={achievement.imageURL} 
+                            alt={achievement.title}
+                            className="h-10 w-10 object-cover rounded-full border border-gray-300"
+                          />
+                        ) : (
+                          <span className="text-sm text-gray-500">{achievement.icon}</span>
+                        )}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">

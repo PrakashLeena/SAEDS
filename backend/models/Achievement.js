@@ -4,6 +4,7 @@ const achievementSchema = new mongoose.Schema({
   title: { type: String, required: true },
   description: { type: String, required: true },
   icon: { type: String, default: 'trophy' }, // Icon name (trophy, medal, award, star, etc.)
+  imageURL: { type: String, default: '' }, // Optional image URL instead of icon
   value: { type: String, required: true }, // e.g., "100+", "5 Years", "50+"
   category: { type: String, default: 'general' }, // general, education, community, events
   order: { type: Number, default: 0 },
