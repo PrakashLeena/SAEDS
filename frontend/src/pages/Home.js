@@ -261,9 +261,11 @@ const Home = () => {
           <div className={`flex justify-between items-center mb-8 transition-all duration-700 ${booksVisible ? 'animate-fade-in-up' : 'opacity-0'}`}>
             <div>
               <h2 className="text-3xl font-bold text-gray-900 mb-2">Featured from E-Library</h2>
-              <p className="text-gray-600">Discover popular books from our digital collection</p>
-              <p className="text-gray-600 mt-2">
-                Advanced level past papers, model papers, guides and elaboration. Ordinary level past papers, model papers, and common books also available.
+              <p className="text-gray-600 text-lg">Unlock a world of knowledge at your fingertips</p>
+              <p className="text-gray-700 mt-3 leading-relaxed">
+                <span className="font-semibold text-primary-600">Advanced Level:</span> Past papers, model papers, comprehensive guides & detailed elaborations • 
+                <span className="font-semibold text-primary-600 ml-2">Ordinary Level:</span> Past papers, model papers & essential study materials • 
+                <span className="font-semibold text-primary-600 ml-2">Plus:</span> A vast collection of reference books and educational resources
               </p>
             </div>
             <Link
