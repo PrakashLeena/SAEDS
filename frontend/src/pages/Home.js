@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowRight, BookOpen, Users, Calendar, Heart, Globe, TrendingUp } from 'lucide-react';
 import HeroSlider from '../components/HeroSlider';
+import JoinModal from '../components/JoinModal';
 // Members will be fetched from the backend
 import api from '../services/api';
 import { useScrollAnimation } from '../hooks/useScrollAnimation';
@@ -15,6 +16,7 @@ const Home = () => {
   const [booksRef, booksVisible] = useScrollAnimation();
   const [activeMembers, setActiveMembers] = useState('5,000+');
   const [eventsHosted, setEventsHosted] = useState('150+');
+  const [isJoinModalOpen, setIsJoinModalOpen] = useState(false);
 
   useEffect(() => {
     let mounted = true;
@@ -58,7 +60,10 @@ const Home = () => {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Hero Slider */}
-      <HeroSlider />
+      <HeroSlider onOpenJoinModal={() => setIsJoinModalOpen(true)} />
+      
+      {/* Join Modal */}
+      <JoinModal isOpen={isJoinModalOpen} onClose={() => setIsJoinModalOpen(false)} />
 
       {/* About Community Section */}
       <section ref={aboutRef} className="bg-white py-16">
