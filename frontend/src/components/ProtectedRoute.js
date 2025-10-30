@@ -24,8 +24,8 @@ const ProtectedRoute = ({ children, requireAdmin = false }) => {
   // If admin access is required, check admin email
   if (requireAdmin) {
     const adminEmails = [
-      'prakashleena2005@gmail.com',
-      'admin@saeds.com',
+      'kibo@gmail.com',
+      'saedsmail2025@gmail.com',
       // Add more admin emails here
     ];
 
