@@ -15,10 +15,13 @@ module.exports = async (req, res) => {
   const isAllowed = 
     origin === frontendUrl ||
     origin === 'https://saeds-klj8.vercel.app' ||
+    origin === 'https://saeds.vercel.app' ||
     origin === 'http://localhost:3000' ||
     origin === 'http://localhost:3002' ||
     // Allow all Vercel preview deployments for saeds-klj8
     (origin && origin.match(/^https:\/\/saeds-klj8-[a-z0-9-]+-[a-z0-9-]+\.vercel\.app$/)) ||
+    // Allow all Vercel preview deployments for saeds
+    (origin && origin.match(/^https:\/\/saeds-[a-z0-9-]+-[a-z0-9-]+\.vercel\.app$/)) ||
     // Allow all preview deployments with the pattern
     (origin && origin.includes('a-g-prakash-leenas-projects.vercel.app'));
   

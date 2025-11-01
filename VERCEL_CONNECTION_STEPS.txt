@@ -1,0 +1,90 @@
+VERCEL CONNECTION FIX - DEPLOYMENT STEPS
+==========================================
+
+ISSUE FIXED:
+- Frontend was pointing to wrong backend URL
+- Backend CORS was not allowing the correct frontend URL
+
+FILES UPDATED:
+1. frontend/.env - Updated API URL to https://saeds-backend.vercel.app/api
+2. backend/app.js - Added https://saeds.vercel.app to allowed origins
+3. backend/api/index.js - Added https://saeds.vercel.app to allowed origins
+
+DEPLOYMENT STEPS:
+==================
+
+STEP 1: Deploy Backend First
+-----------------------------
+cd backend
+vercel --prod
+
+IMPORTANT: Note the deployment URL. It should be: https://saeds-backend.vercel.app
+
+STEP 2: Configure Backend Environment Variables on Vercel
+----------------------------------------------------------
+Go to: https://vercel.com/your-account/saeds-backend/settings/environment-variables
+
+Add these variables (if not already present):
+- MONGODB_URI = your_mongodb_connection_string
+- FRONTEND_URL = https://saeds.vercel.app
+- CLOUDINARY_CLOUD_NAME = ds2z0fox9
+- CLOUDINARY_API_KEY = 128966933841541
+- CLOUDINARY_API_SECRET = SgEU1B33BQOPwfrjOw--MWLdFc4
+- EMAIL_SERVICE = gmail
+- EMAIL_USER = saedsmail2025@gmail.com
+- EMAIL_PASSWORD = kpyjjytladjgqjxb
+- CONTACT_EMAIL = saedsmail2025@gmail.com
+- NODE_ENV = production
+
+After adding, click "Redeploy" to apply changes.
+
+STEP 3: Deploy Frontend
+------------------------
+cd frontend
+vercel --prod
+
+IMPORTANT: Note the deployment URL. It should be: https://saeds.vercel.app
+
+STEP 4: Configure Frontend Environment Variables on Vercel
+-----------------------------------------------------------
+Go to: https://vercel.com/your-account/saeds/settings/environment-variables
+
+Add these variables:
+- REACT_APP_API_URL = https://saeds-backend.vercel.app/api
+- REACT_APP_FIREBASE_API_KEY = AIzaSyAAq5pyl5oTxYZpiYKesH0HTeyph66sSCk
+- REACT_APP_FIREBASE_AUTH_DOMAIN = saeds-c04b1.firebaseapp.com
+- REACT_APP_FIREBASE_PROJECT_ID = saeds-c04b1
+- REACT_APP_FIREBASE_STORAGE_BUCKET = saeds-c04b1.appspot.com
+- REACT_APP_FIREBASE_MESSAGING_SENDER_ID = 190411788882
+- REACT_APP_FIREBASE_APP_ID = 1:190411788882:web:541f6f42d4552a1456858b
+- REACT_APP_FIREBASE_MEASUREMENT_ID = G-ZHLVKFDBHF
+- GENERATE_SOURCEMAP = false
+
+After adding, click "Redeploy" to apply changes.
+
+STEP 5: Verify Connection
+--------------------------
+1. Open https://saeds.vercel.app in your browser
+2. Open browser DevTools (F12) → Network tab
+3. Try any action that calls the API (e.g., view gallery, contact form)
+4. Check if API calls to https://saeds-backend.vercel.app/api/* succeed
+5. Look for any CORS errors in the Console tab
+
+TROUBLESHOOTING:
+================
+If still not working:
+1. Check browser console for CORS errors
+2. Verify both apps are deployed and accessible
+3. Test backend directly: https://saeds-backend.vercel.app/api/health
+4. Ensure environment variables are set for "Production" environment in Vercel
+5. Clear browser cache and try again
+
+QUICK DEPLOY COMMANDS:
+======================
+# Deploy backend
+cd "e:\saeds website\backend"
+vercel --prod
+
+# Deploy frontend
+cd "e:\saeds website\frontend"
+vercel --prod
