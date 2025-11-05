@@ -48,8 +48,11 @@ app.use((req, res, next) => {
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Serve uploaded static files (uploads folder)
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+// Serve uploaded static files (uploads folder) with caching
+app.use('/uploads', express.static(path.join(__dirname, 'uploads'), {
+  maxAge: '7d',
+  immutable: true
+}));
 
 // Import routes
 const userRoutes = require('./routes/userRoutes');

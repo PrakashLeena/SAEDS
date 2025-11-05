@@ -1,39 +1,40 @@
-import React from 'react';
+import React, { Suspense, lazy } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import ErrorBoundary from './components/ErrorBoundary';
 import ProtectedRoute from './components/ProtectedRoute';
-import Home from './pages/Home';
-import Browse from './pages/Browse';
-import BrowseSection from './pages/BrowseSection';
-import BookDetail from './pages/BookDetail';
-import ConnectionTest from './components/ConnectionTest';
-import Favorites from './pages/Favorites';
-import Profile from './pages/Profile';
-import Activity from './pages/Activity';
-import Contact from './pages/Contact';
-import SignIn from './pages/SignIn';
-import SignUp from './pages/SignUp';
+// Lazy-loaded pages
+const Home = lazy(() => import('./pages/Home'));
+const Browse = lazy(() => import('./pages/Browse'));
+const BrowseSection = lazy(() => import('./pages/BrowseSection'));
+const BookDetail = lazy(() => import('./pages/BookDetail'));
+const ConnectionTest = process.env.NODE_ENV !== 'production' ? lazy(() => import('./components/ConnectionTest')) : null;
+const Favorites = lazy(() => import('./pages/Favorites'));
+const Profile = lazy(() => import('./pages/Profile'));
+const Activity = lazy(() => import('./pages/Activity'));
+const Contact = lazy(() => import('./pages/Contact'));
+const SignIn = lazy(() => import('./pages/SignIn'));
+const SignUp = lazy(() => import('./pages/SignUp'));
 // Admin Pages
-import AdminDashboard from './pages/admin/AdminDashboard';
-import UserManagement from './pages/admin/UserManagement';
-import UserForm from './pages/admin/UserForm';
-import BookManagement from './pages/admin/BookManagement';
-import BookForm from './pages/admin/BookForm';
-import ActivityManagement from './pages/admin/ActivityManagement';
-import ActivityForm from './pages/admin/ActivityForm';
-import MemberManagement from './pages/admin/MemberManagement';
-import MemberForm from './pages/admin/MemberForm';
-import AchievementManagement from './pages/admin/AchievementManagement';
-import AchievementForm from './pages/admin/AchievementForm';
-import Gallery from './pages/Gallery';
-import GalleryManagement from './pages/admin/GalleryManagement';
-import ElibraryManagement from './pages/admin/ElibraryManagement';
-import JoinUs from './pages/JoinUs';
-import JoinSuccess from './pages/JoinSuccess';
-import Members from './pages/Members';
+const AdminDashboard = lazy(() => import('./pages/admin/AdminDashboard'));
+const UserManagement = lazy(() => import('./pages/admin/UserManagement'));
+const UserForm = lazy(() => import('./pages/admin/UserForm'));
+const BookManagement = lazy(() => import('./pages/admin/BookManagement'));
+const BookForm = lazy(() => import('./pages/admin/BookForm'));
+const ActivityManagement = lazy(() => import('./pages/admin/ActivityManagement'));
+const ActivityForm = lazy(() => import('./pages/admin/ActivityForm'));
+const MemberManagement = lazy(() => import('./pages/admin/MemberManagement'));
+const MemberForm = lazy(() => import('./pages/admin/MemberForm'));
+const AchievementManagement = lazy(() => import('./pages/admin/AchievementManagement'));
+const AchievementForm = lazy(() => import('./pages/admin/AchievementForm'));
+const Gallery = lazy(() => import('./pages/Gallery'));
+const GalleryManagement = lazy(() => import('./pages/admin/GalleryManagement'));
+const ElibraryManagement = lazy(() => import('./pages/admin/ElibraryManagement'));
+const JoinUs = lazy(() => import('./pages/JoinUs'));
+const JoinSuccess = lazy(() => import('./pages/JoinSuccess'));
+const Members = lazy(() => import('./pages/Members'));
 
 function App() {
   return (
@@ -43,10 +44,13 @@ function App() {
         <div className="flex flex-col min-h-screen">
           <Navbar />
           <main className="flex-grow">
+            <Suspense fallback={<div className="p-6 text-center text-gray-600">Loading...</div>}>
             <Routes>
               <Route path="/" element={<Home />} />
               <Route path="/browse" element={<Browse />} />
-              <Route path="/test-connection" element={<ConnectionTest />} />
+              {process.env.NODE_ENV !== 'production' && ConnectionTest && (
+                <Route path="/test-connection" element={<ConnectionTest />} />
+              )}
               <Route path="/browse/section/:folderId" element={<BrowseSection />} />
               <Route path="/book/:id" element={<BookDetail />} />
               <Route path="/favorites" element={<Favorites />} />
@@ -79,6 +83,7 @@ function App() {
               <Route path="/admin/gallery" element={<ProtectedRoute requireAdmin={true}><GalleryManagement /></ProtectedRoute>} />
               <Route path="/admin/elibrary" element={<ProtectedRoute requireAdmin={true}><ElibraryManagement /></ProtectedRoute>} />
             </Routes>
+            </Suspense>
           </main>
           <Footer />
         </div>

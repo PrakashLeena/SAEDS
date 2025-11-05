@@ -1,8 +1,8 @@
-import React, { useEffect, useState, useMemo, useCallback } from 'react';
+import React, { useEffect, useState, Suspense, lazy } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowRight, BookOpen, Users, Calendar, Heart, Globe, TrendingUp, Trophy, Award, Medal, Star } from 'lucide-react';
-import HeroSlider from '../components/HeroSlider';
-import JoinModal from '../components/JoinModal';
+const HeroSlider = lazy(() => import('../components/HeroSlider'));
+const JoinModal = lazy(() => import('../components/JoinModal'));
 // Members will be fetched from the backend
 import api from '../services/api';
 import { useScrollAnimation } from '../hooks/useScrollAnimation';
@@ -59,10 +59,14 @@ const Home = () => {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Hero Slider */}
-      <HeroSlider onOpenJoinModal={() => setIsJoinModalOpen(true)} />
+      <Suspense fallback={<div className="h-[500px] sm:h-[550px] md:h-[600px] lg:h-[700px] bg-gray-200 animate-pulse" />}> 
+        <HeroSlider onOpenJoinModal={() => setIsJoinModalOpen(true)} />
+      </Suspense>
       
       {/* Join Modal */}
-      <JoinModal isOpen={isJoinModalOpen} onClose={() => setIsJoinModalOpen(false)} />
+      <Suspense fallback={null}>
+        <JoinModal isOpen={isJoinModalOpen} onClose={() => setIsJoinModalOpen(false)} />
+      </Suspense>
 
       {/* Mission and Vision Section */}
       <section className="py-16 bg-gradient-to-br from-primary-50 via-white to-primary-50">

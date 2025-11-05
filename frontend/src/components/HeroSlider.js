@@ -81,23 +81,17 @@ const HeroSlider = ({ onOpenJoinModal }) => {
   const handleButtonClick = (e, link) => {
     e.preventDefault();
     e.stopPropagation();
-    
-    console.log('Button clicked with link:', link);
-    
+
     // Handle scroll to section
     if (link.startsWith('#')) {
       const targetId = link.substring(1);
-      console.log('Scrolling to section:', targetId);
       const element = document.getElementById(targetId);
       if (element) {
         element.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      } else {
-        console.warn('Element not found:', targetId);
       }
     }
     // Handle join modal
     else if (link === '/join' && onOpenJoinModal) {
-      console.log('Opening join modal');
       onOpenJoinModal();
     }
   };
@@ -121,15 +115,27 @@ const HeroSlider = ({ onOpenJoinModal }) => {
         >
           {/* Background Image */}
           <div className="absolute inset-0 z-0">
-            <img
-              src={slide.image}
-              alt={slide.title}
-              loading="eager"
-              className={`w-full h-full object-cover slider-image ${
-                index === currentSlide ? 'slider-image-active' : ''
-              }`}
-              style={{ imageRendering: '-webkit-optimize-contrast' }}
-            />
+            {(() => {
+              const len = heroSlides.length;
+              const isAdjacent = index === currentSlide || index === (currentSlide + 1) % len || index === (currentSlide - 1 + len) % len;
+              if (!isAdjacent) {
+                return null;
+              }
+              const eager = index === currentSlide;
+              return (
+                <img
+                  src={slide.image}
+                  alt={slide.title}
+                  loading={eager ? 'eager' : 'lazy'}
+                  fetchpriority={eager ? 'high' : 'low'}
+                  decoding="async"
+                  className={`w-full h-full object-cover slider-image ${
+                    index === currentSlide ? 'slider-image-active' : ''
+                  }`}
+                  style={{ imageRendering: '-webkit-optimize-contrast' }}
+                />
+              );
+            })()}
             {/* Overlay - Stronger for mobile visibility */}
             <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/60 to-black/80 md:from-black/50 md:via-black/40 md:to-black/60"></div>
           </div>
@@ -181,14 +187,14 @@ const HeroSlider = ({ onOpenJoinModal }) => {
                   {slide.cta.primary.link.startsWith('#') || slide.cta.primary.link === '/join' ? (
                     <button
                       onClick={(e) => handleButtonClick(e, slide.cta.primary.link)}
-                      className="btn-primary bg-primary-600 text-white px-4 py-2 sm:px-6 sm:py-3 md:px-6 md:py-3 rounded-lg text-xs sm:text-base font-bold hover:bg-primary-700 transition-all hover:scale-105 text-center shadow-xl relative z-10 touch-manipulation whitespace-nowrap"
+                      className="btn-primary bg-primary-600 text-white px-3 py-1.5 sm:px-6 sm:py-3 md:px-6 md:py-3 rounded-lg text-xs sm:text-base font-bold hover:bg-primary-700 transition-all hover:scale-105 text-center shadow-xl relative z-10 touch-manipulation whitespace-nowrap"
                     >
                       {slide.cta.primary.text}
                     </button>
                   ) : (
                     <Link
                       to={slide.cta.primary.link}
-                      className="btn-primary bg-primary-600 text-white px-4 py-2 sm:px-6 sm:py-3 md:px-6 md:py-3 rounded-lg text-xs sm:text-base font-bold hover:bg-primary-700 transition-all hover:scale-105 text-center shadow-xl relative z-10 touch-manipulation whitespace-nowrap"
+                      className="btn-primary bg-primary-600 text-white px-3 py-1.5 sm:px-6 sm:py-3 md:px-6 md:py-3 rounded-lg text-xs sm:text-base font-bold hover:bg-primary-700 transition-all hover:scale-105 text-center shadow-xl relative z-10 touch-manipulation whitespace-nowrap"
                       onClick={(e) => e.stopPropagation()}
                     >
                       {slide.cta.primary.text}
@@ -199,14 +205,14 @@ const HeroSlider = ({ onOpenJoinModal }) => {
                   {slide.cta.secondary.link.startsWith('#') || slide.cta.secondary.link === '/join' ? (
                     <button
                       onClick={(e) => handleButtonClick(e, slide.cta.secondary.link)}
-                      className="btn-secondary bg-white/25 backdrop-blur-md text-white px-4 py-2 sm:px-6 sm:py-3 md:px-6 md:py-3 rounded-lg text-xs sm:text-base font-bold hover:bg-white/35 transition-all hover:scale-105 text-center border-2 border-white/60 shadow-xl touch-manipulation whitespace-nowrap"
+                      className="btn-secondary bg-white/25 backdrop-blur-md text-white px-3 py-1.5 sm:px-6 sm:py-3 md:px-6 md:py-3 rounded-lg text-xs sm:text-base font-bold hover:bg-white/35 transition-all hover:scale-105 text-center border-2 border-white/60 shadow-xl touch-manipulation whitespace-nowrap"
                     >
                       {slide.cta.secondary.text}
                     </button>
                   ) : (
                     <Link
                       to={slide.cta.secondary.link}
-                      className="btn-secondary bg-white/25 backdrop-blur-md text-white px-4 py-2 sm:px-6 sm:py-3 md:px-6 md:py-3 rounded-lg text-xs sm:text-base font-bold hover:bg-white/35 transition-all hover:scale-105 text-center border-2 border-white/60 shadow-xl touch-manipulation whitespace-nowrap"
+                      className="btn-secondary bg-white/25 backdrop-blur-md text-white px-3 py-1.5 sm:px-6 sm:py-3 md:px-6 md:py-3 rounded-lg text-xs sm:text-base font-bold hover:bg-white/35 transition-all hover:scale-105 text-center border-2 border-white/60 shadow-xl touch-manipulation whitespace-nowrap"
                       onClick={(e) => e.stopPropagation()}
                     >
                       {slide.cta.secondary.text}
