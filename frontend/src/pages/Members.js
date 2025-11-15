@@ -92,12 +92,12 @@ const MemberCard = memo(({ member, index }) => {
 
         {/* Contact Info */}
         <div className="space-y-3 mb-4">
-          <div className="flex items-center justify-center text-base text-gray-400">
-            <Phone className="h-5 w-5 mr-2 text-primary-400 flex-shrink-0" />
+          <div className="flex items-center justify-center text-xs text-gray-600">
+            <Phone className="h-5 w-5 mr-2 text-primary-500 flex-shrink-0" />
             <span className="font-medium">{member.phone || 'N/A'}</span>
           </div>
-          <div className="flex items-center justify-center text-sm text-gray-400">
-            <Mail className="h-4 w-4 mr-2 text-primary-400 flex-shrink-0" />
+          <div className="flex items-center justify-center text-xs text-gray-600">
+            <Mail className="h-4 w-4 mr-2 text-primary-500 flex-shrink-0" />
             <span>{member.email || 'N/A'}</span>
           </div>
         </div>
