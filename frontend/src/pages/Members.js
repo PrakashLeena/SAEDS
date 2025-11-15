@@ -94,6 +94,12 @@ const MemberCard = memo(({ member, index }) => {
         <div className="space-y-2 mb-4">
           <ContactRow icon={Phone} text={member.phone} />
           <ContactRow icon={Mail} text={member.email} />
+          {sinceYear && (
+            <div className="flex items-center text-sm text-gray-600">
+              <Calendar className="h-4 w-4 mr-2 text-primary-500 flex-shrink-0" />
+              <span>Since {sinceYear}</span>
+            </div>
+          )}
         </div>
 
         {/* Footer */}
@@ -102,12 +108,6 @@ const MemberCard = memo(({ member, index }) => {
             <TrendingUp className="h-4 w-4" />
             <span>Member</span>
           </div>
-          {sinceYear && (
-            <div className="flex items-center space-x-1 text-gray-500 text-xs">
-              <Calendar className="h-4 w-4" />
-              <span>Since {sinceYear}</span>
-            </div>
-          )}
         </div>
       </div>
     </div>
