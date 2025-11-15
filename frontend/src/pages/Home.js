@@ -64,23 +64,9 @@ AchievementCard.displayName = 'AchievementCard';
 const MemberCard = memo(({ member, index }) => {
   const avatar = member.photoURL || 'https://via.placeholder.com/150';
   const communityRole = useMemo(() => {
-    const raw =
-      member.roleInCommunity ||
-      member.role_in_community ||
-      member.roleincommunity ||
-      member.roleIncommunity ||
-      member.communityRole ||
-      member.role ||
-      member.designation ||
-      member.position ||
-      '';
-    if (typeof raw === 'string' && raw.trim()) return raw.trim();
-    if (member && typeof member === 'object') {
-      const key = Object.keys(member).find(k => k.toLowerCase().replace(/\s|_/g, '') === 'roleincommunity');
-      if (key && typeof member[key] === 'string' && member[key].trim()) return member[key].trim();
-    }
-    return '';
-  }, [member]);
+    const raw = member.roleInCommunity || '';
+    return typeof raw === 'string' && raw.trim() ? raw.trim() : '';
+  }, [member.roleInCommunity]);
   const jobOrUniversity = useMemo(() => {
     const raw = member.universityOrRole || member.university || member.job || member.occupation || '';
     return typeof raw === 'string' && raw.trim() ? raw.trim() : '';

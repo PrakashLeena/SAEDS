@@ -47,35 +47,9 @@ ContactRow.displayName = 'ContactRow';
 const MemberCard = memo(({ member, index }) => {
   const avatar = member.photoURL || 'https://via.placeholder.com/150';
   const communityRole = useMemo(() => {
-    const candidates = [
-      member?.roleInCommunity,
-      member?.role_in_community,
-      member?.roleincommunity,
-      member?.roleIncommunity,
-      member?.communityRole,
-      member?.role,
-      member?.designation,
-      member?.position,
-      member?.details?.roleInCommunity,
-      member?.profile?.roleInCommunity,
-      member?.meta?.roleInCommunity,
-      member?.['role in community'],
-      member?.role?.name,
-      member?.role?.title,
-      member?.role?.label,
-      member?.attributes?.roleInCommunity,
-      member?.attributes?.role,
-      member?.data?.roleInCommunity
-    ];
-    for (const c of candidates) {
-      if (typeof c === 'string' && c.trim()) return c.trim();
-    }
-    if (member && typeof member === 'object') {
-      const key = Object.keys(member).find(k => k.toLowerCase().replace(/\s|_/g, '') === 'roleincommunity');
-      if (key && typeof member[key] === 'string' && member[key].trim()) return member[key].trim();
-    }
-    return 'Member';
-  }, [member]);
+    const raw = member?.roleInCommunity;
+    return typeof raw === 'string' && raw.trim() ? raw.trim() : '';
+  }, [member?.roleInCommunity]);
   const jobOrUniversity = useMemo(() => {
     const raw = member.universityOrRole || member.university || member.job || member.occupation || '';
     return typeof raw === 'string' && raw.trim() ? raw.trim() : '';
@@ -106,7 +80,9 @@ const MemberCard = memo(({ member, index }) => {
           {/* Name - bigger text */}
           <h3 className="text-xl md:text-2xl font-bold text-gray-900 mb-1">{member.name}</h3>
           {/* Role in community - bold */}
-          <p className="text-sm font-semibold text-primary-700">{communityRole}</p>
+          {communityRole && (
+            <p className="text-sm font-semibold text-primary-700">{communityRole}</p>
+          )}
           {/* Job role / University */}
           {jobOrUniversity && (
             <p className="text-xs text-gray-600">{jobOrUniversity}</p>
@@ -163,7 +139,39 @@ const Members = () => {
         if (res?.success) {
           const list = res.data || [];
           console.debug('Members page: sample members', list.slice(0, 3));
-          setMembers(list);
+
+          // If some items are missing roleInCommunity, enrich them via getById
+          const needsRole = (m) => typeof m?.roleInCommunity === 'string' && m.roleInCommunity.trim() ? false : true;
+          const indicesToFetch = [];
+          list.forEach((m, i) => {
+            if (m?._id && needsRole(m)) indicesToFetch.push(i);
+          });
+
+          if (indicesToFetch.length === 0) {
+            setMembers(list);
+          } else {
+            try {
+              const detailResponses = await Promise.all(indicesToFetch.map(i => memberAPI.getById(list[i]._id)));
+              const updated = [...list];
+              detailResponses.forEach((resp, j) => {
+                const idx = indicesToFetch[j];
+                if (resp?.success && resp?.data) {
+                  const d = resp.data;
+                  if (typeof d.roleInCommunity === 'string' && d.roleInCommunity.trim()) {
+                    updated[idx] = { ...updated[idx], roleInCommunity: d.roleInCommunity.trim() };
+                  }
+                  // Also fill university if missing in list
+                  if (!updated[idx].universityOrRole && typeof d.universityOrRole === 'string' && d.universityOrRole.trim()) {
+                    updated[idx] = { ...updated[idx], universityOrRole: d.universityOrRole.trim() };
+                  }
+                }
+              });
+              setMembers(updated);
+            } catch (e) {
+              console.warn('Members page: enrichment failed, falling back to list only');
+              setMembers(list);
+            }
+          }
         }
       } catch (err) {
         console.error('Failed to fetch members:', err);

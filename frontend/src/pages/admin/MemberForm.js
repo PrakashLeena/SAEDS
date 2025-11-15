@@ -73,6 +73,14 @@ const MemberForm = () => {
     try {
       const payload = { ...formData };
 
+      const roleVal = typeof payload.roleInCommunity === 'string' ? payload.roleInCommunity.trim() : '';
+      if (roleVal) {
+        payload.communityRole = roleVal;
+        payload.role = roleVal;
+        if (!payload.designation) payload.designation = roleVal;
+        if (!payload.position) payload.position = roleVal;
+      }
+
       // Upload new image if selected
       if (imageFile) {
         const res = await uploadAPI.uploadProfilePhoto(imageFile);
