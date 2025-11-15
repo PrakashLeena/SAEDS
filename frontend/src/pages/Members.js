@@ -1,59 +1,179 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, memo } from 'react';
 import { TrendingUp, Mail, Phone, MapPin, Calendar, Search } from 'lucide-react';
 import { memberAPI } from '../services/api';
 
+// Memoized loading state
+const LoadingState = memo(() => (
+  <div className="text-center py-12">
+    <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600" />
+    <p className="mt-4 text-gray-600">Loading members...</p>
+  </div>
+));
+
+LoadingState.displayName = 'LoadingState';
+
+// Memoized empty state
+const EmptyState = memo(({ searchTerm, onClearSearch }) => (
+  <div className="bg-white rounded-lg shadow-md p-12 text-center">
+    <p className="text-gray-600 text-lg">No members found</p>
+    {searchTerm && (
+      <button
+        onClick={onClearSearch}
+        className="mt-4 text-primary-600 hover:text-primary-700 font-medium transition-colors"
+      >
+        Clear search
+      </button>
+    )}
+  </div>
+));
+
+EmptyState.displayName = 'EmptyState';
+
+// Memoized contact info row
+const ContactRow = memo(({ icon: Icon, text }) => {
+  if (!text) return null;
+  
+  return (
+    <div className="flex items-center text-sm text-gray-600">
+      <Icon className="h-4 w-4 mr-2 text-primary-500 flex-shrink-0" />
+      <span className="truncate">{text}</span>
+    </div>
+  );
+});
+
+ContactRow.displayName = 'ContactRow';
+
+// Memoized member card component
+const MemberCard = memo(({ member, index }) => {
+  const avatar = member.photoURL || 'https://via.placeholder.com/150';
+  const role = member.universityOrRole || 'Member';
+  const bio = member.notes || '';
+  
+  const sinceYear = useMemo(() => 
+    member.since || (member.joinedAt ? new Date(member.joinedAt).getFullYear() : ''),
+    [member.since, member.joinedAt]
+  );
+
+  return (
+    <div className="bg-white rounded-lg shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden group">
+      {/* Avatar Section */}
+      <div className="relative h-48 bg-gradient-to-br from-primary-500 to-primary-700 flex items-center justify-center">
+        <img
+          src={avatar}
+          alt={member.name}
+          className="w-32 h-32 rounded-full object-cover border-4 border-white shadow-lg group-hover:scale-110 transition-transform duration-300"
+          loading="lazy"
+        />
+      </div>
+
+      {/* Content Section */}
+      <div className="p-6">
+        {/* Name and Role */}
+        <div className="text-center mb-4">
+          <h3 className="text-xl font-bold text-gray-900 mb-1">{member.name}</h3>
+          <p className="text-sm text-primary-600 font-medium">{role}</p>
+        </div>
+
+        {/* Bio */}
+        {bio && (
+          <p className="text-gray-600 text-sm mb-4 line-clamp-3 text-center">
+            {bio}
+          </p>
+        )}
+
+        {/* Contact Info */}
+        <div className="space-y-2 mb-4">
+          <ContactRow icon={Mail} text={member.email} />
+          <ContactRow icon={Phone} text={member.phone} />
+          <ContactRow icon={MapPin} text={member.address} />
+        </div>
+
+        {/* Footer */}
+        <div className="flex items-center justify-between pt-4 border-t border-gray-200">
+          <div className="flex items-center space-x-1 text-gray-500 text-xs">
+            <TrendingUp className="h-4 w-4" />
+            <span>Member</span>
+          </div>
+          {sinceYear && (
+            <div className="flex items-center space-x-1 text-gray-500 text-xs">
+              <Calendar className="h-4 w-4" />
+              <span>Since {sinceYear}</span>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+});
+
+MemberCard.displayName = 'MemberCard';
+
 const Members = () => {
   const [members, setMembers] = useState([]);
-  const [filteredMembers, setFilteredMembers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
 
+  // Fetch members on mount
   useEffect(() => {
+    const fetchMembers = async () => {
+      try {
+        const res = await memberAPI.getAll();
+        if (res?.success) {
+          setMembers(res.data || []);
+        }
+      } catch (err) {
+        console.error('Failed to fetch members:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
     fetchMembers();
   }, []);
 
-  useEffect(() => {
-    filterMembers();
-  }, [searchTerm, selectedCategory, members]);
-
-  const fetchMembers = async () => {
-    try {
-      const res = await memberAPI.getAll();
-      if (res && res.success) {
-        const list = res.data || [];
-        setMembers(list);
-        setFilteredMembers(list);
-      }
-    } catch (err) {
-      console.error('Failed to fetch members:', err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const filterMembers = () => {
-    let filtered = [...members];
+  // Memoized filtered members
+  const filteredMembers = useMemo(() => {
+    let filtered = members;
 
     // Filter by search term
     if (searchTerm) {
+      const lowerSearch = searchTerm.toLowerCase();
       filtered = filtered.filter(member =>
-        member.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (member.universityOrRole && member.universityOrRole.toLowerCase().includes(searchTerm.toLowerCase()))
+        member.name.toLowerCase().includes(lowerSearch) ||
+        member.universityOrRole?.toLowerCase().includes(lowerSearch)
       );
     }
 
-    // Filter by category (you can add category field to members if needed)
+    // Filter by category (placeholder for future implementation)
     if (selectedCategory !== 'all') {
-      // Add category filtering logic here if you have categories
+      // Add category filtering logic here if categories are added
+      // filtered = filtered.filter(member => member.category === selectedCategory);
     }
 
-    setFilteredMembers(filtered);
-  };
+    return filtered;
+  }, [members, searchTerm, selectedCategory]);
 
-  const handleSearch = (e) => {
+  // Memoized search handler
+  const handleSearch = useCallback((e) => {
     setSearchTerm(e.target.value);
-  };
+  }, []);
+
+  // Memoized category change handler
+  const handleCategoryChange = useCallback((e) => {
+    setSelectedCategory(e.target.value);
+  }, []);
+
+  // Memoized clear search handler
+  const handleClearSearch = useCallback(() => {
+    setSearchTerm('');
+  }, []);
+
+  // Memoized results text
+  const resultsText = useMemo(
+    () => `Showing ${filteredMembers.length} of ${members.length} members`,
+    [filteredMembers.length, members.length]
+  );
 
   return (
     <div className="min-h-screen bg-gray-50 py-8">
@@ -79,16 +199,16 @@ const Members = () => {
                 placeholder="Search members by name or role..."
                 value={searchTerm}
                 onChange={handleSearch}
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-colors"
               />
             </div>
 
-            {/* Filter (optional - can be expanded) */}
+            {/* Filter */}
             <div className="md:w-48">
               <select
                 value={selectedCategory}
-                onChange={(e) => setSelectedCategory(e.target.value)}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                onChange={handleCategoryChange}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-colors"
               >
                 <option value="all">All Members</option>
                 <option value="active">Active</option>
@@ -99,107 +219,24 @@ const Members = () => {
 
           {/* Results count */}
           <div className="mt-4 text-sm text-gray-600">
-            Showing {filteredMembers.length} of {members.length} members
+            {resultsText}
           </div>
         </div>
 
         {/* Members Grid */}
         {loading ? (
-          <div className="text-center py-12">
-            <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
-            <p className="mt-4 text-gray-600">Loading members...</p>
-          </div>
+          <LoadingState />
         ) : filteredMembers.length === 0 ? (
-          <div className="bg-white rounded-lg shadow-md p-12 text-center">
-            <p className="text-gray-600 text-lg">No members found</p>
-            {searchTerm && (
-              <button
-                onClick={() => setSearchTerm('')}
-                className="mt-4 text-primary-600 hover:text-primary-700 font-medium"
-              >
-                Clear search
-              </button>
-            )}
-          </div>
+          <EmptyState searchTerm={searchTerm} onClearSearch={handleClearSearch} />
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {filteredMembers.map((member, index) => {
-              const avatar = member.photoURL || 'https://via.placeholder.com/150';
-              const role = member.universityOrRole || 'Member';
-              const bio = member.notes || '';
-              const sinceYear = member.since || (member.joinedAt ? new Date(member.joinedAt).getFullYear() : '');
-              const email = member.email || '';
-              const phone = member.phone || '';
-              const address = member.address || '';
-
-              return (
-                <div
-                  key={member._id || index}
-                  className="bg-white rounded-lg shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden group"
-                >
-                  {/* Avatar Section */}
-                  <div className="relative h-48 bg-gradient-to-br from-primary-500 to-primary-700 flex items-center justify-center">
-                    <img
-                      src={avatar}
-                      alt={member.name}
-                      className="w-32 h-32 rounded-full object-cover border-4 border-white shadow-lg group-hover:scale-110 transition-transform duration-300"
-                    />
-                  </div>
-
-                  {/* Content Section */}
-                  <div className="p-6">
-                    {/* Name and Role */}
-                    <div className="text-center mb-4">
-                      <h3 className="text-xl font-bold text-gray-900 mb-1">{member.name}</h3>
-                      <p className="text-sm text-primary-600 font-medium">{role}</p>
-                    </div>
-
-                    {/* Bio */}
-                    {bio && (
-                      <p className="text-gray-600 text-sm mb-4 line-clamp-3 text-center">
-                        {bio}
-                      </p>
-                    )}
-
-                    {/* Contact Info */}
-                    <div className="space-y-2 mb-4">
-                      {email && (
-                        <div className="flex items-center text-sm text-gray-600">
-                          <Mail className="h-4 w-4 mr-2 text-primary-500 flex-shrink-0" />
-                          <span className="truncate">{email}</span>
-                        </div>
-                      )}
-                      {phone && (
-                        <div className="flex items-center text-sm text-gray-600">
-                          <Phone className="h-4 w-4 mr-2 text-primary-500 flex-shrink-0" />
-                          <span>{phone}</span>
-                        </div>
-                      )}
-                      {address && (
-                        <div className="flex items-center text-sm text-gray-600">
-                          <MapPin className="h-4 w-4 mr-2 text-primary-500 flex-shrink-0" />
-                          <span className="truncate">{address}</span>
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Footer */}
-                    <div className="flex items-center justify-between pt-4 border-t border-gray-200">
-                      <div className="flex items-center space-x-1 text-gray-500 text-xs">
-                        <TrendingUp className="h-4 w-4" />
-                        <span>Member</span>
-                      </div>
-                      {sinceYear && (
-                        <div className="flex items-center space-x-1 text-gray-500 text-xs">
-                          <Calendar className="h-4 w-4" />
-                          <span>Since {sinceYear}</span>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
+            {filteredMembers.map((member, index) => (
+              <MemberCard 
+                key={member._id || index} 
+                member={member} 
+                index={index}
+              />
+            ))}
           </div>
         )}
       </div>

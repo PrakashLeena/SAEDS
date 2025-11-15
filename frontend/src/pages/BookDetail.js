@@ -1,73 +1,211 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, useRef, memo } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Star, Download, BookOpen, Calendar, FileText, Globe, Heart, Share2 } from 'lucide-react';
 import api from '../services/api';
 import { useAuth } from '../context/AuthContext';
 
+// Memoized star rating component
+const StarRating = memo(({ rating }) => (
+  <div className="flex items-center space-x-1">
+    {[...Array(5)].map((_, i) => (
+      <Star
+        key={i}
+        className={`h-5 w-5 ${
+          i < Math.floor(rating)
+            ? 'text-yellow-400 fill-current'
+            : 'text-gray-300'
+        }`}
+      />
+    ))}
+    <span className="ml-2 text-lg font-semibold text-gray-700">
+      {rating}
+    </span>
+  </div>
+));
+
+StarRating.displayName = 'StarRating';
+
+// Memoized book info item component
+const BookInfoItem = memo(({ icon: Icon, label, value }) => (
+  <div className="flex items-start space-x-2">
+    <Icon className="h-5 w-5 text-primary-600 mt-1" />
+    <div>
+      <p className="text-sm text-gray-500">{label}</p>
+      <p className={`font-semibold text-gray-900 ${label === 'ISBN' ? 'text-xs' : ''}`}>
+        {value}
+      </p>
+    </div>
+  </div>
+));
+
+BookInfoItem.displayName = 'BookInfoItem';
+
+// Memoized PDF viewer component
+const PDFViewer = memo(({ book, viewerUrl, onClose, onOpenNewTab, viewerRef }) => (
+  <div ref={viewerRef} className="mt-6">
+    <div className="bg-white rounded-lg shadow-md p-4">
+      <div className="flex items-center justify-between mb-3">
+        <h3 className="font-semibold">Reading: {book.title}</h3>
+        <div className="space-x-2">
+          <button
+            onClick={onClose}
+            className="text-sm text-gray-600 hover:text-gray-900 transition-colors"
+          >
+            Close
+          </button>
+          <button
+            onClick={onOpenNewTab}
+            className="text-sm text-primary-600 hover:underline"
+          >
+            Open in new tab
+          </button>
+        </div>
+      </div>
+      <div className="w-full" style={{ minHeight: 400 }}>
+        <iframe
+          title={`reader-${book._id}`}
+          src={viewerUrl}
+          className="w-full h-[70vh] border"
+        />
+      </div>
+    </div>
+  </div>
+));
+
+PDFViewer.displayName = 'PDFViewer';
+
 const BookDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-
+  const { currentUser } = useAuth();
+  
   const [book, setBook] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [isFavorite, setIsFavorite] = useState(false);
   const [showViewer, setShowViewer] = useState(false);
-  const viewerRef = React.useRef(null);
   const [viewerUrl, setViewerUrl] = useState('');
   const [downloadsCount, setDownloadsCount] = useState(0);
   const [favoritesCount, setFavoritesCount] = useState(0);
-  const { currentUser } = useAuth();
   const [backendUser, setBackendUser] = useState(null);
+  
+  const viewerRef = useRef(null);
+  const urlCacheRef = useRef(null);
 
+  // Memoized book info
+  const bookInfo = useMemo(() => {
+    if (!book) return [];
+    return [
+      { icon: Calendar, label: 'Published', value: book.year },
+      { icon: FileText, label: 'Pages', value: book.pages },
+      { icon: Globe, label: 'Language', value: book.language },
+      { icon: BookOpen, label: 'ISBN', value: book.isbn }
+    ];
+  }, [book]);
+
+  // Shared function to resolve PDF URL
+  const resolvePdfUrl = useCallback(async () => {
+    if (urlCacheRef.current) return urlCacheRef.current;
+    
+    let url = book?.pdfUrl || '';
+    if (!url) {
+      try {
+        const f = await api.book.getFile(id);
+        if (f?.data?.url) url = f.data.url;
+      } catch (err) {
+        console.error('No file found', err);
+      }
+    }
+    
+    urlCacheRef.current = url;
+    return url;
+  }, [book?.pdfUrl, id]);
+
+  // Shared function to refresh user profile
+  const refreshUserProfile = useCallback(async () => {
+    if (!currentUser) return;
+    
+    try {
+      const ru = await api.user.getByFirebaseUid(currentUser.uid);
+      if (ru?.data) {
+        window.dispatchEvent(new CustomEvent('profile-updated', { detail: ru.data }));
+      }
+    } catch (e) {
+      console.error('Failed to refresh user profile', e);
+    }
+  }, [currentUser]);
+
+  // Shared function to refresh stats
+  const refreshStats = useCallback(async () => {
+    try {
+      const statsRes = await api.book.getStats(id);
+      if (statsRes?.data) {
+        setDownloadsCount(statsRes.data.downloads || 0);
+        setFavoritesCount(statsRes.data.favoritesCount || 0);
+      }
+    } catch (e) {
+      console.error('Failed to refresh stats', e);
+    }
+  }, [id]);
+
+  // Load book data
   useEffect(() => {
     let mounted = true;
-    const load = async () => {
+    
+    const loadBook = async () => {
       try {
-  const res = await api.book.getById(id);
-  if (!mounted) return;
-  const b = res.data || {};
-  // Normalize fields expected by the UI
-  b.year = b.publishedYear || (b.createdAt ? new Date(b.createdAt).getFullYear() : '');
-  b.pages = b.pages || 0;
-  b.downloads = b.downloads || 0;
-  b.rating = b.rating || 0;
-  b.available = Boolean(b.pdfUrl || b.coverImage);
-  setBook(b);
-      // load stats
-      try {
-            const statsRes = await api.book.getStats(id);
-            if (mounted && statsRes && statsRes.data) {
-              setDownloadsCount(statsRes.data.downloads || 0);
-              setFavoritesCount(statsRes.data.favoritesCount || 0);
-            }
-      } catch (e) {
-        console.error('Failed to load book stats', e);
-      }
+        const res = await api.book.getById(id);
+        if (!mounted) return;
+        
+        const b = res.data || {};
+        b.year = b.publishedYear || (b.createdAt ? new Date(b.createdAt).getFullYear() : '');
+        b.pages = b.pages || 0;
+        b.downloads = b.downloads || 0;
+        b.rating = b.rating || 0;
+        b.available = Boolean(b.pdfUrl || b.coverImage);
+        
+        setBook(b);
+        
+        // Load stats
+        try {
+          const statsRes = await api.book.getStats(id);
+          if (mounted && statsRes?.data) {
+            setDownloadsCount(statsRes.data.downloads || 0);
+            setFavoritesCount(statsRes.data.favoritesCount || 0);
+          }
+        } catch (e) {
+          console.error('Failed to load book stats', e);
+        }
       } catch (err) {
         console.error('Failed to load book:', err);
-        setError('Book not found');
+        if (mounted) setError('Book not found');
       } finally {
         if (mounted) setLoading(false);
       }
     };
-    load();
+    
+    loadBook();
     return () => { mounted = false; };
   }, [id]);
 
-  // If user is signed in, fetch backend user document to enable favorites API
+  // Load user data and check favorites
   useEffect(() => {
     let mounted = true;
+    
     const loadUser = async () => {
       if (!currentUser) return;
+      
       try {
         const res = await api.user.getByFirebaseUid(currentUser.uid);
         if (!mounted) return;
-        if (res && res.data) {
+        
+        if (res?.data) {
           setBackendUser(res.data);
-          // check if book is in favorites
+          
           if (Array.isArray(res.data.favorites) && book) {
-            const has = res.data.favorites.some(f => (f._id ? f._id === book._id : f === book._id || f === id));
+            const has = res.data.favorites.some(f => 
+              (f._id ? f._id === book._id : f === book._id || f === id)
+            );
             setIsFavorite(has);
           }
         }
@@ -75,11 +213,151 @@ const BookDetail = () => {
         console.error('Failed to load backend user', err);
       }
     };
+    
     loadUser();
     return () => { mounted = false; };
   }, [currentUser, book, id]);
 
-  if (loading) return <div className="min-h-screen p-6">Loading...</div>;
+  // Handle download
+  const handleDownload = useCallback(async () => {
+    const url = await resolvePdfUrl();
+    if (!url) return;
+
+    try {
+      await api.book.incrementDownload(book._id || id, { 
+        firebaseUid: currentUser?.uid 
+      });
+      
+      await Promise.all([
+        refreshStats(),
+        refreshUserProfile()
+      ]);
+    } catch (err) {
+      console.error('Failed to increment download count', err);
+    }
+
+    try {
+      const a = document.createElement('a');
+      a.href = url;
+      a.target = '_blank';
+      a.rel = 'noopener noreferrer';
+      a.download = `${book.title}.pdf`;
+      a.click();
+    } catch (err) {
+      window.open(url, '_blank', 'noopener,noreferrer');
+    }
+  }, [book, id, currentUser, resolvePdfUrl, refreshStats, refreshUserProfile]);
+
+  // Handle read online
+  const handleReadOnline = useCallback(async () => {
+    const url = await resolvePdfUrl();
+    if (!url) return;
+
+    try {
+      await api.book.markRead(book._id || id, { 
+        firebaseUid: currentUser?.uid 
+      });
+      await refreshStats();
+    } catch (err) {
+      console.error('Failed to mark read', err);
+    }
+
+    setViewerUrl(url);
+    setShowViewer(true);
+    
+    setTimeout(() => {
+      viewerRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }, 150);
+  }, [book, id, currentUser, resolvePdfUrl, refreshStats]);
+
+  // Handle favorite toggle
+  const handleFavoriteToggle = useCallback(async () => {
+    let userId = backendUser?._id;
+    
+    if (!userId) {
+      if (!currentUser) return navigate('/signin');
+      
+      try {
+        const ru = await api.user.getByFirebaseUid(currentUser.uid);
+        if (ru?.data) {
+          setBackendUser(ru.data);
+          userId = ru.data._id;
+        } else {
+          console.error('No backend user for firebase uid');
+          return;
+        }
+      } catch (e) {
+        console.error(e);
+        return;
+      }
+    }
+
+    try {
+      if (!isFavorite) {
+        await api.user.addFavorite(userId, id);
+      } else {
+        await api.user.removeFavorite(userId, id);
+      }
+      
+      setIsFavorite(!isFavorite);
+      
+      await Promise.all([
+        refreshStats(),
+        refreshUserProfile()
+      ]);
+    } catch (err) {
+      console.error('Failed to toggle favorite', err);
+    }
+  }, [backendUser, currentUser, isFavorite, id, navigate, refreshStats, refreshUserProfile]);
+
+  // Handle viewer close
+  const handleViewerClose = useCallback(() => {
+    setShowViewer(false);
+  }, []);
+
+  // Handle open in new tab from viewer
+  const handleOpenNewTab = useCallback(async () => {
+    try {
+      await api.book.incrementDownload(book._id || id, { 
+        firebaseUid: currentUser?.uid 
+      });
+      await refreshUserProfile();
+    } catch (err) {
+      console.error(err);
+    }
+    
+    window.open(viewerUrl, '_blank', 'noopener,noreferrer');
+  }, [book, id, currentUser, viewerUrl, refreshUserProfile]);
+
+  // Memoized stats display
+  const statsDisplay = useMemo(() => {
+    const downloads = downloadsCount || book?.downloads || 0;
+    const favorites = favoritesCount || 0;
+    
+    return (
+      <>
+        <span className="text-gray-600">
+          {downloads.toLocaleString()} downloads
+        </span>
+        <span className="text-gray-400">|</span>
+        <span className="text-gray-600">
+          {favorites.toLocaleString()} favorites
+        </span>
+      </>
+    );
+  }, [downloadsCount, favoritesCount, book?.downloads]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto" />
+          <p className="mt-4 text-gray-600">Loading book...</p>
+        </div>
+      </div>
+    );
+  }
+
   if (error || !book) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -92,9 +370,6 @@ const BookDetail = () => {
       </div>
     );
   }
-
-  // relatedBooks left empty for now; could fetch and filter by category
-  const relatedBooks = [];
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -120,113 +395,28 @@ const BookDetail = () => {
                 <img
                   src={book.coverImage}
                   alt={book.title}
+                  loading="eager"
                   className="w-full rounded-lg shadow-lg"
                 />
-                {book.available ? (
-                  <span className="absolute top-4 right-4 bg-green-500 text-white px-3 py-1 rounded-full text-sm font-semibold">
-                    Available
-                  </span>
-                ) : (
-                  <span className="absolute top-4 right-4 bg-red-500 text-white px-3 py-1 rounded-full text-sm font-semibold">
-                    Unavailable
-                  </span>
-                )}
+                <span className={`absolute top-4 right-4 px-3 py-1 rounded-full text-sm font-semibold text-white ${
+                  book.available ? 'bg-green-500' : 'bg-red-500'
+                }`}>
+                  {book.available ? 'Available' : 'Unavailable'}
+                </span>
               </div>
 
               <div className="space-y-3">
                 <button
-                  onClick={async () => {
-                    // resolve pdf url (book.pdfUrl or associated elibrary file)
-                    let url = book.pdfUrl || '';
-                    if (!url) {
-                      try {
-                        const f = await api.book.getFile(id);
-                        if (f && f.data && f.data.url) url = f.data.url;
-                      } catch (err) {
-                        console.error('No file found for download', err);
-                      }
-                    }
-                    if (!url) return;
-
-                    try {
-                      await api.book.incrementDownload(book._id || id, { firebaseUid: currentUser ? currentUser.uid : undefined });
-                      // refresh stats count
-                      const statsRes = await api.book.getStats(id);
-                      if (statsRes && statsRes.data) setDownloadsCount(statsRes.data.downloads || 0);
-                      // update backend user and notify Profile to refresh
-                      if (currentUser) {
-                        try {
-                          const ru = await api.user.getByFirebaseUid(currentUser.uid);
-                          if (ru && ru.data) {
-                            // dispatch global event so Profile component can refresh
-                            window.dispatchEvent(new CustomEvent('profile-updated', { detail: ru.data }));
-                          }
-                        } catch (e) { console.error('Failed to refresh backend user after download', e); }
-                      }
-                    } catch (err) {
-                      console.error('Failed to increment download count', err);
-                    }
-
-                    try {
-                      const a = document.createElement('a');
-                      a.href = url;
-                      a.target = '_blank';
-                      a.rel = 'noopener';
-                      a.download = '';
-                      document.body.appendChild(a);
-                      a.click();
-                      a.remove();
-                    } catch (err) {
-                      window.open(url, '_blank', 'noopener');
-                    }
-                  }}
-                  className={`w-full py-3 px-4 rounded-lg font-semibold flex items-center justify-center space-x-2 transition-colors ${
-                    book.pdfUrl || true
-                      ? 'bg-primary-600 text-white hover:bg-primary-700'
-                      : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                  }`}
+                  onClick={handleDownload}
+                  className="w-full py-3 px-4 rounded-lg font-semibold flex items-center justify-center space-x-2 transition-colors bg-primary-600 text-white hover:bg-primary-700"
                 >
                   <Download className="h-5 w-5" />
                   <span>Download</span>
                 </button>
 
                 <button
-                  onClick={async () => {
-                    // resolve pdf url
-                    let url = book.pdfUrl || '';
-                    if (!url) {
-                      try {
-                        const f = await api.book.getFile(id);
-                        if (f && f.data && f.data.url) url = f.data.url;
-                      } catch (err) {
-                        console.error('No file found for reading', err);
-                      }
-                    }
-                    if (!url) return;
-                      // mark as read (update book.reads and user's booksRead)
-                      try {
-                        await api.book.markRead(book._id || id, { firebaseUid: currentUser ? currentUser.uid : undefined });
-                        // refresh stats
-                        const statsRes = await api.book.getStats(id);
-                        if (statsRes && statsRes.data) {
-                          setDownloadsCount(statsRes.data.downloads || 0);
-                          setFavoritesCount(statsRes.data.favoritesCount || 0);
-                        }
-                      } catch (err) {
-                        console.error('Failed to mark read', err);
-                      }
-                      setViewerUrl(url);
-                      setShowViewer(true);
-                    // scroll viewer into view after render
-                    setTimeout(() => {
-                      if (viewerRef.current) viewerRef.current.scrollIntoView({ behavior: 'smooth' });
-                    }, 150);
-                  }}
-                  className={`w-full py-3 px-4 rounded-lg font-semibold flex items-center justify-center space-x-2 transition-colors ${
-                    book.pdfUrl || true
-                      ? 'bg-white border-2 border-primary-600 text-primary-600 hover:bg-primary-50'
-                      : 'bg-gray-100 border-2 border-gray-300 text-gray-500 cursor-not-allowed'
-                  }`}
+                  onClick={handleReadOnline}
+                  className="w-full py-3 px-4 rounded-lg font-semibold flex items-center justify-center space-x-2 transition-colors bg-white border-2 border-primary-600 text-primary-600 hover:bg-primary-50"
                 >
                   <BookOpen className="h-5 w-5" />
                   <span>Read Online</span>
@@ -234,43 +424,7 @@ const BookDetail = () => {
 
                 <div className="flex space-x-2">
                   <button
-                    onClick={async () => {
-                          let userId = backendUser && backendUser._id;
-                          if (!userId) {
-                            // try to fetch backend user quickly
-                            if (!currentUser) return navigate('/signin');
-                            try {
-                              const ru = await api.user.getByFirebaseUid(currentUser.uid);
-                              if (ru && ru.data) {
-                                setBackendUser(ru.data);
-                                userId = ru.data._id;
-                              } else {
-                                console.error('No backend user for firebase uid');
-                                return;
-                              }
-                            } catch (e) { console.error(e); return; }
-                          }
-                          try {
-                            if (!isFavorite) {
-                              await api.user.addFavorite(userId, id);
-                            } else {
-                              await api.user.removeFavorite(userId, id);
-                            }
-                        setIsFavorite(!isFavorite);
-                        // refresh favorites count
-                        const statsRes = await api.book.getStats(id);
-                        if (statsRes && statsRes.data) setFavoritesCount(statsRes.data.favoritesCount || 0);
-              // refresh backend user and notify Profile
-              if (currentUser) {
-                try {
-                const ru = await api.user.getByFirebaseUid(currentUser.uid);
-                if (ru && ru.data) window.dispatchEvent(new CustomEvent('profile-updated', { detail: ru.data }));
-                } catch (e) { console.error('Failed to refresh backend user after favorite toggle', e); }
-              }
-                      } catch (err) {
-                        console.error('Failed to toggle favorite', err);
-                      }
-                    }}
+                    onClick={handleFavoriteToggle}
                     className={`flex-1 py-3 px-4 rounded-lg font-semibold flex items-center justify-center space-x-2 transition-colors ${
                       isFavorite
                         ? 'bg-red-50 border-2 border-red-500 text-red-500'
@@ -297,27 +451,9 @@ const BookDetail = () => {
                 <p className="text-xl text-gray-600 mb-4">by {book.author}</p>
                 
                 <div className="flex items-center space-x-4 mb-4">
-                  <div className="flex items-center space-x-1">
-                    {[...Array(5)].map((_, i) => (
-                      <Star
-                        key={i}
-                        className={`h-5 w-5 ${
-                          i < Math.floor(book.rating)
-                            ? 'text-yellow-400 fill-current'
-                            : 'text-gray-300'
-                        }`}
-                      />
-                    ))}
-                    <span className="ml-2 text-lg font-semibold text-gray-700">
-                      {book.rating}
-                    </span>
-                  </div>
+                  <StarRating rating={book.rating} />
                   <span className="text-gray-400">|</span>
-                  <span className="text-gray-600">
-                    { (downloadsCount || book.downloads || 0).toLocaleString() } downloads
-                  </span>
-                  <span className="text-gray-400">|</span>
-                  <span className="text-gray-600">{(favoritesCount || 0).toLocaleString()} favorites</span>
+                  {statsDisplay}
                 </div>
 
                 <span className="inline-block bg-primary-100 text-primary-800 px-4 py-2 rounded-full text-sm font-semibold">
@@ -327,34 +463,14 @@ const BookDetail = () => {
 
               {/* Book Info Grid */}
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8 pb-8 border-b">
-                <div className="flex items-start space-x-2">
-                  <Calendar className="h-5 w-5 text-primary-600 mt-1" />
-                  <div>
-                    <p className="text-sm text-gray-500">Published</p>
-                    <p className="font-semibold text-gray-900">{book.year}</p>
-                  </div>
-                </div>
-                <div className="flex items-start space-x-2">
-                  <FileText className="h-5 w-5 text-primary-600 mt-1" />
-                  <div>
-                    <p className="text-sm text-gray-500">Pages</p>
-                    <p className="font-semibold text-gray-900">{book.pages}</p>
-                  </div>
-                </div>
-                <div className="flex items-start space-x-2">
-                  <Globe className="h-5 w-5 text-primary-600 mt-1" />
-                  <div>
-                    <p className="text-sm text-gray-500">Language</p>
-                    <p className="font-semibold text-gray-900">{book.language}</p>
-                  </div>
-                </div>
-                <div className="flex items-start space-x-2">
-                  <BookOpen className="h-5 w-5 text-primary-600 mt-1" />
-                  <div>
-                    <p className="text-sm text-gray-500">ISBN</p>
-                    <p className="font-semibold text-gray-900 text-xs">{book.isbn}</p>
-                  </div>
-                </div>
+                {bookInfo.map((info, index) => (
+                  <BookInfoItem
+                    key={index}
+                    icon={info.icon}
+                    label={info.label}
+                    value={info.value}
+                  />
+                ))}
               </div>
 
               {/* Description */}
@@ -362,82 +478,18 @@ const BookDetail = () => {
                 <h2 className="text-2xl font-bold text-gray-900 mb-4">About this book</h2>
                 <p className="text-gray-700 leading-relaxed">{book.description}</p>
               </div>
-
-              {/* Related Books */}
-              {relatedBooks.length > 0 && (
-                <div>
-                  <h2 className="text-2xl font-bold text-gray-900 mb-4">Related Books</h2>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    {relatedBooks.map((relatedBook) => (
-                      <Link
-                        key={relatedBook.id}
-                        to={`/book/${relatedBook.id}`}
-                        className="flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-50 transition-colors border border-gray-200"
-                      >
-                        <img
-                          src={relatedBook.coverImage}
-                          alt={relatedBook.title}
-                          className="w-16 h-24 object-cover rounded"
-                        />
-                        <div className="flex-1 min-w-0">
-                          <h3 className="font-semibold text-gray-900 truncate">
-                            {relatedBook.title}
-                          </h3>
-                          <p className="text-sm text-gray-600 truncate">{relatedBook.author}</p>
-                          <div className="flex items-center space-x-1 mt-1">
-                            <Star className="h-3 w-3 text-yellow-400 fill-current" />
-                            <span className="text-xs text-gray-600">{relatedBook.rating}</span>
-                          </div>
-                        </div>
-                      </Link>
-                    ))}
-                  </div>
-                </div>
-              )}
             </div>
-              {/* PDF Viewer (in-page) */}
-              {showViewer && viewerUrl && (
-                <div ref={viewerRef} className="mt-6">
-                  <div className="bg-white rounded-lg shadow-md p-4">
-                    <div className="flex items-center justify-between mb-3">
-                      <h3 className="font-semibold">Reading: {book.title}</h3>
-                      <div className="space-x-2">
-                        <button
-                          onClick={() => setShowViewer(false)}
-                          className="text-sm text-gray-600 hover:text-gray-900"
-                        >
-                          Close
-                        </button>
-                        <button
-                          onClick={async () => {
-                            try {
-                              await api.book.incrementDownload(book._id || id, { firebaseUid: currentUser ? currentUser.uid : undefined });
-                              // notify profile
-                              if (currentUser) {
-                                try {
-                                const ru = await api.user.getByFirebaseUid(currentUser.uid);
-                                if (ru && ru.data) window.dispatchEvent(new CustomEvent('profile-updated', { detail: ru.data }));
-                                } catch (e) { console.error(e); }
-                              }
-                            } catch (err) { console.error(err); }
-                            window.open(viewerUrl, '_blank', 'noopener');
-                          }}
-                          className="text-sm text-primary-600 hover:underline"
-                        >
-                          Open in new tab
-                        </button>
-                      </div>
-                    </div>
-                    <div className="w-full" style={{ minHeight: 400 }}>
-                      <iframe
-                        title={`reader-${book._id || id}`}
-                        src={viewerUrl}
-                        className="w-full h-[70vh] border"
-                      />
-                    </div>
-                  </div>
-                </div>
-              )}
+
+            {/* PDF Viewer */}
+            {showViewer && viewerUrl && (
+              <PDFViewer
+                book={book}
+                viewerUrl={viewerUrl}
+                onClose={handleViewerClose}
+                onOpenNewTab={handleOpenNewTab}
+                viewerRef={viewerRef}
+              />
+            )}
           </div>
         </div>
       </div>

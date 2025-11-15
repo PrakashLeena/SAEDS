@@ -1,15 +1,66 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback, useMemo, memo } from 'react';
 import { Mail, Calendar, BookOpen, Download, Heart, Award, Edit, LogOut } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { books } from '../data/books';
 import api from '../services/api';
 
+// Memoized stat card component
+const StatCard = memo(({ icon: Icon, value, label, color }) => (
+  <div className="bg-white rounded-lg shadow-md p-6 text-center hover:shadow-lg transition-shadow">
+    <div className="flex justify-center mb-3">
+      <Icon className={`h-8 w-8 ${color}`} />
+    </div>
+    <p className="text-3xl font-bold text-gray-900 mb-1">{value}</p>
+    <p className="text-sm text-gray-600">{label}</p>
+  </div>
+));
+
+StatCard.displayName = 'StatCard';
+
+// Memoized profile info row
+const InfoRow = memo(({ icon: Icon, text }) => (
+  <div className="flex items-center justify-center md:justify-start space-x-2">
+    <Icon className="h-4 w-4" />
+    <span>{text}</span>
+  </div>
+));
+
+InfoRow.displayName = 'InfoRow';
+
+// Memoized recent activity item
+const ActivityItem = memo(({ book }) => (
+  <div className="flex items-center space-x-4 p-4 rounded-lg hover:bg-gray-50 transition-colors border border-gray-200">
+    <img
+      src={book.coverImage}
+      alt={book.title}
+      className="w-16 h-24 object-cover rounded"
+      loading="lazy"
+    />
+    <div className="flex-1">
+      <Link 
+        to={`/book/${book.id}`} 
+        className="font-semibold text-gray-900 hover:text-primary-600 transition-colors"
+      >
+        {book.title}
+      </Link>
+      <p className="text-sm text-gray-600">{book.author}</p>
+      <p className="text-xs text-gray-500 mt-1">Downloaded 2 days ago</p>
+    </div>
+    <div className="text-right">
+      <span className="inline-block bg-primary-100 text-primary-800 text-xs px-2 py-1 rounded">
+        {book.category}
+      </span>
+    </div>
+  </div>
+));
+
+ActivityItem.displayName = 'ActivityItem';
+
 const Profile = () => {
   const { currentUser, logout } = useAuth();
   const navigate = useNavigate();
 
-  // State for stats (booksRead, downloads, favorites, reviews)
   const [stats, setStats] = useState({
     booksRead: 0,
     downloads: 0,
@@ -24,68 +75,88 @@ const Profile = () => {
     }
   }, [currentUser, navigate]);
 
-  // Fetch user stats from backend (by firebase UID) and populate stats
+  // Fetch user stats
   useEffect(() => {
     let mounted = true;
-    const load = async () => {
+
+    const loadStats = async () => {
       try {
-        if (!currentUser || !currentUser.uid) return;
+        if (!currentUser?.uid) return;
+        
         const res = await api.user.getByFirebaseUid(currentUser.uid);
-        if (!mounted) return;
-        if (res && res.success && res.data) {
-          const userData = res.data;
-          setStats({
-            booksRead: userData.booksRead || 0,
-            downloads: userData.downloads || 0,
-            favorites: Array.isArray(userData.favorites) ? userData.favorites.length : 0,
-            reviews: userData.reviews || 0,
-          });
-        }
+        
+        if (!mounted || !res?.success || !res.data) return;
+        
+        const userData = res.data;
+        setStats({
+          booksRead: userData.booksRead || 0,
+          downloads: userData.downloads || 0,
+          favorites: Array.isArray(userData.favorites) ? userData.favorites.length : 0,
+          reviews: userData.reviews || 0,
+        });
       } catch (err) {
         console.error('Failed to load profile stats:', err);
       }
     };
-    load();
+
+    loadStats();
     return () => { mounted = false; };
   }, [currentUser]);
 
-  // Listen for profile-updated events dispatched elsewhere (e.g., after download/favorite)
-  useEffect(() => {
-    const handler = (e) => {
-      const userData = e && e.detail ? e.detail : null;
-      if (!userData) return;
-      setStats({
-        booksRead: userData.booksRead || 0,
-        downloads: userData.downloads || 0,
-        favorites: Array.isArray(userData.favorites) ? userData.favorites.length : 0,
-        reviews: userData.reviews || 0,
-      });
-    };
-    window.addEventListener('profile-updated', handler);
-    return () => window.removeEventListener('profile-updated', handler);
+  // Memoized profile update handler
+  const handleProfileUpdate = useCallback((e) => {
+    const userData = e?.detail;
+    if (!userData) return;
+    
+    setStats({
+      booksRead: userData.booksRead || 0,
+      downloads: userData.downloads || 0,
+      favorites: Array.isArray(userData.favorites) ? userData.favorites.length : 0,
+      reviews: userData.reviews || 0,
+    });
   }, []);
 
-  const handleLogout = async () => {
+  // Listen for profile updates
+  useEffect(() => {
+    window.addEventListener('profile-updated', handleProfileUpdate);
+    return () => window.removeEventListener('profile-updated', handleProfileUpdate);
+  }, [handleProfileUpdate]);
+
+  // Memoized logout handler
+  const handleLogout = useCallback(async () => {
     await logout();
     navigate('/signin');
-  };
+  }, [logout, navigate]);
 
-  if (!currentUser) {
+  // Memoized user data
+  const user = useMemo(() => {
+    if (!currentUser) return null;
+    
+    return {
+      name: currentUser.displayName || 'User',
+      email: currentUser.email,
+      joinDate: new Date(currentUser.metadata.creationTime).toLocaleDateString('en-US', { 
+        month: 'long', 
+        year: 'numeric' 
+      }),
+      avatar: currentUser.photoURL || 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400&h=400&fit=crop',
+    };
+  }, [currentUser]);
+
+  // Memoized recent books
+  const recentBooks = useMemo(() => books.slice(0, 3), []);
+
+  // Memoized stat cards configuration
+  const statCards = useMemo(() => [
+    { icon: BookOpen, value: stats.booksRead, label: 'Books Read', color: 'text-primary-600' },
+    { icon: Download, value: stats.downloads, label: 'Downloads', color: 'text-green-600' },
+    { icon: Heart, value: stats.favorites, label: 'Favorites', color: 'text-red-600 fill-current' },
+    { icon: Award, value: stats.reviews, label: 'Reviews', color: 'text-yellow-600' },
+  ], [stats]);
+
+  if (!currentUser || !user) {
     return null;
   }
-
-
-  // User data from Firebase
-  const user = {
-    name: currentUser.displayName || 'User',
-    email: currentUser.email,
-    joinDate: new Date(currentUser.metadata.creationTime).toLocaleDateString('en-US', { month: 'long', year: 'numeric' }),
-    avatar: currentUser.photoURL || 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400&h=400&fit=crop',
-  };
-
-  
-
-  const recentBooks = books.slice(0, 3);
 
   return (
     <div className="min-h-screen bg-gray-50 py-8">
@@ -98,8 +169,12 @@ const Profile = () => {
                 src={user.avatar}
                 alt={user.name}
                 className="w-32 h-32 rounded-full object-cover border-4 border-primary-100"
+                loading="eager"
               />
-              <button className="absolute bottom-0 right-0 bg-primary-600 text-white p-2 rounded-full hover:bg-primary-700 transition-colors">
+              <button 
+                className="absolute bottom-0 right-0 bg-primary-600 text-white p-2 rounded-full hover:bg-primary-700 transition-colors"
+                aria-label="Edit profile picture"
+              >
                 <Edit className="h-4 w-4" />
               </button>
             </div>
@@ -107,16 +182,10 @@ const Profile = () => {
             <div className="flex-1 text-center md:text-left">
               <h1 className="text-3xl font-bold text-gray-900 mb-2">{user.name}</h1>
               <div className="space-y-2 text-gray-600">
-                <div className="flex items-center justify-center md:justify-start space-x-2">
-                  <Mail className="h-4 w-4" />
-                  <span>{user.email}</span>
-                </div>
-                <div className="flex items-center justify-center md:justify-start space-x-2">
-                  <Calendar className="h-4 w-4" />
-                  <span>Member since {user.joinDate}</span>
-                </div>
+                <InfoRow icon={Mail} text={user.email} />
+                <InfoRow icon={Calendar} text={`Member since ${user.joinDate}`} />
               </div>
-              <div className="mt-4 flex space-x-3">
+              <div className="mt-4 flex flex-wrap gap-3 justify-center md:justify-start">
                 <button className="bg-primary-600 text-white px-6 py-2 rounded-lg hover:bg-primary-700 transition-colors font-medium">
                   Edit Profile
                 </button>
@@ -134,37 +203,15 @@ const Profile = () => {
 
         {/* Stats Grid */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-          <div className="bg-white rounded-lg shadow-md p-6 text-center">
-            <div className="flex justify-center mb-3">
-              <BookOpen className="h-8 w-8 text-primary-600" />
-            </div>
-            <p className="text-3xl font-bold text-gray-900 mb-1">{stats.booksRead}</p>
-            <p className="text-sm text-gray-600">Books Read</p>
-          </div>
-
-          <div className="bg-white rounded-lg shadow-md p-6 text-center">
-            <div className="flex justify-center mb-3">
-              <Download className="h-8 w-8 text-green-600" />
-            </div>
-            <p className="text-3xl font-bold text-gray-900 mb-1">{stats.downloads}</p>
-            <p className="text-sm text-gray-600">Downloads</p>
-          </div>
-
-          <div className="bg-white rounded-lg shadow-md p-6 text-center">
-            <div className="flex justify-center mb-3">
-              <Heart className="h-8 w-8 text-red-600 fill-current" />
-            </div>
-            <p className="text-3xl font-bold text-gray-900 mb-1">{stats.favorites}</p>
-            <p className="text-sm text-gray-600">Favorites</p>
-          </div>
-
-          <div className="bg-white rounded-lg shadow-md p-6 text-center">
-            <div className="flex justify-center mb-3">
-              <Award className="h-8 w-8 text-yellow-600" />
-            </div>
-            <p className="text-3xl font-bold text-gray-900 mb-1">{stats.reviews}</p>
-            <p className="text-sm text-gray-600">Reviews</p>
-          </div>
+          {statCards.map((card, index) => (
+            <StatCard
+              key={index}
+              icon={card.icon}
+              value={card.value}
+              label={card.label}
+              color={card.color}
+            />
+          ))}
         </div>
 
         {/* Recent Activity */}
@@ -173,39 +220,19 @@ const Profile = () => {
           
           <div className="space-y-4">
             {recentBooks.map((book) => (
-              <div key={book.id} className="flex items-center space-x-4 p-4 rounded-lg hover:bg-gray-50 transition-colors border border-gray-200">
-                <img
-                  src={book.coverImage}
-                  alt={book.title}
-                  className="w-16 h-24 object-cover rounded"
-                />
-                <div className="flex-1">
-                  <Link to={`/book/${book.id}`} className="font-semibold text-gray-900 hover:text-primary-600 transition-colors">
-                    {book.title}
-                  </Link>
-                  <p className="text-sm text-gray-600">{book.author}</p>
-                  <p className="text-xs text-gray-500 mt-1">Downloaded 2 days ago</p>
-                </div>
-                <div className="text-right">
-                  <span className="inline-block bg-primary-100 text-primary-800 text-xs px-2 py-1 rounded">
-                    {book.category}
-                  </span>
-                </div>
-              </div>
+              <ActivityItem key={book.id} book={book} />
             ))}
           </div>
 
           <div className="mt-6 text-center">
             <Link
               to="/browse"
-              className="text-primary-600 hover:text-primary-700 font-medium"
+              className="text-primary-600 hover:text-primary-700 font-medium transition-colors"
             >
               View All Activity →
             </Link>
           </div>
         </div>
-
-        
       </div>
     </div>
   );

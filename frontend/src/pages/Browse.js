@@ -1,9 +1,104 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useCallback, memo } from 'react';
 import { Search, Filter, X } from 'lucide-react';
-import { Link } from 'react-router-dom';
 import BookCard from '../components/BookCard';
 import api from '../services/api';
 import { elibraryFolders } from '../data/elibrary';
+
+// Constants
+const CATEGORIES = ['All', 'A/L', 'O/L', 'Other'];
+const SORT_OPTIONS = [
+  { value: 'title', label: 'Title (A-Z)' },
+  { value: 'author', label: 'Author (A-Z)' },
+  { value: 'rating', label: 'Highest Rated' },
+  { value: 'year', label: 'Newest First' },
+  { value: 'popular', label: 'Most Popular' }
+];
+
+// Flatten sections utility (moved outside component)
+const flattenSections = (folders) => {
+  const sections = [];
+  folders.forEach((f) => {
+    f.children.forEach((c) => {
+      if (c.sections?.length > 0) {
+        c.sections.forEach((s) => 
+          sections.push({ 
+            folderId: s.id, 
+            folderTitle: `${f.title} / ${c.title} / ${s.title}` 
+          })
+        );
+      } else {
+        sections.push({ 
+          folderId: c.id, 
+          folderTitle: `${f.title} / ${c.title}` 
+        });
+      }
+    });
+  });
+  return sections;
+};
+
+// Memoized category button component
+const CategoryButton = memo(({ category, isSelected, onClick }) => (
+  <button
+    onClick={onClick}
+    className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
+      isSelected
+        ? 'bg-primary-600 text-white'
+        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+    }`}
+  >
+    {category}
+  </button>
+));
+
+CategoryButton.displayName = 'CategoryButton';
+
+// Memoized book section component
+const BookSection = memo(({ section, books }) => {
+  if (!books || books.length === 0) return null;
+  
+  return (
+    <div className="bg-white rounded-md border border-gray-100 shadow-sm p-3">
+      <h3 className="text-sm font-semibold mb-2 text-gray-800">
+        {section.folderTitle}
+      </h3>
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-8 gap-3">
+        {books.map(book => (
+          <BookCard key={book.id} book={book} />
+        ))}
+      </div>
+    </div>
+  );
+});
+
+BookSection.displayName = 'BookSection';
+
+// Memoized search bar component
+const SearchBar = memo(({ value, onChange, onClear }) => (
+  <div className="mb-6">
+    <div className="relative">
+      <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+      <input
+        type="text"
+        placeholder="Search by title or author..."
+        value={value}
+        onChange={onChange}
+        className="w-full pl-10 pr-10 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+      />
+      {value && (
+        <button
+          onClick={onClear}
+          className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+          aria-label="Clear search"
+        >
+          <X className="h-5 w-5" />
+        </button>
+      )}
+    </div>
+  </div>
+));
+
+SearchBar.displayName = 'SearchBar';
 
 const Browse = () => {
   const [searchQuery, setSearchQuery] = useState('');
@@ -11,14 +106,11 @@ const Browse = () => {
   const [sortBy, setSortBy] = useState('title');
   const [books, setBooks] = useState([]);
   const [loading, setLoading] = useState(true);
-  
 
-  // Derive category list from elibrary folder structure so category buttons
-  // reflect the folder names and sections. Example entries:
-  // 'GCE A/L', 'GCE A/L / Past Papers', 'GCE A/L / Past Papers / Maths'
-  // Simplified top-level categories per user request: All, A/L, O/L, Other
-  const categories = ['All', 'A/L', 'O/L', 'Other'];
+  // Memoize sections (only recalculate if elibraryFolders changes)
+  const sections = useMemo(() => flattenSections(elibraryFolders), []);
 
+  // Memoized book filtering and sorting
   const filteredAndSortedBooks = useMemo(() => {
     let filtered = books;
 
@@ -29,14 +121,15 @@ const Browse = () => {
 
     // Filter by search query
     if (searchQuery) {
+      const query = searchQuery.toLowerCase();
       filtered = filtered.filter(book =>
-        book.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        book.author.toLowerCase().includes(searchQuery.toLowerCase())
+        book.title.toLowerCase().includes(query) ||
+        book.author.toLowerCase().includes(query)
       );
     }
 
     // Sort books
-    const sorted = [...filtered].sort((a, b) => {
+    return [...filtered].sort((a, b) => {
       switch (sortBy) {
         case 'title':
           return a.title.localeCompare(b.title);
@@ -45,43 +138,45 @@ const Browse = () => {
         case 'rating':
           return b.rating - a.rating;
         case 'year':
-          return b.year - a.year;
+          return (b.year || 0) - (a.year || 0);
         case 'popular':
-          return b.downloads - a.downloads;
+          return (b.downloads || 0) - (a.downloads || 0);
         default:
           return 0;
       }
     });
-
-    return sorted;
   }, [searchQuery, selectedCategory, sortBy, books]);
 
-  // Build flat list of folder sections from elibraryFolders so we can
-  // group books by the folder admin selected when creating the book.
-  const flattenSections = (folders) => {
-    const sections = [];
-    folders.forEach((f) => {
-      f.children.forEach((c) => {
-        if (c.sections && c.sections.length > 0) {
-          c.sections.forEach((s) => sections.push({ folderId: s.id, folderTitle: `${f.title} / ${c.title} / ${s.title}` }));
-        } else {
-          sections.push({ folderId: c.id, folderTitle: `${f.title} / ${c.title}` });
-        }
-      });
-    });
-    return sections;
-  };
+  // Memoized books by section
+  const booksBySection = useMemo(() => {
+    return sections.map(section => ({
+      section,
+      books: filteredAndSortedBooks.filter(b => {
+        const folderId = b.raw?.folderId || b.folderId;
+        return folderId === section.folderId;
+      })
+    })).filter(item => item.books.length > 0);
+  }, [sections, filteredAndSortedBooks]);
 
-  const sections = flattenSections(elibraryFolders);
+  // Memoized uncategorized books
+  const uncategorizedBooks = useMemo(() => {
+    return filteredAndSortedBooks.filter(b => 
+      !b.raw?.folderId && !b.folderId
+    );
+  }, [filteredAndSortedBooks]);
 
+  // Load books
   useEffect(() => {
     let mounted = true;
-    const load = async () => {
+    
+    const loadBooks = async () => {
       try {
         const res = await api.book.getAll();
-        const list = (res && res.data) ? res.data : [];
+        const list = res?.data || [];
+        
         if (!mounted) return;
-        // map backend shape to UI shape expected by BookCard
+        
+        // Map backend shape to UI shape
         const mapped = list.map(b => ({
           id: b._id,
           title: b.title,
@@ -97,8 +192,8 @@ const Browse = () => {
           available: Boolean(b.pdfUrl || b.coverImage),
           raw: b,
         }));
-        setBooks(mapped);
         
+        setBooks(mapped);
       } catch (err) {
         console.error('Failed to load books:', err);
       } finally {
@@ -106,14 +201,50 @@ const Browse = () => {
       }
     };
 
-    load();
+    loadBooks();
     return () => { mounted = false; };
   }, []);
+
+  // Memoized event handlers
+  const handleSearchChange = useCallback((e) => {
+    setSearchQuery(e.target.value);
+  }, []);
+
+  const handleSearchClear = useCallback(() => {
+    setSearchQuery('');
+  }, []);
+
+  const handleCategoryChange = useCallback((category) => {
+    setSelectedCategory(category);
+  }, []);
+
+  const handleSortChange = useCallback((e) => {
+    setSortBy(e.target.value);
+  }, []);
+
+  // Memoized results text
+  const resultsText = useMemo(() => {
+    const count = filteredAndSortedBooks.length;
+    const plural = count !== 1 ? 's' : '';
+    const categoryText = selectedCategory !== 'All' 
+      ? ` in ${selectedCategory}` 
+      : '';
+    
+    return (
+      <>
+        Showing <span className="font-semibold">{count}</span> book{plural}
+        {categoryText && <span>{categoryText}</span>}
+      </>
+    );
+  }, [filteredAndSortedBooks.length, selectedCategory]);
 
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 py-6 flex items-center justify-center">
-        <div className="text-gray-600">Loading books...</div>
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto" />
+          <p className="mt-4 text-gray-600">Loading books...</p>
+        </div>
       </div>
     );
   }
@@ -124,32 +255,19 @@ const Browse = () => {
         {/* Header */}
         <div className="mb-6">
           <h1 className="text-3xl font-bold text-gray-900 mb-1">Browse Books</h1>
-          <p className="text-gray-600 text-sm">Explore our collection of {books.length} books</p>
+          <p className="text-gray-600 text-sm">
+            Explore our collection of {books.length} books
+          </p>
         </div>
 
-  {/* Search and Filters */}
-  <div className="bg-white rounded-lg shadow-sm p-4 mb-6">
+        {/* Search and Filters */}
+        <div className="bg-white rounded-lg shadow-sm p-4 mb-6">
           {/* Search Bar */}
-          <div className="mb-6">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
-              <input
-                type="text"
-                placeholder="Search by title or author..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-10 pr-10 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-              />
-              {searchQuery && (
-                <button
-                  onClick={() => setSearchQuery('')}
-                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                >
-                  <X className="h-5 w-5" />
-                </button>
-              )}
-            </div>
-          </div>
+          <SearchBar
+            value={searchQuery}
+            onChange={handleSearchChange}
+            onClear={handleSearchClear}
+          />
 
           {/* Filters */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -160,18 +278,13 @@ const Browse = () => {
                 Category
               </label>
               <div className="flex flex-wrap gap-2">
-                {categories.map((category) => (
-                  <button
+                {CATEGORIES.map((category) => (
+                  <CategoryButton
                     key={category}
-                    onClick={() => setSelectedCategory(category)}
-                    className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
-                      selectedCategory === category
-                        ? 'bg-primary-600 text-white'
-                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                    }`}
-                  >
-                    {category}
-                  </button>
+                    category={category}
+                    isSelected={selectedCategory === category}
+                    onClick={() => handleCategoryChange(category)}
+                  />
                 ))}
               </div>
             </div>
@@ -183,14 +296,14 @@ const Browse = () => {
               </label>
               <select
                 value={sortBy}
-                onChange={(e) => setSortBy(e.target.value)}
+                onChange={handleSortChange}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
               >
-                <option value="title">Title (A-Z)</option>
-                <option value="author">Author (A-Z)</option>
-                <option value="rating">Highest Rated</option>
-                <option value="year">Newest First</option>
-                <option value="popular">Most Popular</option>
+                {SORT_OPTIONS.map(option => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
               </select>
             </div>
           </div>
@@ -198,38 +311,26 @@ const Browse = () => {
 
         {/* Results Count */}
         <div className="mb-6">
-          <p className="text-gray-600">
-            Showing <span className="font-semibold">{filteredAndSortedBooks.length}</span> book
-            {filteredAndSortedBooks.length !== 1 ? 's' : ''}
-            {selectedCategory !== 'All' && (
-              <span> in <span className="font-semibold">{selectedCategory}</span></span>
-            )}
-          </p>
+          <p className="text-gray-600">{resultsText}</p>
         </div>
-        {/* Books grouped by folder (as selected in Admin when creating a book) */}
+
+        {/* Books grouped by folder */}
         {filteredAndSortedBooks.length > 0 ? (
           <div className="space-y-6">
-            {sections.map((section) => {
-              const sectionBooks = filteredAndSortedBooks.filter(b => (b.raw && b.raw.folderId ? b.raw.folderId : b.folderId) === section.folderId);
-              if (!sectionBooks || sectionBooks.length === 0) return null;
-              return (
-                <div key={section.folderId} className="bg-white rounded-md border border-gray-100 shadow-sm p-3">
-                  <h3 className="text-sm font-semibold mb-2 text-gray-800">{section.folderTitle}</h3>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-8 gap-3">
-                    {sectionBooks.map(book => (
-                      <BookCard key={book.id} book={book} />
-                    ))}
-                  </div>
-                </div>
-              );
-            })}
+            {booksBySection.map(({ section, books }) => (
+              <BookSection
+                key={section.folderId}
+                section={section}
+                books={books}
+              />
+            ))}
 
             {/* Uncategorized books */}
-            {filteredAndSortedBooks.filter(b => !(b.raw && b.raw.folderId) && !(b.folderId)).length > 0 && (
-                <div className="bg-white rounded-md border border-gray-100 shadow-sm p-3">
+            {uncategorizedBooks.length > 0 && (
+              <div className="bg-white rounded-md border border-gray-100 shadow-sm p-3">
                 <h3 className="text-sm font-semibold mb-2">Uncategorized</h3>
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-8 gap-3">
-                  {filteredAndSortedBooks.filter(b => !(b.raw && b.raw.folderId) && !(b.folderId)).map(book => (
+                  {uncategorizedBooks.map(book => (
                     <BookCard key={book.id} book={book} />
                   ))}
                 </div>
@@ -238,8 +339,9 @@ const Browse = () => {
           </div>
         ) : (
           <div className="text-center py-12">
-            <p className="text-gray-600">No books found. Use the Admin panel to add books or upload files to the E-Library.</p>
-            
+            <p className="text-gray-600">
+              No books found. Use the Admin panel to add books or upload files to the E-Library.
+            </p>
           </div>
         )}
       </div>

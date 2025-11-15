@@ -1,33 +1,166 @@
-import React, { useEffect, useState, Suspense, lazy } from 'react';
+import React, { useEffect, useState, Suspense, lazy, useCallback, useMemo, memo } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowRight, BookOpen, Users, Calendar, Heart, Globe, TrendingUp, Trophy, Award, Medal, Star } from 'lucide-react';
 const HeroSlider = lazy(() => import('../components/HeroSlider'));
 const JoinModal = lazy(() => import('../components/JoinModal'));
-// Members will be fetched from the backend
 import api from '../services/api';
 import { useScrollAnimation } from '../hooks/useScrollAnimation';
 
+// Memoized stat card component
+const StatCard = memo(({ icon: Icon, value, label }) => (
+  <div className="p-2 sm:p-4 md:p-6">
+    <div className="flex justify-center mb-2 md:mb-4">
+      <Icon className="h-6 w-6 sm:h-8 sm:w-8 md:h-12 md:w-12 text-primary-600" />
+    </div>
+    <h3 className="text-lg sm:text-2xl md:text-3xl font-bold text-gray-900 mb-1 md:mb-2">{value}</h3>
+    <p className="text-xs sm:text-sm md:text-base text-gray-600">{label}</p>
+  </div>
+));
+
+StatCard.displayName = 'StatCard';
+
+// Memoized achievement card
+const AchievementCard = memo(({ achievement, index, visible }) => {
+  const iconMap = useMemo(() => ({
+    trophy: Trophy,
+    award: Award,
+    medal: Medal,
+    star: Star,
+  }), []);
+  
+  const IconComponent = iconMap[achievement.icon] || Trophy;
+
+  return (
+    <div
+      className={`bg-white/10 backdrop-blur-sm rounded-xl p-4 md:p-6 text-center hover:bg-white/20 transition-all hover:scale-105 ${visible ? 'animate-fade-in-up' : ''}`}
+      style={{ animationDelay: `${index * 100}ms` }}
+    >
+      <div className="flex justify-center mb-3 md:mb-4">
+        {achievement.imageURL ? (
+          <div className="bg-white/20 p-2 rounded-lg">
+            <img
+              src={achievement.imageURL}
+              alt={achievement.title}
+              className="h-16 w-16 md:h-20 md:w-20 object-contain"
+              loading="lazy"
+            />
+          </div>
+        ) : (
+          <div className="bg-white/20 p-3 md:p-4 rounded-full">
+            <IconComponent className="h-6 w-6 md:h-8 md:w-8 text-white" />
+          </div>
+        )}
+      </div>
+      <h3 className="text-2xl md:text-4xl font-bold mb-2">{achievement.value}</h3>
+      <p className="text-sm md:text-base font-semibold mb-1">{achievement.title}</p>
+      <p className="text-xs md:text-sm text-primary-100">{achievement.description}</p>
+    </div>
+  );
+});
+
+AchievementCard.displayName = 'AchievementCard';
+
+// Memoized member card
+const MemberCard = memo(({ member, index }) => {
+  const avatar = member.photoURL || 'https://via.placeholder.com/150';
+  const role = member.universityOrRole || '';
+  const bio = member.notes || '';
+  const sinceYear = useMemo(() => 
+    member.since || (member.joinedAt ? new Date(member.joinedAt).getFullYear() : ''),
+    [member.since, member.joinedAt]
+  );
+
+  return (
+    <div 
+      className="flex-shrink-0 w-80 bg-white rounded-lg shadow-md p-6 hover:shadow-xl transition-all hover:-translate-y-2"
+    >
+      <div className="flex items-center space-x-4 mb-4">
+        <img
+          src={avatar}
+          alt={member.name}
+          className="w-16 h-16 rounded-full object-cover border-2 border-primary-200"
+          loading="lazy"
+        />
+        <div className="flex-1">
+          <h3 className="text-lg font-bold text-gray-900">{member.name}</h3>
+          <p className="text-sm text-primary-600 font-medium">{role}</p>
+        </div>
+      </div>
+      {bio && <p className="text-gray-600 text-sm mb-4 line-clamp-2">{bio}</p>}
+      <div className="flex items-center justify-between text-sm mt-4">
+        <div className="flex items-center space-x-1 text-gray-500">
+          <TrendingUp className="h-4 w-4" />
+          <span>Member</span>
+        </div>
+        {sinceYear && (
+          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary-100 text-primary-800">
+            Since {sinceYear}
+          </span>
+        )}
+      </div>
+    </div>
+  );
+});
+
+MemberCard.displayName = 'MemberCard';
+
+// Memoized service card
+const ServiceCard = memo(({ icon: Icon, title, description, link, linkText, bgColor, delay }) => (
+  <div 
+    className="bg-white rounded-lg shadow-md p-8 hover:shadow-xl transition-all hover:scale-105 hover:-translate-y-1 animate-fade-in-up"
+    style={{ animationDelay: delay }}
+  >
+    <div className="flex justify-center mb-4">
+      <div className={`${bgColor} p-4 rounded-full`}>
+        <Icon className="h-10 w-10" />
+      </div>
+    </div>
+    <h3 className="text-xl font-bold text-gray-900 mb-3 text-center">{title}</h3>
+    <p className="text-gray-600 text-center mb-4">{description}</p>
+    <Link
+      to={link}
+      className="block w-full bg-primary-600 text-white py-2 px-4 rounded-lg hover:bg-primary-700 transition-colors text-center font-medium"
+    >
+      {linkText}
+    </Link>
+  </div>
+));
+
+ServiceCard.displayName = 'ServiceCard';
+
+// Memoized loading fallback
+const HeroLoading = memo(() => (
+  <div className="h-[500px] sm:h-[550px] md:h-[600px] lg:h-[700px] bg-gray-200 animate-pulse" />
+));
+
+HeroLoading.displayName = 'HeroLoading';
+
 const Home = () => {
-  // featuredBooks removed - demo lists cleared
   const [aboutRef, aboutVisible] = useScrollAnimation();
   const [membersRef, membersVisible] = useScrollAnimation();
-  const [members, setMembers] = useState([]);
   const [achievementsRef, achievementsVisible] = useScrollAnimation();
-  const [achievements, setAchievements] = useState([]);
   const [servicesRef, servicesVisible] = useScrollAnimation();
   const [booksRef, booksVisible] = useScrollAnimation();
+  
+  const [members, setMembers] = useState([]);
+  const [achievements, setAchievements] = useState([]);
   const [activeMembers, setActiveMembers] = useState('5,000+');
   const [eventsHosted, setEventsHosted] = useState('150+');
   const [isJoinModalOpen, setIsJoinModalOpen] = useState(false);
 
+  // Memoized format function
+  const formatStat = useCallback((n) => {
+    if (typeof n !== 'number') return n || '0';
+    if (n >= 1000) return `${Math.round(n / 100) / 10}k+`.replace('.0k', 'k+');
+    return `${n}+`;
+  }, []);
+
+  // Memoized modal handlers
+  const openJoinModal = useCallback(() => setIsJoinModalOpen(true), []);
+  const closeJoinModal = useCallback(() => setIsJoinModalOpen(false), []);
+
   useEffect(() => {
     let mounted = true;
-
-    const fmt = (n) => {
-      if (typeof n !== 'number') return n || '0';
-      if (n >= 1000) return `${Math.round(n / 100) / 10}k+`.replace('.0k', 'k+');
-      return `${n}+`;
-    };
 
     // Fetch all data in parallel for better performance
     Promise.all([
@@ -39,8 +172,8 @@ const Home = () => {
       
       // Set stats
       const { activeMembers: a, eventsHosted: e } = statsRes?.data || {};
-      if (typeof a !== 'undefined') setActiveMembers(fmt(a));
-      if (typeof e !== 'undefined') setEventsHosted(fmt(e));
+      if (typeof a !== 'undefined') setActiveMembers(formatStat(a));
+      if (typeof e !== 'undefined') setEventsHosted(formatStat(e));
       
       // Set members (first 6)
       const membersList = membersRes?.data || [];
@@ -54,18 +187,60 @@ const Home = () => {
     });
 
     return () => { mounted = false; };
-  }, []);
+  }, [formatStat]);
+
+  // Memoized duplicated members for scrolling animation
+  const duplicatedMembers = useMemo(() => 
+    members.length > 0 ? [...members, ...members] : [],
+    [members]
+  );
+
+  // Memoized animation style
+  const scrollAnimationStyle = useMemo(() => ({
+    animation: members.length > 3 ? 'scroll-horizontal 8s linear infinite' : 'none'
+  }), [members.length]);
+
+  // Memoized service cards data
+  const serviceCards = useMemo(() => [
+    {
+      icon: BookOpen,
+      title: 'E-Library',
+      description: 'Access thousands of books, journals, and educational resources for free',
+      link: '/browse',
+      linkText: 'Browse Books',
+      bgColor: 'bg-primary-100 text-primary-600',
+      delay: '100ms'
+    },
+    {
+      icon: Calendar,
+      title: 'Events & Workshops',
+      description: 'Join our regular events, workshops, and networking sessions',
+      link: '/activity',
+      linkText: 'View Events',
+      bgColor: 'bg-green-100 text-green-600',
+      delay: '200ms'
+    },
+    {
+      icon: Globe,
+      title: 'Global Network',
+      description: 'Connect with community members from around the world',
+      link: '/join',
+      linkText: 'Join Network',
+      bgColor: 'bg-blue-100 text-blue-600',
+      delay: '600ms'
+    }
+  ], []);
 
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Hero Slider */}
-      <Suspense fallback={<div className="h-[500px] sm:h-[550px] md:h-[600px] lg:h-[700px] bg-gray-200 animate-pulse" />}> 
-        <HeroSlider onOpenJoinModal={() => setIsJoinModalOpen(true)} />
+      <Suspense fallback={<HeroLoading />}> 
+        <HeroSlider onOpenJoinModal={openJoinModal} />
       </Suspense>
       
       {/* Join Modal */}
       <Suspense fallback={null}>
-        <JoinModal isOpen={isJoinModalOpen} onClose={() => setIsJoinModalOpen(false)} />
+        <JoinModal isOpen={isJoinModalOpen} onClose={closeJoinModal} />
       </Suspense>
 
       {/* Mission and Vision Section */}
@@ -122,27 +297,9 @@ const Home = () => {
           </div>
           
           <div className={`grid grid-cols-3 gap-2 sm:gap-4 md:gap-8 text-center transition-all duration-700 delay-200 ${aboutVisible ? 'animate-fade-in' : 'opacity-0'}`}>
-            <div className="p-2 sm:p-4 md:p-6">
-              <div className="flex justify-center mb-2 md:mb-4">
-                <Users className="h-6 w-6 sm:h-8 sm:w-8 md:h-12 md:w-12 text-primary-600" />
-              </div>
-              <h3 className="text-lg sm:text-2xl md:text-3xl font-bold text-gray-900 mb-1 md:mb-2">{activeMembers}</h3>
-              <p className="text-xs sm:text-sm md:text-base text-gray-600">Active Members</p>
-            </div>
-            <div className="p-2 sm:p-4 md:p-6">
-              <div className="flex justify-center mb-2 md:mb-4">
-                <Calendar className="h-6 w-6 sm:h-8 sm:w-8 md:h-12 md:w-12 text-primary-600" />
-              </div>
-              <h3 className="text-lg sm:text-2xl md:text-3xl font-bold text-gray-900 mb-1 md:mb-2">{eventsHosted}</h3>
-              <p className="text-xs sm:text-sm md:text-base text-gray-600">Events Hosted</p>
-            </div>
-            <div className="p-2 sm:p-4 md:p-6">
-              <div className="flex justify-center mb-2 md:mb-4">
-                <Heart className="h-6 w-6 sm:h-8 sm:w-8 md:h-12 md:w-12 text-primary-600" />
-              </div>
-              <h3 className="text-lg sm:text-2xl md:text-3xl font-bold text-gray-900 mb-1 md:mb-2">100%</h3>
-              <p className="text-xs sm:text-sm md:text-base text-gray-600">Community Driven</p>
-            </div>
+            <StatCard icon={Users} value={activeMembers} label="Active Members" />
+            <StatCard icon={Calendar} value={eventsHosted} label="Events Hosted" />
+            <StatCard icon={Heart} value="100%" label="Community Driven" />
           </div>
         </div>
       </section>
@@ -166,50 +323,21 @@ const Home = () => {
             </div>
           ) : (
             <div className={`grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6 transition-all duration-700 ${achievementsVisible ? 'opacity-100' : 'opacity-0'}`}>
-              {achievements.map((achievement, index) => {
-                // Icon mapping
-                const iconMap = {
-                  trophy: Trophy,
-                  award: Award,
-                  medal: Medal,
-                  star: Star,
-                };
-                const IconComponent = iconMap[achievement.icon] || Trophy;
-
-                return (
-                  <div
-                    key={achievement._id || index}
-                    className={`bg-white/10 backdrop-blur-sm rounded-xl p-4 md:p-6 text-center hover:bg-white/20 transition-all hover:scale-105 ${achievementsVisible ? 'animate-fade-in-up' : ''}`}
-                    style={{ animationDelay: `${index * 100}ms` }}
-                  >
-                    <div className="flex justify-center mb-3 md:mb-4">
-                      {achievement.imageURL ? (
-                        <div className="bg-white/20 p-2 rounded-lg">
-                          <img
-                            src={achievement.imageURL}
-                            alt={achievement.title}
-                            className="h-16 w-16 md:h-20 md:w-20 object-contain"
-                          />
-                        </div>
-                      ) : (
-                        <div className="bg-white/20 p-3 md:p-4 rounded-full">
-                          <IconComponent className="h-6 w-6 md:h-8 md:w-8 text-white" />
-                        </div>
-                      )}
-                    </div>
-                    <h3 className="text-2xl md:text-4xl font-bold mb-2">{achievement.value}</h3>
-                    <p className="text-sm md:text-base font-semibold mb-1">{achievement.title}</p>
-                    <p className="text-xs md:text-sm text-primary-100">{achievement.description}</p>
-                  </div>
-                );
-              })}
+              {achievements.map((achievement, index) => (
+                <AchievementCard
+                  key={achievement._id || index}
+                  achievement={achievement}
+                  index={index}
+                  visible={achievementsVisible}
+                />
+              ))}
             </div>
           )}
         </div>
       </section>
 
-  {/* Featured Members Section */}
-  <section id="members" ref={membersRef} className="py-16 bg-gray-50">
+      {/* Featured Members Section */}
+      <section id="members" ref={membersRef} className="py-16 bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className={`text-center mb-12 transition-all duration-700 ${membersVisible ? 'animate-fade-in-up' : 'opacity-0'}`}>
             <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
@@ -220,7 +348,7 @@ const Home = () => {
             </p>
           </div>
 
-          {(!members || members.length === 0) ? (
+          {members.length === 0 ? (
             <div className="bg-white rounded-lg shadow-md p-6 text-center">
               <p className="text-gray-600">We don't have featured members yet. View all members to explore the community.</p>
               <div className="mt-4">
@@ -231,50 +359,17 @@ const Home = () => {
             </div>
           ) : (
             <div className="relative overflow-hidden">
-              {/* Scrollable Container */}
               <div 
                 className={`flex gap-6 animate-scroll-horizontal transition-all duration-700 ${membersVisible ? 'opacity-100' : 'opacity-0'}`}
-                style={{
-                  animation: members.length > 3 ? 'scroll-horizontal 8s linear infinite' : 'none'
-                }}
+                style={scrollAnimationStyle}
               >
-                {/* Duplicate members for seamless loop */}
-                {[...members, ...members].map((member, index) => {
-                  const avatar = member.photoURL || 'https://via.placeholder.com/150';
-                  const role = member.universityOrRole || '';
-                  const bio = member.notes || '';
-                  const sinceYear = member.since || (member.joinedAt ? new Date(member.joinedAt).getFullYear() : '');
-                  return (
-                    <div 
-                      key={`${member._id || index}-${index}`}
-                      className="flex-shrink-0 w-80 bg-white rounded-lg shadow-md p-6 hover:shadow-xl transition-all hover:-translate-y-2"
-                    >
-                      <div className="flex items-center space-x-4 mb-4">
-                        <img
-                          src={avatar}
-                          alt={member.name}
-                          className="w-16 h-16 rounded-full object-cover border-2 border-primary-200"
-                        />
-                        <div className="flex-1">
-                          <h3 className="text-lg font-bold text-gray-900">{member.name}</h3>
-                          <p className="text-sm text-primary-600 font-medium">{role}</p>
-                        </div>
-                      </div>
-                      {bio && <p className="text-gray-600 text-sm mb-4 line-clamp-2">{bio}</p>}
-                      <div className="flex items-center justify-between text-sm mt-4">
-                        <div className="flex items-center space-x-1 text-gray-500">
-                          <TrendingUp className="h-4 w-4" />
-                          <span>Member</span>
-                        </div>
-                        {sinceYear && (
-                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary-100 text-primary-800">
-                            Since {sinceYear}
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                  );
-                })}
+                {duplicatedMembers.map((member, index) => (
+                  <MemberCard
+                    key={`${member._id || index}-${index}`}
+                    member={member}
+                    index={index}
+                  />
+                ))}
               </div>
             </div>
           )}
@@ -328,68 +423,14 @@ const Home = () => {
           </div>
 
           <div className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 transition-all duration-700 ${servicesVisible ? 'opacity-100' : 'opacity-0'}`}>
-            {/* E-Library Service */}
-            <div className={`bg-white rounded-lg shadow-md p-8 hover:shadow-xl transition-all hover:scale-105 hover:-translate-y-1 ${servicesVisible ? 'animate-fade-in-up' : ''}`} style={{animationDelay: '100ms'}}>
-              <div className="flex justify-center mb-4">
-                <div className="bg-primary-100 p-4 rounded-full">
-                  <BookOpen className="h-10 w-10 text-primary-600" />
-                </div>
-              </div>
-              <h3 className="text-xl font-bold text-gray-900 mb-3 text-center">E-Library</h3>
-              <p className="text-gray-600 text-center mb-4">
-                Access thousands of books, journals, and educational resources for free
-              </p>
-              <Link
-                to="/browse"
-                className="block w-full bg-primary-600 text-white py-2 px-4 rounded-lg hover:bg-primary-700 transition-colors text-center font-medium"
-              >
-                Browse Books
-              </Link>
-            </div>
-
-            {/* Events Service */}
-            <div className={`bg-white rounded-lg shadow-md p-8 hover:shadow-xl transition-all hover:scale-105 hover:-translate-y-1 ${servicesVisible ? 'animate-fade-in-up' : ''}`} style={{animationDelay: '200ms'}}>
-              <div className="flex justify-center mb-4">
-                <div className="bg-green-100 p-4 rounded-full">
-                  <Calendar className="h-10 w-10 text-green-600" />
-                </div>
-              </div>
-              <h3 className="text-xl font-bold text-gray-900 mb-3 text-center">Events & Workshops</h3>
-              <p className="text-gray-600 text-center mb-4">
-                Join our regular events, workshops, and networking sessions
-              </p>
-              <Link
-                to="/activity"
-                className="block w-full bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700 transition-colors text-center font-medium"
-              >
-                View Events
-              </Link>
-            </div>
-
-
-            {/* Learning Resources removed per request */}
-
-
-            {/* Global Network */}
-            <div className={`bg-white rounded-lg shadow-md p-8 hover:shadow-xl transition-all hover:scale-105 hover:-translate-y-1 ${servicesVisible ? 'animate-fade-in-up' : ''}`} style={{animationDelay: '600ms'}}>
-              <div className="flex justify-center mb-4">
-                <div className="bg-blue-100 p-4 rounded-full">
-                  <Globe className="h-10 w-10 text-blue-600" />
-                </div>
-              </div>
-              <h3 className="text-xl font-bold text-gray-900 mb-3 text-center">Global Network</h3>
-              <p className="text-gray-600 text-center mb-4">
-                Connect with community members from around the world
-              </p>
-              <Link to="/join" className="block w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors text-center font-medium">
-                Join Network
-              </Link>
-            </div>
+            {serviceCards.map((card, index) => (
+              <ServiceCard key={index} {...card} />
+            ))}
           </div>
         </div>
       </section>
 
-      {/* Featured Books from E-Library (demo lists removed) */}
+      {/* Featured Books from E-Library */}
       <section id="browse" ref={booksRef} className="py-16 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className={`flex justify-between items-center mb-8 transition-all duration-700 ${booksVisible ? 'animate-fade-in-up' : 'opacity-0'}`}>
@@ -402,7 +443,6 @@ const Home = () => {
                 <span className="font-semibold text-primary-600 ml-2">Plus:</span> A vast collection of reference books and educational resources
               </p>
             </div>
-           
           </div>
 
           <div className={`text-center py-12 transition-all duration-700 ${booksVisible ? 'opacity-100' : 'opacity-0'}`}>
