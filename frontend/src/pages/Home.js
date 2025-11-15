@@ -6,6 +6,79 @@ import { useScrollAnimation } from '../hooks/useScrollAnimation';
 const HeroSlider = lazy(() => import('../components/HeroSlider'));
 const JoinModal = lazy(() => import('../components/JoinModal'));
 
+const resolveRole = (member) => {
+  if (!member || typeof member !== 'object') return '';
+
+  const candidates = [
+    member.roleInCommunity,
+    member.role_in_community,
+    member.roleincommunity,
+    member.roleIncommunity,
+    member.communityRole,
+    member.role,
+    member.designation,
+    member.position,
+    member?.details?.roleInCommunity,
+    member?.profile?.roleInCommunity,
+    member?.meta?.roleInCommunity,
+    member?.attributes?.roleInCommunity,
+    member?.attributes?.role,
+    member?.data?.roleInCommunity,
+    member?.role?.name,
+    member?.role?.title,
+    member?.role?.label,
+    member['role in community']
+  ];
+
+  for (const value of candidates) {
+    if (typeof value === 'string' && value.trim()) return value.trim();
+  }
+
+  const dynamicKey = Object.keys(member).find(
+    (key) => key.toLowerCase().replace(/\s|_/g, '') === 'roleincommunity'
+  );
+  if (dynamicKey && typeof member[dynamicKey] === 'string' && member[dynamicKey].trim()) {
+    return member[dynamicKey].trim();
+  }
+
+  return '';
+};
+
+const resolveUniversity = (member) => {
+  if (!member || typeof member !== 'object') return '';
+
+  const candidates = [
+    member.universityOrRole,
+    member.university,
+    member.job,
+    member.occupation,
+    member?.profile?.universityOrRole,
+    member?.details?.universityOrRole
+  ];
+
+  for (const value of candidates) {
+    if (typeof value === 'string' && value.trim()) return value.trim();
+  }
+
+  return '';
+};
+
+const normalizeMember = (member) => {
+  if (!member || typeof member !== 'object') return member;
+  const roleInCommunity = resolveRole(member);
+  const universityOrRole = resolveUniversity(member);
+
+  if (roleInCommunity || universityOrRole) {
+    return {
+      ...member,
+      ...(roleInCommunity ? { roleInCommunity } : {}),
+      ...(universityOrRole ? { universityOrRole } : {})
+    };
+  }
+
+  return member;
+};
+
 // Memoized stat card component
 const StatCard = memo(({ icon: Icon, value, label }) => (
   <div className="p-2 sm:p-4 md:p-6">
@@ -63,14 +136,8 @@ AchievementCard.displayName = 'AchievementCard';
 // Memoized member card
 const MemberCard = memo(({ member, index }) => {
   const avatar = member.photoURL || 'https://via.placeholder.com/150';
-  const communityRole = useMemo(() => {
-    const raw = member.roleInCommunity || '';
-    return typeof raw === 'string' && raw.trim() ? raw.trim() : '';
-  }, [member.roleInCommunity]);
-  const jobOrUniversity = useMemo(() => {
-    const raw = member.universityOrRole || member.university || member.job || member.occupation || '';
-    return typeof raw === 'string' && raw.trim() ? raw.trim() : '';
-  }, [member.universityOrRole, member.university, member.job, member.occupation]);
+  const communityRole = member?.roleInCommunity ? member.roleInCommunity : '';
+  const jobOrUniversity = member?.universityOrRole ? member.universityOrRole : '';
   const bio = member.notes || '';
   const sinceYear = useMemo(() => 
     member.since || (member.joinedAt ? new Date(member.joinedAt).getFullYear() : ''),
@@ -183,34 +250,21 @@ const Home = () => {
       if (typeof e !== 'undefined') setEventsHosted(formatStat(e));
       
       // Set members (first 6), enrich if role is missing in list payload
-      const membersList = membersRes?.data || [];
+      const membersList = (membersRes?.data || []).map(normalizeMember);
       const first6 = membersList.slice(0, 6);
-      const hasRole = (m) => {
-        const raw =
-          m?.roleInCommunity ||
-          m?.role_in_community ||
-          m?.roleincommunity ||
-          m?.roleIncommunity ||
-          m?.communityRole ||
-          m?.role ||
-          m?.designation ||
-          m?.position ||
-          '';
-        if (typeof raw === 'string' && raw.trim()) return true;
-        if (m && typeof m === 'object') {
-          const key = Object.keys(m).find(k => k.toLowerCase().replace(/\s|_/g, '') === 'roleincommunity');
-          if (key && typeof m[key] === 'string' && m[key].trim()) return true;
-        }
-        return false;
-      };
-      const needsEnrichment = first6.some(m => !hasRole(m));
+      const needsEnrichment = first6.some(m => !m?.roleInCommunity);
       if (!needsEnrichment) {
         setMembers(first6);
       } else {
         Promise.all(first6.map(m => api.member.getById(m._id)))
           .then(detailResponses => {
             if (!mounted) return;
-            const detailed = detailResponses.map((r, idx) => (r?.data && r?.success) ? r.data : first6[idx]);
+            const detailed = detailResponses.map((r, idx) => {
+              if (r?.data && r?.success) {
+                return normalizeMember({ ...first6[idx], ...r.data });
+              }
+              return first6[idx];
+            });
             setMembers(detailed);
           })
           .catch(() => setMembers(first6));

@@ -2,6 +2,79 @@ import React, { useState, useEffect, useCallback, useMemo, memo } from 'react';
 import { TrendingUp, Mail, Phone, MapPin, Calendar, Search } from 'lucide-react';
 import { memberAPI } from '../services/api';
 
+const resolveRole = (member) => {
+  if (!member || typeof member !== 'object') return '';
+
+  const candidates = [
+    member.roleInCommunity,
+    member.role_in_community,
+    member.roleincommunity,
+    member.roleIncommunity,
+    member.communityRole,
+    member.role,
+    member.designation,
+    member.position,
+    member?.details?.roleInCommunity,
+    member?.profile?.roleInCommunity,
+    member?.meta?.roleInCommunity,
+    member?.attributes?.roleInCommunity,
+    member?.attributes?.role,
+    member?.data?.roleInCommunity,
+    member?.role?.name,
+    member?.role?.title,
+    member?.role?.label,
+    member['role in community']
+  ];
+
+  for (const value of candidates) {
+    if (typeof value === 'string' && value.trim()) return value.trim();
+  }
+
+  const dynamicKey = Object.keys(member).find(
+    (key) => key.toLowerCase().replace(/\s|_/g, '') === 'roleincommunity'
+  );
+  if (dynamicKey && typeof member[dynamicKey] === 'string' && member[dynamicKey].trim()) {
+    return member[dynamicKey].trim();
+  }
+
+  return '';
+};
+
+const resolveUniversity = (member) => {
+  if (!member || typeof member !== 'object') return '';
+
+  const candidates = [
+    member.universityOrRole,
+    member.university,
+    member.job,
+    member.occupation,
+    member?.profile?.universityOrRole,
+    member?.details?.universityOrRole
+  ];
+
+  for (const value of candidates) {
+    if (typeof value === 'string' && value.trim()) return value.trim();
+  }
+
+  return '';
+};
+
+const normalizeMember = (member) => {
+  if (!member || typeof member !== 'object') return member;
+  const roleInCommunity = resolveRole(member);
+  const universityOrRole = resolveUniversity(member);
+
+  if (roleInCommunity || universityOrRole) {
+    return {
+      ...member,
+      ...(roleInCommunity ? { roleInCommunity } : {}),
+      ...(universityOrRole ? { universityOrRole } : {})
+    };
+  }
+
+  return member;
+};
+
 // Memoized loading state
 const LoadingState = memo(() => (
   <div className="text-center py-12">
@@ -46,14 +119,8 @@ ContactRow.displayName = 'ContactRow';
 // Memoized member card component
 const MemberCard = memo(({ member, index }) => {
   const avatar = member.photoURL || 'https://via.placeholder.com/150';
-  const communityRole = useMemo(() => {
-    const raw = member?.roleInCommunity;
-    return typeof raw === 'string' && raw.trim() ? raw.trim() : '';
-  }, [member?.roleInCommunity]);
-  const jobOrUniversity = useMemo(() => {
-    const raw = member.universityOrRole || member.university || member.job || member.occupation || '';
-    return typeof raw === 'string' && raw.trim() ? raw.trim() : '';
-  }, [member.universityOrRole, member.university, member.job, member.occupation]);
+  const communityRole = member?.roleInCommunity ? member.roleInCommunity : '';
+  const jobOrUniversity = member?.universityOrRole ? member.universityOrRole : '';
   const bio = member.notes || '';
   
   const sinceYear = useMemo(() => 
@@ -137,35 +204,33 @@ const Members = () => {
       try {
         const res = await memberAPI.getAll({ _ts: Date.now() });
         if (res?.success) {
-          const list = res.data || [];
+          const list = (res.data || []).map(normalizeMember);
           console.debug('Members page: sample members', list.slice(0, 3));
 
           // If some items are missing roleInCommunity, enrich them via getById
-          const needsRole = (m) => typeof m?.roleInCommunity === 'string' && m.roleInCommunity.trim() ? false : true;
           const indicesToFetch = [];
-          list.forEach((m, i) => {
-            if (m?._id && needsRole(m)) indicesToFetch.push(i);
+          list.forEach((member, index) => {
+            if (member?._id && !member.roleInCommunity) {
+              indicesToFetch.push(index);
+            }
           });
 
           if (indicesToFetch.length === 0) {
             setMembers(list);
           } else {
             try {
-              const detailResponses = await Promise.all(indicesToFetch.map(i => memberAPI.getById(list[i]._id)));
+              const detailResponses = await Promise.all(
+                indicesToFetch.map((i) => memberAPI.getById(list[i]._id))
+              );
+
               const updated = [...list];
-              detailResponses.forEach((resp, j) => {
-                const idx = indicesToFetch[j];
-                if (resp?.success && resp?.data) {
-                  const d = resp.data;
-                  if (typeof d.roleInCommunity === 'string' && d.roleInCommunity.trim()) {
-                    updated[idx] = { ...updated[idx], roleInCommunity: d.roleInCommunity.trim() };
-                  }
-                  // Also fill university if missing in list
-                  if (!updated[idx].universityOrRole && typeof d.universityOrRole === 'string' && d.universityOrRole.trim()) {
-                    updated[idx] = { ...updated[idx], universityOrRole: d.universityOrRole.trim() };
-                  }
+              detailResponses.forEach((response, detailIndex) => {
+                const listIndex = indicesToFetch[detailIndex];
+                if (response?.success && response?.data) {
+                  updated[listIndex] = normalizeMember({ ...updated[listIndex], ...response.data });
                 }
               });
+
               setMembers(updated);
             } catch (e) {
               console.warn('Members page: enrichment failed, falling back to list only');
