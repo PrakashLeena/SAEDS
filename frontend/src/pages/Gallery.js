@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useCallback, useMemo, memo } from 'react';
 import api from '../services/api';
+import BounceCards from '../components/BounceCards';
 
 // Memoized loading state
 const LoadingState = memo(() => (
@@ -153,12 +154,39 @@ const Gallery = () => {
     setImages(imagesAll);
   }, [imagesAll]);
 
+  const featuredImages = useMemo(
+    () => imagesAll.slice(0, 5).map((img) => img.url),
+    [imagesAll]
+  );
+
   if (loading) return <LoadingState />;
 
   return (
     <div className="min-h-screen bg-gray-50 py-12">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <h1 className="text-3xl font-bold text-gray-900 mb-6">Image Gallery</h1>
+
+        {featuredImages.length > 0 && (
+          <div className="mb-10 flex justify-center">
+            <BounceCards
+              className="hidden sm:flex"
+              images={featuredImages}
+              containerWidth={500}
+              containerHeight={250}
+              animationDelay={1}
+              animationStagger={0.08}
+              easeType="elastic.out(1, 0.5)"
+              transformStyles={[
+                'rotate(5deg) translate(-150px)',
+                'rotate(0deg) translate(-70px)',
+                'rotate(-5deg)',
+                'rotate(5deg) translate(70px)',
+                'rotate(-5deg) translate(150px)'
+              ]}
+              enableHover={false}
+            />
+          </div>
+        )}
 
         {/* Albums Grid View */}
         {!selectedAlbum && (

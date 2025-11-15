@@ -1,10 +1,10 @@
 import React, { useEffect, useState, Suspense, lazy, useCallback, useMemo, memo } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowRight, BookOpen, Users, Calendar, Heart, Globe, TrendingUp, Trophy, Award, Medal, Star } from 'lucide-react';
-const HeroSlider = lazy(() => import('../components/HeroSlider'));
-const JoinModal = lazy(() => import('../components/JoinModal'));
 import api from '../services/api';
 import { useScrollAnimation } from '../hooks/useScrollAnimation';
+const HeroSlider = lazy(() => import('../components/HeroSlider'));
+const JoinModal = lazy(() => import('../components/JoinModal'));
 
 // Memoized stat card component
 const StatCard = memo(({ icon: Icon, value, label }) => (
