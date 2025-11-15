@@ -92,9 +92,8 @@ const MemberCard = memo(({ member, index }) => {
 
         {/* Contact Info */}
         <div className="space-y-2 mb-4">
-          <ContactRow icon={Mail} text={member.email} />
           <ContactRow icon={Phone} text={member.phone} />
-          <ContactRow icon={MapPin} text={member.address} />
+          <ContactRow icon={Mail} text={member.email} />
         </div>
 
         {/* Footer */}
