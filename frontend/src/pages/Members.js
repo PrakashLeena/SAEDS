@@ -71,10 +71,13 @@ const MemberCard = memo(({ member, index }) => {
       <div className="p-6">
         {/* Name and Roles */}
         <div className="text-center mb-4">
-          <h3 className="text-xl font-bold text-gray-900 mb-1">{member.name}</h3>
+          {/* Name - bigger text */}
+          <h3 className="text-xl md:text-2xl font-bold text-gray-900 mb-1">{member.name}</h3>
+          {/* Role in community - bold */}
           {communityRole && (
-            <p className="text-sm text-primary-600 font-medium">{communityRole}</p>
+            <p className="text-sm font-semibold text-primary-700">{communityRole}</p>
           )}
+          {/* Job role / University */}
           {jobOrUniversity && (
             <p className="text-xs text-gray-600">{jobOrUniversity}</p>
           )}

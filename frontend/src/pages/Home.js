@@ -83,12 +83,23 @@ const MemberCard = memo(({ member, index }) => {
           loading="lazy"
         />
         <div className="flex-1">
-          <h3 className="text-lg font-bold text-gray-900">{member.name}</h3>
+          {/* Name - bigger text */}
+          <h3 className="text-xl md:text-2xl font-bold text-gray-900">{member.name}</h3>
+          {/* Role in community - bold */}
           {communityRole && (
-            <p className="text-sm text-primary-600 font-medium">{communityRole}</p>
+            <p className="text-sm font-semibold text-primary-700">{communityRole}</p>
           )}
+          {/* Job role / University */}
           {jobOrUniversity && (
             <p className="text-xs text-gray-600">{jobOrUniversity}</p>
+          )}
+          {/* Email */}
+          {member.email && (
+            <p className="text-xs text-gray-600">{member.email}</p>
+          )}
+          {/* Phone */}
+          {member.phone && (
+            <p className="text-xs text-gray-600">{member.phone}</p>
           )}
         </div>
       </div>
