@@ -8,7 +8,7 @@ const MemberForm = () => {
   const navigate = useNavigate();
   const isEdit = Boolean(id);
 
-  const [formData, setFormData] = useState({ name: '', email: '', phone: '', photoURL: '', universityOrRole: '', since: '', notes: '' });
+  const [formData, setFormData] = useState({ name: '', email: '', phone: '', photoURL: '', universityOrRole: '', roleInCommunity: '', since: '', notes: '' });
   const [loading, setLoading] = useState(false);
   const [imageFile, setImageFile] = useState(null);
   const [photoPreview, setPhotoPreview] = useState('');
@@ -20,7 +20,7 @@ const MemberForm = () => {
         const res = await memberAPI.getAll();
         if (res && res.success) {
           const m = res.data.find(x => x._id === id);
-          if (m) setFormData({ name: m.name, email: m.email || '', phone: m.phone || '', photoURL: m.photoURL || '', universityOrRole: m.universityOrRole || '', since: m.since || '', notes: m.notes || '' });
+          if (m) setFormData({ name: m.name, email: m.email || '', phone: m.phone || '', photoURL: m.photoURL || '', universityOrRole: m.universityOrRole || '', roleInCommunity: m.roleInCommunity || '', since: m.since || '', notes: m.notes || '' });
         }
       } catch (err) {
         console.error('Failed to load member', err);
@@ -104,6 +104,17 @@ const MemberForm = () => {
           <div>
             <label className="block text-sm font-medium text-gray-700">University / Job role</label>
             <input name="universityOrRole" value={formData.universityOrRole} onChange={handleChange} className="w-full px-3 py-2 border rounded" placeholder="e.g., University of X / Software Engineer" />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700">Role in community</label>
+            <input
+              name="roleInCommunity"
+              value={formData.roleInCommunity}
+              onChange={handleChange}
+              className="w-full px-3 py-2 border rounded"
+              placeholder="e.g., Volunteer, Organizer, Donor"
+            />
           </div>
 
           <div>
