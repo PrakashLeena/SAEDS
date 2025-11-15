@@ -90,10 +90,23 @@ const MemberCard = memo(({ member, index }) => {
           </p>
         )}
 
+        {/* University/Job */}
+        {jobOrUniversity && (
+          <div className="text-center mb-4">
+            <p className="text-base font-semibold text-gray-800">{jobOrUniversity}</p>
+          </div>
+        )}
+
         {/* Contact Info */}
-        <div className="space-y-2 mb-4">
-          <ContactRow icon={Phone} text={member.phone} />
-          <ContactRow icon={Mail} text={member.email} />
+        <div className="space-y-3 mb-4">
+          <div className="flex items-center justify-center text-base text-gray-700">
+            <Phone className="h-5 w-5 mr-2 text-primary-500 flex-shrink-0" />
+            <span className="font-medium">{member.phone || 'N/A'}</span>
+          </div>
+          <div className="flex items-center justify-center text-sm text-gray-600">
+            <Mail className="h-4 w-4 mr-2 text-primary-500 flex-shrink-0" />
+            <span>{member.email || 'N/A'}</span>
+          </div>
         </div>
 
         {/* Footer */}
