@@ -46,7 +46,8 @@ ContactRow.displayName = 'ContactRow';
 // Memoized member card component
 const MemberCard = memo(({ member, index }) => {
   const avatar = member.photoURL || 'https://via.placeholder.com/150';
-  const role = member.universityOrRole || 'Member';
+  const communityRole = member.roleInCommunity || '';
+  const jobOrUniversity = member.universityOrRole || '';
   const bio = member.notes || '';
   
   const sinceYear = useMemo(() => 
@@ -68,10 +69,15 @@ const MemberCard = memo(({ member, index }) => {
 
       {/* Content Section */}
       <div className="p-6">
-        {/* Name and Role */}
+        {/* Name and Roles */}
         <div className="text-center mb-4">
           <h3 className="text-xl font-bold text-gray-900 mb-1">{member.name}</h3>
-          <p className="text-sm text-primary-600 font-medium">{role}</p>
+          {communityRole && (
+            <p className="text-sm text-primary-600 font-medium">{communityRole}</p>
+          )}
+          {jobOrUniversity && (
+            <p className="text-xs text-gray-600">{jobOrUniversity}</p>
+          )}
         </div>
 
         {/* Bio */}
@@ -141,7 +147,8 @@ const Members = () => {
       const lowerSearch = searchTerm.toLowerCase();
       filtered = filtered.filter(member =>
         member.name.toLowerCase().includes(lowerSearch) ||
-        member.universityOrRole?.toLowerCase().includes(lowerSearch)
+        member.universityOrRole?.toLowerCase().includes(lowerSearch) ||
+        member.roleInCommunity?.toLowerCase().includes(lowerSearch)
       );
     }
 

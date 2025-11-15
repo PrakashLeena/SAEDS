@@ -63,7 +63,8 @@ AchievementCard.displayName = 'AchievementCard';
 // Memoized member card
 const MemberCard = memo(({ member, index }) => {
   const avatar = member.photoURL || 'https://via.placeholder.com/150';
-  const role = member.universityOrRole || '';
+  const communityRole = member.roleInCommunity || '';
+  const jobOrUniversity = member.universityOrRole || '';
   const bio = member.notes || '';
   const sinceYear = useMemo(() => 
     member.since || (member.joinedAt ? new Date(member.joinedAt).getFullYear() : ''),
@@ -83,7 +84,12 @@ const MemberCard = memo(({ member, index }) => {
         />
         <div className="flex-1">
           <h3 className="text-lg font-bold text-gray-900">{member.name}</h3>
-          <p className="text-sm text-primary-600 font-medium">{role}</p>
+          {communityRole && (
+            <p className="text-sm text-primary-600 font-medium">{communityRole}</p>
+          )}
+          {jobOrUniversity && (
+            <p className="text-xs text-gray-600">{jobOrUniversity}</p>
+          )}
         </div>
       </div>
       {bio && <p className="text-gray-600 text-sm mb-4 line-clamp-2">{bio}</p>}
