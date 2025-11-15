@@ -46,7 +46,10 @@ ContactRow.displayName = 'ContactRow';
 // Memoized member card component
 const MemberCard = memo(({ member, index }) => {
   const avatar = member.photoURL || 'https://via.placeholder.com/150';
-  const communityRole = member.roleInCommunity || '';
+  const communityRole = useMemo(
+    () => member.roleInCommunity || member.role || member.designation || member.position || 'Member',
+    [member.roleInCommunity, member.role, member.designation, member.position]
+  );
   const jobOrUniversity = member.universityOrRole || '';
   const bio = member.notes || '';
   

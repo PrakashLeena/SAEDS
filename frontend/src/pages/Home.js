@@ -63,7 +63,10 @@ AchievementCard.displayName = 'AchievementCard';
 // Memoized member card
 const MemberCard = memo(({ member, index }) => {
   const avatar = member.photoURL || 'https://via.placeholder.com/150';
-  const communityRole = member.roleInCommunity || '';
+  const communityRole = useMemo(() => {
+    const raw = member.roleInCommunity || member.role || member.designation || member.position || 'Member';
+    return typeof raw === 'string' && raw.trim() ? raw.trim() : 'Member';
+  }, [member.roleInCommunity, member.role, member.designation, member.position]);
   const jobOrUniversity = member.universityOrRole || '';
   const bio = member.notes || '';
   const sinceYear = useMemo(() => 
@@ -86,9 +89,7 @@ const MemberCard = memo(({ member, index }) => {
           {/* Name - bigger text */}
           <h3 className="text-xl md:text-2xl font-bold text-gray-900">{member.name}</h3>
           {/* Role in community - bold */}
-          {communityRole && (
-            <p className="text-sm font-semibold text-primary-700">{communityRole}</p>
-          )}
+          <p className="text-sm font-semibold text-primary-700">{communityRole}</p>
           {/* Job role / University */}
           {jobOrUniversity && (
             <p className="text-xs text-gray-600">{jobOrUniversity}</p>
