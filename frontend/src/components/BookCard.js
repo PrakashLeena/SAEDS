@@ -1,11 +1,107 @@
-import React from 'react';
+import React, { memo, useCallback, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { Star, Download, BookOpen } from 'lucide-react';
 import api from '../services/api';
 import { useAuth } from '../context/AuthContext';
 
-const BookCard = ({ book }) => {
+const BookCard = memo(({ book }) => {
   const { currentUser } = useAuth();
+  
+  // Memoize user UID to prevent unnecessary re-renders
+  const userUid = useMemo(() => currentUser?.uid, [currentUser]);
+  
+  // Memoize availability status
+  const availabilityBadge = useMemo(() => (
+    book.available ? (
+      <div className="absolute top-2 right-2 bg-green-500 text-white px-2 py-0.5 rounded text-[10px] font-semibold">
+        Available
+      </div>
+    ) : (
+      <div className="absolute top-2 right-2 bg-red-500 text-white px-2 py-0.5 rounded text-[10px] font-semibold">
+        Unavailable
+      </div>
+    )
+  ), [book.available]);
+
+  // Optimize URL resolution - cache the result
+  const resolveBookUrl = useCallback(async () => {
+    if (book.pdfUrl) return book.pdfUrl;
+    
+    try {
+      const f = await api.book.getFile(book.id);
+      return f?.data?.url || null;
+    } catch (err) {
+      console.error('No file found', err);
+      return null;
+    }
+  }, [book.id, book.pdfUrl]);
+
+  // Optimized read handler
+  const handleRead = useCallback(async (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    const url = await resolveBookUrl();
+    
+    if (!url) {
+      window.location.href = `/book/${book.id}`;
+      return;
+    }
+    
+    window.open(url, '_blank', 'noopener,noreferrer');
+  }, [resolveBookUrl, book.id]);
+
+  // Optimized download handler
+  const handleDownload = useCallback(async (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    const url = await resolveBookUrl();
+    if (!url) return;
+    
+    // Run download increment and file download in parallel
+    const downloadPromises = [];
+    
+    // Increment download count
+    downloadPromises.push(
+      api.book.incrementDownload(book.id, { 
+        firebaseUid: userUid 
+      }).catch(err => console.error('Failed to increment download', err))
+    );
+    
+    // Refresh user profile if authenticated
+    if (userUid) {
+      downloadPromises.push(
+        api.user.getByFirebaseUid(userUid)
+          .then(ru => {
+            if (ru?.data) {
+              window.dispatchEvent(new CustomEvent('profile-updated', { 
+                detail: ru.data 
+              }));
+            }
+          })
+          .catch(e => console.error('Failed to refresh user', e))
+      );
+    }
+    
+    // Execute API calls in parallel (non-blocking)
+    Promise.all(downloadPromises);
+    
+    // Trigger download immediately (don't wait for API)
+    const a = document.createElement('a');
+    a.href = url;
+    a.target = '_blank';
+    a.rel = 'noopener noreferrer';
+    a.download = `${book.title}.pdf`;
+    a.click();
+  }, [resolveBookUrl, book.id, book.title, userUid]);
+
+  // Memoize download count display
+  const downloadCount = useMemo(() => 
+    (book.downloads || 0).toLocaleString(),
+    [book.downloads]
+  );
+
   return (
     <div className="bg-white rounded-md border border-gray-100 overflow-hidden hover:shadow-lg transition transform duration-150 hover:-translate-y-1 group">
       <Link to={`/book/${book.id}`}>
@@ -13,18 +109,10 @@ const BookCard = ({ book }) => {
           <img
             src={book.coverImage}
             alt={book.title}
+            loading="lazy"
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
           />
-          {!book.available && (
-            <div className="absolute top-2 right-2 bg-red-500 text-white px-2 py-0.5 rounded text-[10px] font-semibold">
-              Unavailable
-            </div>
-          )}
-          {book.available && (
-            <div className="absolute top-2 right-2 bg-green-500 text-white px-2 py-0.5 rounded text-[10px] font-semibold">
-              Available
-            </div>
-          )}
+          {availabilityBadge}
         </div>
       </Link>
       
@@ -52,95 +140,33 @@ const BookCard = ({ book }) => {
         </div>
 
         <div className="flex items-center space-x-2">
-          <>
-            <button
-              onClick={async (e) => {
-                e.preventDefault();
-                // resolve url (book.pdfUrl or associated elibrary file)
-                let url = book.pdfUrl || '';
-                if (!url) {
-                  try {
-                    const f = await api.book.getFile(book.id);
-                    if (f && f.data && f.data.url) url = f.data.url;
-                  } catch (err) {
-                    console.error('No file found for reading', err);
-                  }
-                }
-                if (!url) {
-                  // fallback to book detail
-                  window.location.href = `/book/${book.id}`;
-                  return;
-                }
-                try {
-                  window.open(url, '_blank', 'noopener');
-                } catch (err) {
-                  window.location.href = url;
-                }
-              }}
-              className="flex-1 bg-white border border-primary-600 text-primary-600 py-1 px-2 rounded-md hover:bg-primary-50 transition-all text-center text-[12px] font-medium flex items-center justify-center space-x-1"
-            >
-              <BookOpen className="h-3.5 w-3.5" />
-              <span>Read</span>
-            </button>
+          <button
+            onClick={handleRead}
+            className="flex-1 bg-white border border-primary-600 text-primary-600 py-1 px-2 rounded-md hover:bg-primary-50 transition-all text-center text-[12px] font-medium flex items-center justify-center space-x-1"
+          >
+            <BookOpen className="h-3.5 w-3.5" />
+            <span>Read</span>
+          </button>
 
-            <button
-                onClick={async (e) => {
-                e.preventDefault();
-                // resolve url
-                let url = book.pdfUrl || '';
-                if (!url) {
-                  try {
-                    const f = await api.book.getFile(book.id);
-                    if (f && f.data && f.data.url) url = f.data.url;
-                  } catch (err) {
-                    console.error('No file found for download', err);
-                  }
-                }
-                if (!url) return;
-                try {
-                  // increment download count on server (include firebaseUid if available)
-                  await api.book.incrementDownload(book.id, { firebaseUid: currentUser ? currentUser.uid : undefined });
-                  // refresh backend user and notify Profile to refresh
-                  if (currentUser) {
-                    try {
-                      const ru = await api.user.getByFirebaseUid(currentUser.uid);
-                      if (ru && ru.data) window.dispatchEvent(new CustomEvent('profile-updated', { detail: ru.data }));
-                    } catch (e) { console.error('Failed to refresh backend user after download', e); }
-                  }
-                  // optimistic UI increment
-                  if (typeof book.downloads === 'number') book.downloads += 1;
-                } catch (err) {
-                  console.error('Failed to increment download count', err);
-                }
-                // open/download
-                try {
-                  const a = document.createElement('a');
-                  a.href = url;
-                  a.target = '_blank';
-                  a.rel = 'noopener';
-                  a.download = '';
-                  document.body.appendChild(a);
-                  a.click();
-                  a.remove();
-                } catch (err) {
-                  window.open(url, '_blank', 'noopener');
-                }
-              }}
-              className="p-1 border border-gray-200 rounded-md hover:bg-gray-50 transition-all"
-              title="Download PDF"
-            >
-              <Download className="h-4 w-4 text-gray-600 hover:text-primary-600 transition-colors" />
-            </button>
-          </>
+          <button
+            onClick={handleDownload}
+            className="p-1 border border-gray-200 rounded-md hover:bg-gray-50 transition-all"
+            title="Download PDF"
+            aria-label="Download PDF"
+          >
+            <Download className="h-4 w-4 text-gray-600 hover:text-primary-600 transition-colors" />
+          </button>
         </div>
 
         <div className="mt-1 flex items-center text-[11px] text-gray-500">
           <Download className="h-3 w-3 mr-1" />
-          <span>{book.downloads.toLocaleString()} downloads</span>
+          <span>{downloadCount} downloads</span>
         </div>
       </div>
     </div>
   );
-};
+});
+
+BookCard.displayName = 'BookCard';
 
 export default BookCard;
