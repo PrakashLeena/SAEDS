@@ -47,8 +47,8 @@ ContactRow.displayName = 'ContactRow';
 const MemberCard = memo(({ member, index }) => {
   const avatar = member.photoURL || 'https://via.placeholder.com/150';
   const communityRole = useMemo(() => {
-    const raw = member.roleInCommunity || '';
-    return typeof raw === 'string' && raw.trim() ? raw.trim() : 'Member';
+    const raw = member.roleInCommunity;
+    return typeof raw === 'string' && raw.trim() ? raw.trim() : '';
   }, [member.roleInCommunity]);
   const jobOrUniversity = member.universityOrRole || '';
   const bio = member.notes || '';
@@ -102,12 +102,14 @@ const MemberCard = memo(({ member, index }) => {
 
         {/* Footer */}
         <div className="flex items-center justify-between pt-4 border-t border-gray-200">
-          <div className="flex items-center space-x-1 text-gray-500 text-xs">
-            <TrendingUp className="h-4 w-4" />
-            <span>Member</span>
-          </div>
-          {sinceYear && (
+          {communityRole && (
             <div className="flex items-center space-x-1 text-gray-500 text-xs">
+              <TrendingUp className="h-4 w-4" />
+              <span>{communityRole}</span>
+            </div>
+          )}
+          {sinceYear && (
+            <div className="flex items-center space-x-1 text-gray-500 text-xs ml-auto">
               <Calendar className="h-4 w-4" />
               <span>Since {sinceYear}</span>
             </div>
@@ -130,7 +132,7 @@ const Members = () => {
   useEffect(() => {
     const fetchMembers = async () => {
       try {
-        const res = await memberAPI.getAll();
+        const res = await memberAPI.getAll({ _ts: Date.now() });
         if (res?.success) {
           setMembers(res.data || []);
         }
@@ -152,9 +154,12 @@ const Members = () => {
     if (searchTerm) {
       const lowerSearch = searchTerm.toLowerCase();
       filtered = filtered.filter(member =>
-        member.name.toLowerCase().includes(lowerSearch) ||
+        member.name?.toLowerCase().includes(lowerSearch) ||
         member.universityOrRole?.toLowerCase().includes(lowerSearch) ||
-        member.roleInCommunity?.toLowerCase().includes(lowerSearch)
+        member.roleInCommunity?.toLowerCase().includes(lowerSearch) ||
+        member.role?.toLowerCase().includes(lowerSearch) ||
+        member.designation?.toLowerCase().includes(lowerSearch) ||
+        member.position?.toLowerCase().includes(lowerSearch)
       );
     }
 
