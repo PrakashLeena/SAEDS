@@ -57,7 +57,7 @@ const MemberCard = memo(({ member }) => {
             <p className="text-base text-gray-600">{member.universityOrRole}</p>
           )}
           {/* Debug: Show all member data */}
-          <pre className="text-xs text-gray-400 mt-2 hidden">
+          <pre className="text-xs text-gray-400 mt-2 block">
             {JSON.stringify(member, null, 2)}
           </pre>
         </div>
