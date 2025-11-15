@@ -100,6 +100,12 @@ const MemberCard = memo(({ member, index }) => {
               <span>Since {sinceYear}</span>
             </div>
           )}
+          {jobOrUniversity && (
+            <div className="flex items-center text-sm text-gray-600">
+              <MapPin className="h-4 w-4 mr-2 text-primary-500 flex-shrink-0" />
+              <span>{jobOrUniversity}</span>
+            </div>
+          )}
         </div>
 
         {/* Footer */}
