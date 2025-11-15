@@ -163,6 +163,9 @@ const Home = () => {
   useEffect(() => {
     let mounted = true;
 
+    // Clear cached GET responses to ensure fresh data (roles, stats, achievements)
+    api.clearAllCache();
+
     // Fetch all data in parallel for better performance
     Promise.all([
       api.stats.getOverview(),
