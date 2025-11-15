@@ -64,10 +64,27 @@ AchievementCard.displayName = 'AchievementCard';
 const MemberCard = memo(({ member, index }) => {
   const avatar = member.photoURL || 'https://via.placeholder.com/150';
   const communityRole = useMemo(() => {
-    const raw = member.roleInCommunity || '';
+    const raw =
+      member.roleInCommunity ||
+      member.role_in_community ||
+      member.roleincommunity ||
+      member.roleIncommunity ||
+      member.communityRole ||
+      member.role ||
+      member.designation ||
+      member.position ||
+      '';
+    if (typeof raw === 'string' && raw.trim()) return raw.trim();
+    if (member && typeof member === 'object') {
+      const key = Object.keys(member).find(k => k.toLowerCase().replace(/\s|_/g, '') === 'roleincommunity');
+      if (key && typeof member[key] === 'string' && member[key].trim()) return member[key].trim();
+    }
+    return '';
+  }, [member]);
+  const jobOrUniversity = useMemo(() => {
+    const raw = member.universityOrRole || member.university || member.job || member.occupation || '';
     return typeof raw === 'string' && raw.trim() ? raw.trim() : '';
-  }, [member.roleInCommunity]);
-  const jobOrUniversity = member.universityOrRole || '';
+  }, [member.universityOrRole, member.university, member.job, member.occupation]);
   const bio = member.notes || '';
   const sinceYear = useMemo(() => 
     member.since || (member.joinedAt ? new Date(member.joinedAt).getFullYear() : ''),
@@ -169,7 +186,7 @@ const Home = () => {
     // Fetch all data in parallel for better performance
     Promise.all([
       api.stats.getOverview(),
-      api.member.getAll(),
+      api.member.getAll({ _ts: Date.now() }),
       api.achievement.getAll()
     ]).then(([statsRes, membersRes, achievementsRes]) => {
       if (!mounted) return;
@@ -179,9 +196,39 @@ const Home = () => {
       if (typeof a !== 'undefined') setActiveMembers(formatStat(a));
       if (typeof e !== 'undefined') setEventsHosted(formatStat(e));
       
-      // Set members (first 6)
+      // Set members (first 6), enrich if role is missing in list payload
       const membersList = membersRes?.data || [];
-      setMembers(membersList.slice(0, 6));
+      const first6 = membersList.slice(0, 6);
+      const hasRole = (m) => {
+        const raw =
+          m?.roleInCommunity ||
+          m?.role_in_community ||
+          m?.roleincommunity ||
+          m?.roleIncommunity ||
+          m?.communityRole ||
+          m?.role ||
+          m?.designation ||
+          m?.position ||
+          '';
+        if (typeof raw === 'string' && raw.trim()) return true;
+        if (m && typeof m === 'object') {
+          const key = Object.keys(m).find(k => k.toLowerCase().replace(/\s|_/g, '') === 'roleincommunity');
+          if (key && typeof m[key] === 'string' && m[key].trim()) return true;
+        }
+        return false;
+      };
+      const needsEnrichment = first6.some(m => !hasRole(m));
+      if (!needsEnrichment) {
+        setMembers(first6);
+      } else {
+        Promise.all(first6.map(m => api.member.getById(m._id)))
+          .then(detailResponses => {
+            if (!mounted) return;
+            const detailed = detailResponses.map((r, idx) => (r?.data && r?.success) ? r.data : first6[idx]);
+            setMembers(detailed);
+          })
+          .catch(() => setMembers(first6));
+      }
       
       // Set achievements
       const achievementsList = achievementsRes?.data || [];

@@ -47,10 +47,39 @@ ContactRow.displayName = 'ContactRow';
 const MemberCard = memo(({ member, index }) => {
   const avatar = member.photoURL || 'https://via.placeholder.com/150';
   const communityRole = useMemo(() => {
-    const raw = member.roleInCommunity;
+    const candidates = [
+      member?.roleInCommunity,
+      member?.role_in_community,
+      member?.roleincommunity,
+      member?.roleIncommunity,
+      member?.communityRole,
+      member?.role,
+      member?.designation,
+      member?.position,
+      member?.details?.roleInCommunity,
+      member?.profile?.roleInCommunity,
+      member?.meta?.roleInCommunity,
+      member?.['role in community'],
+      member?.role?.name,
+      member?.role?.title,
+      member?.role?.label,
+      member?.attributes?.roleInCommunity,
+      member?.attributes?.role,
+      member?.data?.roleInCommunity
+    ];
+    for (const c of candidates) {
+      if (typeof c === 'string' && c.trim()) return c.trim();
+    }
+    if (member && typeof member === 'object') {
+      const key = Object.keys(member).find(k => k.toLowerCase().replace(/\s|_/g, '') === 'roleincommunity');
+      if (key && typeof member[key] === 'string' && member[key].trim()) return member[key].trim();
+    }
+    return 'Member';
+  }, [member]);
+  const jobOrUniversity = useMemo(() => {
+    const raw = member.universityOrRole || member.university || member.job || member.occupation || '';
     return typeof raw === 'string' && raw.trim() ? raw.trim() : '';
-  }, [member.roleInCommunity]);
-  const jobOrUniversity = member.universityOrRole || '';
+  }, [member.universityOrRole, member.university, member.job, member.occupation]);
   const bio = member.notes || '';
   
   const sinceYear = useMemo(() => 
@@ -77,9 +106,7 @@ const MemberCard = memo(({ member, index }) => {
           {/* Name - bigger text */}
           <h3 className="text-xl md:text-2xl font-bold text-gray-900 mb-1">{member.name}</h3>
           {/* Role in community - bold */}
-          {communityRole && (
-            <p className="text-sm font-semibold text-primary-700">{communityRole}</p>
-          )}
+          <p className="text-sm font-semibold text-primary-700">{communityRole}</p>
           {/* Job role / University */}
           {jobOrUniversity && (
             <p className="text-xs text-gray-600">{jobOrUniversity}</p>
@@ -134,7 +161,9 @@ const Members = () => {
       try {
         const res = await memberAPI.getAll({ _ts: Date.now() });
         if (res?.success) {
-          setMembers(res.data || []);
+          const list = res.data || [];
+          console.debug('Members page: sample members', list.slice(0, 3));
+          setMembers(list);
         }
       } catch (err) {
         console.error('Failed to fetch members:', err);
