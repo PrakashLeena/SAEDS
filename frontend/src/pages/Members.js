@@ -46,10 +46,10 @@ ContactRow.displayName = 'ContactRow';
 // Memoized member card component
 const MemberCard = memo(({ member, index }) => {
   const avatar = member.photoURL || 'https://via.placeholder.com/150';
-  const communityRole = useMemo(
-    () => member.roleInCommunity || member.role || member.designation || member.position || 'Member',
-    [member.roleInCommunity, member.role, member.designation, member.position]
-  );
+  const communityRole = useMemo(() => {
+    const raw = member.roleInCommunity || '';
+    return typeof raw === 'string' && raw.trim() ? raw.trim() : 'Member';
+  }, [member.roleInCommunity]);
   const jobOrUniversity = member.universityOrRole || '';
   const bio = member.notes || '';
   
