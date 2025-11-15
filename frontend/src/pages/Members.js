@@ -49,12 +49,12 @@ const MemberCard = memo(({ member }) => {
         <div className="text-center mb-4">
           <h3 className="text-xl font-bold">{member.name}</h3>
           {member.roleInCommunity && (
-            <p className="text-base font-bold text-primary-700">
+            <p className="text-lg font-bold text-black">
               {member.roleInCommunity}
             </p>
           )}
           {member.universityOrRole && (
-            <p className="text-xs text-gray-600">{member.universityOrRole}</p>
+            <p className="text-base text-gray-600">{member.universityOrRole}</p>
           )}
         </div>
 
