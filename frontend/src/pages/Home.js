@@ -207,8 +207,8 @@ const Home = () => {
   }, [formatStat]);
 
   // Memoized duplicated members for scrolling animation
-  const duplicatedMembers = useMemo(() => 
-    members.length > 0 ? [...members, ...members] : [],
+  const duplicatedMembers = useMemo(
+    () => (members.length > 3 ? [...members, ...members] : members),
     [members]
   );
 
@@ -375,7 +375,7 @@ const Home = () => {
               </div>
             </div>
           ) : (
-            <div className="relative overflow-hidden">
+            <div className="relative overflow-x-auto">
               <div 
                 className={`flex gap-6 animate-scroll-horizontal transition-all duration-700 ${membersVisible ? 'opacity-100' : 'opacity-0'}`}
                 style={scrollAnimationStyle}
