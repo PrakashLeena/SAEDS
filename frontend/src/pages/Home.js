@@ -93,17 +93,16 @@ const MemberCard = memo(({ member, index }) => {
           {jobOrUniversity && (
             <p className="text-xs text-gray-600">{jobOrUniversity}</p>
           )}
-          {/* Email */}
-          {member.email && (
-            <p className="text-xs text-gray-600">{member.email}</p>
-          )}
           {/* Phone */}
           {member.phone && (
             <p className="text-xs text-gray-600">{member.phone}</p>
           )}
+          {/* Email */}
+          {member.email && (
+            <p className="text-xs text-gray-600">{member.email}</p>
+          )}
         </div>
       </div>
-      {bio && <p className="text-gray-600 text-sm mb-4 line-clamp-2">{bio}</p>}
       <div className="flex items-center justify-between text-sm mt-4">
         <div className="flex items-center space-x-1 text-gray-500">
           <TrendingUp className="h-4 w-4" />
@@ -115,6 +114,7 @@ const MemberCard = memo(({ member, index }) => {
           </span>
         )}
       </div>
+      {bio && <p className="text-gray-600 text-sm mt-4 line-clamp-2">{bio}</p>}
     </div>
   );
 });
