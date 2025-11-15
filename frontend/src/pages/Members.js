@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useCallback, useMemo, memo } from 'react';
-import { TrendingUp, Mail, Phone, Calendar, Search } from 'lucide-react';
+import { TrendingUp, Mail, Phone, MapPin, Calendar, Search } from 'lucide-react';
 import { memberAPI } from '../services/api';
 
-// Loading component
+// Memoized loading state
 const LoadingState = memo(() => (
   <div className="text-center py-12">
     <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600" />
@@ -10,13 +10,16 @@ const LoadingState = memo(() => (
   </div>
 ));
 
+LoadingState.displayName = 'LoadingState';
+
+// Memoized empty state
 const EmptyState = memo(({ searchTerm, onClearSearch }) => (
   <div className="bg-white rounded-lg shadow-md p-12 text-center">
     <p className="text-gray-600 text-lg">No members found</p>
     {searchTerm && (
       <button
         onClick={onClearSearch}
-        className="mt-4 text-primary-600 hover:text-primary-700 font-medium"
+        className="mt-4 text-primary-600 hover:text-primary-700 font-medium transition-colors"
       >
         Clear search
       </button>
@@ -24,71 +27,84 @@ const EmptyState = memo(({ searchTerm, onClearSearch }) => (
   </div>
 ));
 
-// Member card
-const MemberCard = memo(({ member }) => {
-  const avatar = member.photoURL || 'https://via.placeholder.com/150';
+EmptyState.displayName = 'EmptyState';
 
-  const sinceYear = useMemo(() => {
-    return (
-      member.since ||
-      (member.joinedAt ? new Date(member.joinedAt).getFullYear() : '')
-    );
-  }, [member.since, member.joinedAt]);
+// Memoized contact info row
+const ContactRow = memo(({ icon: Icon, text }) => {
+  if (!text) return null;
+  
+  return (
+    <div className="flex items-center text-sm text-gray-600">
+      <Icon className="h-4 w-4 mr-2 text-primary-500 flex-shrink-0" />
+      <span className="truncate">{text}</span>
+    </div>
+  );
+});
+
+ContactRow.displayName = 'ContactRow';
+
+// Memoized member card component
+const MemberCard = memo(({ member, index }) => {
+  const avatar = member.photoURL || 'https://via.placeholder.com/150';
+  const communityRole = member.roleInCommunity || '';
+  const jobOrUniversity = member.universityOrRole || '';
+  const bio = member.notes || '';
+  
+  const sinceYear = useMemo(() => 
+    member.since || (member.joinedAt ? new Date(member.joinedAt).getFullYear() : ''),
+    [member.since, member.joinedAt]
+  );
 
   return (
-    <div className="bg-white rounded-lg shadow-md hover:shadow-xl transition-all overflow-hidden group">
+    <div className="bg-white rounded-lg shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden group">
+      {/* Avatar Section */}
       <div className="relative h-48 bg-gradient-to-br from-primary-500 to-primary-700 flex items-center justify-center">
         <img
           src={avatar}
           alt={member.name}
-          className="w-32 h-32 rounded-full border-4 border-white shadow-lg object-cover group-hover:scale-110 transition-transform"
+          className="w-32 h-32 rounded-full object-cover border-4 border-white shadow-lg group-hover:scale-110 transition-transform duration-300"
+          loading="lazy"
         />
       </div>
 
+      {/* Content Section */}
       <div className="p-6">
+        {/* Name and Roles */}
         <div className="text-center mb-4">
-          <h3 className="text-xl font-bold">{member.name}</h3>
-          {member.roleInCommunity && (
-            <p className="text-lg font-bold text-black">
-              {member.roleInCommunity}
-            </p>
+          {/* Name - bigger text */}
+          <h3 className="text-xl md:text-2xl font-bold text-gray-900 mb-1">{member.name}</h3>
+          {/* Role in community - bold */}
+          {communityRole && (
+            <p className="text-sm font-semibold text-primary-700">{communityRole}</p>
           )}
-          {member.universityOrRole && (
-            <p className="text-base text-gray-600">{member.universityOrRole}</p>
+          {/* Job role / University */}
+          {jobOrUniversity && (
+            <p className="text-xs text-gray-600">{jobOrUniversity}</p>
           )}
-          {/* Debug: Show all member data */}
-          <pre className="text-xs text-gray-400 mt-2 hidden">
-            {JSON.stringify(member, null, 2)}
-          </pre>
         </div>
 
-        {member.notes && (
+        {/* Bio */}
+        {bio && (
           <p className="text-gray-600 text-sm mb-4 line-clamp-3 text-center">
-            {member.notes}
+            {bio}
           </p>
         )}
 
-        {/* Contact */}
-        <div className="space-y-2 text-center">
-          <div className="flex items-center justify-center text-xs text-gray-600">
-            <Phone className="h-4 w-4 mr-2" />
-            {member.phone || 'N/A'}
-          </div>
-
-          <div className="flex items-center justify-center text-xs text-gray-600">
-            <Mail className="h-4 w-4 mr-2" />
-            {member.email || 'N/A'}
-          </div>
+        {/* Contact Info */}
+        <div className="space-y-2 mb-4">
+          <ContactRow icon={Mail} text={member.email} />
+          <ContactRow icon={Phone} text={member.phone} />
+          <ContactRow icon={MapPin} text={member.address} />
         </div>
 
-        <div className="flex items-center justify-between mt-4 text-gray-500 text-xs border-t pt-3">
-          <div className="flex items-center space-x-1">
+        {/* Footer */}
+        <div className="flex items-center justify-between pt-4 border-t border-gray-200">
+          <div className="flex items-center space-x-1 text-gray-500 text-xs">
             <TrendingUp className="h-4 w-4" />
             <span>Member</span>
           </div>
-
           {sinceYear && (
-            <div className="flex items-center space-x-1">
+            <div className="flex items-center space-x-1 text-gray-500 text-xs">
               <Calendar className="h-4 w-4" />
               <span>Since {sinceYear}</span>
             </div>
@@ -99,80 +115,137 @@ const MemberCard = memo(({ member }) => {
   );
 });
 
+MemberCard.displayName = 'MemberCard';
+
 const Members = () => {
   const [members, setMembers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
 
-  // Fetch members
+  // Fetch members on mount
   useEffect(() => {
-    (async () => {
+    const fetchMembers = async () => {
       try {
         const res = await memberAPI.getAll();
-        if (res?.success) setMembers(res.data || []);
+        if (res?.success) {
+          setMembers(res.data || []);
+        }
       } catch (err) {
-        console.error('Failed to fetch members', err);
+        console.error('Failed to fetch members:', err);
       } finally {
         setLoading(false);
       }
-    })();
+    };
+
+    fetchMembers();
   }, []);
 
-  // Filtering logic
+  // Memoized filtered members
   const filteredMembers = useMemo(() => {
-    let list = [...members];
+    let filtered = members;
 
+    // Filter by search term
     if (searchTerm) {
-      const s = searchTerm.toLowerCase();
-      list = list.filter(
-        (m) =>
-          m.name?.toLowerCase().includes(s) ||
-          m.universityOrRole?.toLowerCase().includes(s) ||
-          m.roleInCommunity?.toLowerCase().includes(s)
+      const lowerSearch = searchTerm.toLowerCase();
+      filtered = filtered.filter(member =>
+        member.name.toLowerCase().includes(lowerSearch) ||
+        member.universityOrRole?.toLowerCase().includes(lowerSearch) ||
+        member.roleInCommunity?.toLowerCase().includes(lowerSearch)
       );
     }
 
-    return list;
-  }, [members, searchTerm]);
+    // Filter by category (placeholder for future implementation)
+    if (selectedCategory !== 'all') {
+      // Add category filtering logic here if categories are added
+      // filtered = filtered.filter(member => member.category === selectedCategory);
+    }
+
+    return filtered;
+  }, [members, searchTerm, selectedCategory]);
+
+  // Memoized search handler
+  const handleSearch = useCallback((e) => {
+    setSearchTerm(e.target.value);
+  }, []);
+
+  // Memoized category change handler
+  const handleCategoryChange = useCallback((e) => {
+    setSelectedCategory(e.target.value);
+  }, []);
+
+  // Memoized clear search handler
+  const handleClearSearch = useCallback(() => {
+    setSearchTerm('');
+  }, []);
+
+  // Memoized results text
+  const resultsText = useMemo(
+    () => `Showing ${filteredMembers.length} of ${members.length} members`,
+    [filteredMembers.length, members.length]
+  );
 
   return (
     <div className="min-h-screen bg-gray-50 py-8">
-      <div className="max-w-7xl mx-auto px-4">
-
-        <h1 className="text-3xl font-bold mb-2">Our Community Members</h1>
-        <p className="text-gray-600 mb-6">Meet our amazing people</p>
-
-        {/* Search Section */}
-        <div className="bg-white shadow-md rounded-lg p-4 mb-8">
-          <div className="flex flex-col md:flex-row gap-4">
-
-            <div className="flex-1 relative">
-              <Search className="absolute left-3 top-3 text-gray-400 h-5 w-5" />
-              <input
-                type="text"
-                placeholder="Search members..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 border rounded-lg"
-              />
-            </div>
-          </div>
-
-          <p className="mt-3 text-sm text-gray-600">
-            Showing {filteredMembers.length} of {members.length} members
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        {/* Header */}
+        <div className="mb-8">
+          <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+            Our Community Members
+          </h1>
+          <p className="text-lg text-gray-600">
+            Meet the amazing people who make our community thrive
           </p>
         </div>
 
-        {/* Member Cards */}
+        {/* Search and Filter */}
+        <div className="bg-white rounded-lg shadow-md p-4 mb-8">
+          <div className="flex flex-col md:flex-row gap-4">
+            {/* Search */}
+            <div className="flex-1 relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+              <input
+                type="text"
+                placeholder="Search members by name or role..."
+                value={searchTerm}
+                onChange={handleSearch}
+                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-colors"
+              />
+            </div>
+
+            {/* Filter */}
+            <div className="md:w-48">
+              <select
+                value={selectedCategory}
+                onChange={handleCategoryChange}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-colors"
+              >
+                <option value="all">All Members</option>
+                <option value="active">Active</option>
+                <option value="alumni">Alumni</option>
+              </select>
+            </div>
+          </div>
+
+          {/* Results count */}
+          <div className="mt-4 text-sm text-gray-600">
+            {resultsText}
+          </div>
+        </div>
+
+        {/* Members Grid */}
         {loading ? (
           <LoadingState />
         ) : filteredMembers.length === 0 ? (
-          <EmptyState searchTerm={searchTerm} onClearSearch={() => setSearchTerm('')} />
+          <EmptyState searchTerm={searchTerm} onClearSearch={handleClearSearch} />
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {filteredMembers.map((m) => (
-              <MemberCard key={m._id} member={m} />
+            {filteredMembers.map((member, index) => (
+              <MemberCard 
+                key={member._id || index} 
+                member={member} 
+                index={index}
+              />
             ))}
           </div>
         )}
