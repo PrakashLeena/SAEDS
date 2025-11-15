@@ -90,13 +90,6 @@ const MemberCard = memo(({ member, index }) => {
           </p>
         )}
 
-        {/* University/Job */}
-        {jobOrUniversity && (
-          <div className="text-center mb-4">
-            <p className="text-base font-semibold text-gray-800">{jobOrUniversity}</p>
-          </div>
-        )}
-
         {/* Contact Info */}
         <div className="space-y-3 mb-4">
           <div className="flex items-center justify-center text-base text-gray-700">
