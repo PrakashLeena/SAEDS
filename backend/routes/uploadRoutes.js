@@ -232,7 +232,7 @@ router.delete('/elibrary/:id', async (req, res) => {
 
     // Delete from Cloudinary
     try {
-      await cloudinary.uploader.destroy(file.publicId);
+      await cloudinary.uploader.destroy(file.publicId, { resource_type: 'raw' });
     } catch (err) {
       console.error('Cloudinary destroy error for', file.publicId, err);
     }
@@ -316,66 +316,6 @@ router.get('/elibrary/download/:id', async (req, res) => {
       const arrayBuffer = await resp.arrayBuffer();
       const buffer = Buffer.from(arrayBuffer);
       res.send(buffer);
-    }
-
-  } catch (err) {
-    console.error('Error downloading file:', err);
-    if (!res.headersSent) {
-      return res.status(500).json({ 
-        success: false, 
-        message: 'Failed to download file',
-        error: process.env.NODE_ENV === 'development' ? err.message : undefined
-      });
-    }
-  }
-});
-
-    // Create a safe filename with .pdf extension
-    const safeFilename = `${(file.title || 'document').replace(/[^a-z0-9.-_ ]/gi, '')}.pdf`;
-
-    // Set headers to force PDF download
-    res.setHeader('Content-Type', 'application/pdf');
-    res.setHeader('Content-Disposition', `attachment; filename="${safeFilename}"`);
-    res.setHeader('Content-Transfer-Encoding', 'binary');
-    res.setHeader('Pragma', 'no-cache');
-    res.setHeader('Expires', '0');
-
-    // Stream the file directly to response
-    if (resp.body && typeof resp.body.pipe === 'function') {
-      return resp.body.pipe(res);
-    }
-    
-    // Handle different types of response bodies
-    const body = resp.body;
-    if (!body) {
-      return res.status(500).json({ success: false, message: 'No body in remote response' });
-    }
-
-    if (typeof body.getReader === 'function') {
-      // Handle web streams (browser-like environment)
-      const reader = body.getReader();
-      const { Readable } = require('stream');
-      const stream = new Readable({ read() {} });
-      
-      (async () => {
-        try {
-          while (true) {
-            const { done, value } = await reader.read();
-            if (done) break;
-            stream.push(Buffer.from(value));
-          }
-          stream.push(null);
-        } catch (e) {
-          console.error('Error reading stream:', e);
-          stream.destroy(e);
-        }
-      })();
-      
-      stream.pipe(res);
-    } else {
-      // Fallback for non-streaming responses
-      const fileData = await resp.buffer();
-      res.send(fileData);
     }
 
   } catch (err) {
@@ -576,8 +516,8 @@ router.delete('/gallery/:id', async (req, res) => {
       // continue to remove DB record even if cloudinary deletion fails
     }
 
-  // Remove DB record (use findByIdAndDelete to avoid deprecated/absent document methods)
-  await GalleryImage.findByIdAndDelete(id);
+    // Remove DB record (use findByIdAndDelete to avoid deprecated/absent document methods)
+    await GalleryImage.findByIdAndDelete(id);
 
     return res.json({ success: true, message: 'Image deleted' });
   } catch (error) {
@@ -660,19 +600,20 @@ router.get('/download/:id', async (req, res) => {
         } else {
           // Fallback: iterate web stream and push to res
           const reader = body.getReader();
-          const stream = new Readable({ read() {} });
-          (async () => {
-            try {
-              while (true) {
+          const stream = new Readable({
+            async read() {
+              try {
                 const { done, value } = await reader.read();
-                if (done) break;
-                stream.push(Buffer.from(value));
+                if (done) {
+                  this.push(null);
+                } else {
+                  this.push(Buffer.from(value));
+                }
+              } catch (err) {
+                this.destroy(err);
               }
-              stream.push(null);
-            } catch (e) {
-              stream.destroy(e);
             }
-          })();
+          });
           stream.pipe(res);
         }
       }
@@ -687,4 +628,3 @@ router.get('/download/:id', async (req, res) => {
 });
 
 module.exports = router;
-
