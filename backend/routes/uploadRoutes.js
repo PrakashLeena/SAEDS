@@ -257,12 +257,38 @@ router.get('/elibrary/download/:id', async (req, res) => {
     if (!resp.ok) return res.status(502).json({ success: false, message: 'Failed to fetch file from storage' });
 
     const fallbackName = file.publicId ? file.publicId.split('/').pop() : `file-${id}`;
-    const urlPath = new URL(remoteUrl).pathname;
-    const extMatch = urlPath.match(/\.([a-z0-9]+)(?:$|\?)/i);
-    const ext = extMatch ? extMatch[1] : 'pdf';
-    const filename = `${(file.title && file.title.trim()) ? file.title.replace(/[^a-z0-9.-_ ]/gi, '') : fallbackName}${ext ? `.${ext}` : ''}`;
+    const urlPath = new URL(remoteUrl).pathname || '';
 
-    const contentType = resp.headers.get('content-type') || 'application/octet-stream';
+    // Try to infer extension from URL
+    const urlExtMatch = urlPath.match(/\.([a-z0-9]+)(?:$|\?)/i);
+    const extFromUrl = urlExtMatch ? urlExtMatch[1].toLowerCase() : '';
+
+    // Determine MIME type from stored fileType or remote response
+    const storedTypeRaw = file.fileType || '';
+    const storedType = storedTypeRaw === 'pdf' ? 'application/pdf' : storedTypeRaw; // handle older records
+    const remoteType = resp.headers.get('content-type') || '';
+    const mimeType = storedType || remoteType || 'application/pdf';
+
+    // Infer extension from MIME type if needed
+    let extFromMime = '';
+    if (mimeType && mimeType.includes('/')) {
+      extFromMime = mimeType.split('/')[1].split('+')[0].toLowerCase();
+    }
+
+    let ext = (extFromUrl || extFromMime || '').toLowerCase();
+    if (!ext) {
+      // Sensible default for e-library files
+      ext = 'pdf';
+    }
+
+    // Build a safe filename and avoid double extensions
+    const rawTitle = (file.title && file.title.trim()) ? file.title : fallbackName;
+    const safeBase = rawTitle.replace(/[^a-z0-9.\-_ ]/gi, '');
+    const lowerBase = safeBase.toLowerCase();
+    const needsExt = !lowerBase.endsWith(`.${ext}`);
+    const filename = needsExt ? `${safeBase}.${ext}` : safeBase;
+
+    const contentType = mimeType || 'application/octet-stream';
     const contentLength = resp.headers.get('content-length');
     res.setHeader('Content-Type', contentType);
     if (contentLength) res.setHeader('Content-Length', contentLength);
