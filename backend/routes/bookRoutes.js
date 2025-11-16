@@ -93,7 +93,8 @@ router.post('/', async (req, res) => {
       const folderId = req.body.folderId || book.folderId || null;
       const folderTitle = req.body.folderTitle || book.folderTitle || '';
       const pdfUrl = req.body.pdfUrl || book.pdfUrl || '';
-      if (folderId && pdfUrl) {
+      // Only create an E-Library file for PDFs — ensure file is pdf
+      if (folderId && pdfUrl && isPdfUrl(pdfUrl)) {
         const ElibraryFile = require('../models/ElibraryFile');
         const fileDoc = new ElibraryFile({
           title: book.title || 'Untitled',
@@ -107,6 +108,8 @@ router.post('/', async (req, res) => {
         });
         await fileDoc.save();
         console.log('Created ElibraryFile for book id', book._id, 'file id', fileDoc._id);
+      } else if (folderId && pdfUrl) {
+        console.warn('Skipping creation of ElibraryFile — pdfUrl is not a PDF: ', pdfUrl);
       }
     } catch (err) {
       console.error('Failed to create ElibraryFile for book:', err);
@@ -183,18 +186,46 @@ router.delete('/:id', async (req, res) => {
 // Increment download count
 router.post('/:id/download', async (req, res) => {
   try {
-    const inc = { $inc: { downloads: 1 } };
-    const book = await Book.findByIdAndUpdate(
-      req.params.id,
-      inc,
-      { new: true }
-    );
-
+    // Find book to check which file we are about to count as a download
+    const book = await Book.findById(req.params.id);
     if (!book) {
-      return res.status(404).json({
-        success: false,
-        message: 'Book not found',
-      });
+      return res.status(404).json({ success: false, message: 'Book not found' });
+    }
+
+    // Only allow downloads if we can find a PDF — either book.pdfUrl or an ElibraryFile
+    let pdfFound = false;
+    if (book.pdfUrl && isPdfUrl(book.pdfUrl)) {
+      pdfFound = true;
+    } else {
+      // Try to find an associated ElibraryFile that's a PDF
+      const titleRegex = book.title ? new RegExp(book.title.replace(/[.*+?^${}()|[\\]\\]/g, '\\$&'), 'i') : null;
+      const filter = {};
+      if (book.folderId) filter.folderId = book.folderId;
+      if (titleRegex) filter.title = { $regex: titleRegex };
+
+      if (Object.keys(filter).length > 0) {
+        const file = await ElibraryFile.findOne({
+          ...filter,
+          $or: [
+            { fileType: 'pdf' },
+            { url: { $regex: /\.pdf(\?.*)?$/i } },
+          ],
+        }).sort({ createdAt: -1 }).exec();
+        if (file) pdfFound = true;
+      }
+    }
+
+    if (!pdfFound) {
+      // Prevent counting non-PDF downloads — enforce PDF-only downloads
+      return res.status(400).json({ success: false, message: 'Only PDF downloads are allowed for this book' });
+    }
+
+    // At this point it's a PDF — increment the download count
+    const inc = { $inc: { downloads: 1 } };
+    const updatedBook = await Book.findByIdAndUpdate(req.params.id, inc, { new: true });
+
+    if (!updatedBook) {
+      return res.status(404).json({ success: false, message: 'Book not found' });
     }
 
     // If firebaseUid provided, increment user's downloads stat as well
@@ -213,11 +244,7 @@ router.post('/:id/download', async (req, res) => {
       }
     }
 
-    res.json({
-      success: true,
-      data: book,
-      userDownloads,
-    });
+    res.json({ success: true, data: updatedBook, userDownloads });
   } catch (error) {
     res.status(500).json({
       success: false,
@@ -274,14 +301,21 @@ router.get('/:id/stats', async (req, res) => {
   }
 });
 
+// Helper to check if a url looks like a PDF
+function isPdfUrl(url) {
+  if (!url || typeof url !== 'string') return false;
+  // basic check - accept common PDF endings with optional query string
+  return /\.pdf(\?.*)?$/i.test(url);
+}
+
 // Find associated e-library file for a book (if book.pdfUrl missing)
 router.get('/:id/file', async (req, res) => {
   try {
     const book = await Book.findById(req.params.id);
     if (!book) return res.status(404).json({ success: false, message: 'Book not found' });
 
-    // If book has direct pdfUrl, return it
-    if (book.pdfUrl) {
+    // If book has direct pdfUrl and it is a PDF file, return it
+    if (book.pdfUrl && isPdfUrl(book.pdfUrl)) {
       return res.json({ success: true, data: { url: book.pdfUrl } });
     }
 
@@ -293,15 +327,29 @@ router.get('/:id/file', async (req, res) => {
 
     let file = null;
     if (Object.keys(filter).length > 0) {
-      file = await ElibraryFile.findOne(filter).sort({ createdAt: -1 }).exec();
+      // Ensure only pdf files are matched
+      file = await ElibraryFile.findOne({
+        ...filter,
+        $or: [
+          { fileType: 'pdf' },
+            { url: { $regex: /\.pdf(\?.*)?$/i } },
+        ],
+      }).sort({ createdAt: -1 }).exec();
     }
 
     // As a fallback, try any file with a matching title
     if (!file && titleRegex) {
-      file = await ElibraryFile.findOne({ title: { $regex: titleRegex } }).sort({ createdAt: -1 }).exec();
+      // Try any file with a matching title but restrict to PDFs
+      file = await ElibraryFile.findOne({
+        title: { $regex: titleRegex },
+        $or: [
+          { fileType: 'pdf' },
+          { url: { $regex: /\.pdf(\?.*)?$/i } },
+        ],
+      }).sort({ createdAt: -1 }).exec();
     }
 
-    if (!file) return res.status(404).json({ success: false, message: 'No file found for this book' });
+    if (!file) return res.status(404).json({ success: false, message: 'No PDF found for this book' });
 
     res.json({ success: true, data: { url: file.url, fileId: file._id } });
   } catch (error) {
