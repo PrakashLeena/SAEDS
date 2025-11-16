@@ -17,7 +17,7 @@ router.get('/', async (req, res) => {
 // Create member (admin)
 router.post('/', async (req, res) => {
   try {
-    const { name, email, phone, photoURL, universityOrRole, since, notes, createdByFirebaseUid } = req.body || {};
+    const { name, email, phone, photoURL, universityOrRole, roleInCommunity, since, notes, createdByFirebaseUid } = req.body || {};
     if (!name) return res.status(400).json({ success: false, message: 'name is required' });
 
     let createdBy = null;
@@ -36,6 +36,7 @@ router.post('/', async (req, res) => {
       phone: phone || '', 
       photoURL: photoURL || '', 
       universityOrRole: universityOrRole || '',
+      roleInCommunity: roleInCommunity || '',
       since: since || null,
       notes: notes || '', 
       order: newOrder,
