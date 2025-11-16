@@ -152,7 +152,7 @@ const MemberCard = memo(({ member, index }) => {
           )}
           {/* Job role / University */}
           {jobOrUniversity && (
-            <p className="text-xs text-gray-600">{jobOrUniversity}</p>
+            <p className="text-sm text-black">{jobOrUniversity}</p>
           )}
         </div>
 
@@ -164,7 +164,7 @@ const MemberCard = memo(({ member, index }) => {
         )}
 
         {/* Contact Info */}
-        <div className="space-y-2 mb-4">
+        <div className="space-y-2 mb-4 text-gray-600 text-xs">
           <ContactRow icon={Mail} text={member.email} />
           <ContactRow icon={Phone} text={member.phone} />
           <ContactRow icon={MapPin} text={member.address} />
