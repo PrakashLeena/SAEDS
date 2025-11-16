@@ -245,7 +245,7 @@ router.delete('/elibrary/:id', async (req, res) => {
   }
 });
 
-// Download elibrary file (proxy)
+// Download elibrary file (proxy) - FIXED VERSION
 router.get('/elibrary/download/:id', async (req, res) => {
   try {
     const { id } = req.params;
@@ -259,6 +259,76 @@ router.get('/elibrary/download/:id', async (req, res) => {
     if (!resp.ok) {
       return res.status(502).json({ success: false, message: 'Failed to fetch file from storage' });
     }
+
+    // Create a safe filename with .pdf extension
+    const safeFilename = `${(file.title || 'document').replace(/[^a-z0-9.-_ ]/gi, '')}.pdf`;
+
+    // Get content type from response or default to PDF
+    const contentType = resp.headers.get('content-type') || 'application/pdf';
+    const contentLength = resp.headers.get('content-length');
+
+    // Set headers to force PDF download
+    res.setHeader('Content-Type', contentType);
+    if (contentLength) {
+      res.setHeader('Content-Length', contentLength);
+    }
+    res.setHeader('Content-Disposition', `attachment; filename="${safeFilename}"`);
+    res.setHeader('Cache-Control', 'no-cache');
+
+    const body = resp.body;
+    if (!body) {
+      return res.status(500).json({ success: false, message: 'No body in remote response' });
+    }
+
+    // Handle different types of response bodies
+    if (typeof body.pipe === 'function') {
+      // Node.js Readable stream (node-fetch v2)
+      body.pipe(res);
+    } else if (typeof body.getReader === 'function') {
+      // Web ReadableStream (undici/global fetch)
+      const { Readable } = require('stream');
+      
+      // Try using Readable.fromWeb if available (Node 16.5+)
+      if (typeof Readable.fromWeb === 'function') {
+        Readable.fromWeb(body).pipe(res);
+      } else {
+        // Fallback: manually convert web stream to node stream
+        const reader = body.getReader();
+        const nodeStream = new Readable({
+          async read() {
+            try {
+              const { done, value } = await reader.read();
+              if (done) {
+                this.push(null);
+              } else {
+                this.push(Buffer.from(value));
+              }
+            } catch (err) {
+              this.destroy(err);
+            }
+          }
+        });
+        
+        nodeStream.pipe(res);
+      }
+    } else {
+      // Fallback: buffer the entire response
+      const arrayBuffer = await resp.arrayBuffer();
+      const buffer = Buffer.from(arrayBuffer);
+      res.send(buffer);
+    }
+
+  } catch (err) {
+    console.error('Error downloading file:', err);
+    if (!res.headersSent) {
+      return res.status(500).json({ 
+        success: false, 
+        message: 'Failed to download file',
+        error: process.env.NODE_ENV === 'development' ? err.message : undefined
+      });
+    }
+  }
+});
 
     // Create a safe filename with .pdf extension
     const safeFilename = `${(file.title || 'document').replace(/[^a-z0-9.-_ ]/gi, '')}.pdf`;
