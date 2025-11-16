@@ -250,85 +250,73 @@ router.get('/elibrary/download/:id', async (req, res) => {
   try {
     const { id } = req.params;
     const file = await ElibraryFile.findById(id);
-    if (!file) return res.status(404).json({ success: false, message: 'File not found' });
+    if (!file) {
+      return res.status(404).json({ success: false, message: 'File not found' });
+    }
 
     const remoteUrl = file.url;
     const resp = await fetch(remoteUrl);
-    if (!resp.ok) return res.status(502).json({ success: false, message: 'Failed to fetch file from storage' });
-
-    const fallbackName = file.publicId ? file.publicId.split('/').pop() : `file-${id}`;
-    const urlPath = new URL(remoteUrl).pathname || '';
-
-    // Try to infer extension from URL
-    const urlExtMatch = urlPath.match(/\.([a-z0-9]+)(?:$|\?)/i);
-    const extFromUrl = urlExtMatch ? urlExtMatch[1].toLowerCase() : '';
-
-    // Determine MIME type from stored fileType or remote response
-    const storedTypeRaw = file.fileType || '';
-    const storedType = storedTypeRaw === 'pdf' ? 'application/pdf' : storedTypeRaw; // handle older records
-    const remoteType = resp.headers.get('content-type') || '';
-    const mimeType = storedType || remoteType || 'application/pdf';
-
-    // Infer extension from MIME type if needed
-    let extFromMime = '';
-    if (mimeType && mimeType.includes('/')) {
-      extFromMime = mimeType.split('/')[1].split('+')[0].toLowerCase();
+    if (!resp.ok) {
+      return res.status(502).json({ success: false, message: 'Failed to fetch file from storage' });
     }
 
-    let ext = (extFromUrl || extFromMime || '').toLowerCase();
-    if (!ext) {
-      // Sensible default for e-library files
-      ext = 'pdf';
+    // Create a safe filename with .pdf extension
+    const safeFilename = `${(file.title || 'document').replace(/[^a-z0-9.-_ ]/gi, '')}.pdf`;
+
+    // Set headers to force PDF download
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `attachment; filename="${safeFilename}"`);
+    res.setHeader('Content-Transfer-Encoding', 'binary');
+    res.setHeader('Pragma', 'no-cache');
+    res.setHeader('Expires', '0');
+
+    // Stream the file directly to response
+    if (resp.body && typeof resp.body.pipe === 'function') {
+      return resp.body.pipe(res);
     }
-
-    // Build a safe filename and avoid double extensions
-    const rawTitle = (file.title && file.title.trim()) ? file.title : fallbackName;
-    const safeBase = rawTitle.replace(/[^a-z0-9.\-_ ]/gi, '');
-    const lowerBase = safeBase.toLowerCase();
-    const needsExt = !lowerBase.endsWith(`.${ext}`);
-    const filename = needsExt ? `${safeBase}.${ext}` : safeBase;
-
-    const contentType = mimeType || 'application/octet-stream';
-    const contentLength = resp.headers.get('content-length');
-    res.setHeader('Content-Type', contentType);
-    if (contentLength) res.setHeader('Content-Length', contentLength);
-    res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
-
+    
+    // Handle different types of response bodies
     const body = resp.body;
-    if (!body) return res.status(500).json({ success: false, message: 'No body in remote response' });
-
-    try {
-      if (typeof body.pipe === 'function') {
-        body.pipe(res);
-      } else {
-        const { Readable } = require('stream');
-        if (typeof Readable.fromWeb === 'function') {
-          Readable.fromWeb(body).pipe(res);
-        } else {
-          const reader = body.getReader();
-          const stream = new Readable({ read() {} });
-          (async () => {
-            try {
-              while (true) {
-                const { done, value } = await reader.read();
-                if (done) break;
-                stream.push(Buffer.from(value));
-              }
-              stream.push(null);
-            } catch (e) {
-              stream.destroy(e);
-            }
-          })();
-          stream.pipe(res);
-        }
-      }
-    } catch (err) {
-      console.error('Error piping file to response', err);
-      return res.status(500).json({ success: false, message: 'Failed to stream file' });
+    if (!body) {
+      return res.status(500).json({ success: false, message: 'No body in remote response' });
     }
+
+    if (typeof body.getReader === 'function') {
+      // Handle web streams (browser-like environment)
+      const reader = body.getReader();
+      const { Readable } = require('stream');
+      const stream = new Readable({ read() {} });
+      
+      (async () => {
+        try {
+          while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+            stream.push(Buffer.from(value));
+          }
+          stream.push(null);
+        } catch (e) {
+          console.error('Error reading stream:', e);
+          stream.destroy(e);
+        }
+      })();
+      
+      stream.pipe(res);
+    } else {
+      // Fallback for non-streaming responses
+      const fileData = await resp.buffer();
+      res.send(fileData);
+    }
+
   } catch (err) {
-    console.error('Error downloading elibrary file:', err);
-    return res.status(500).json({ success: false, message: 'Failed to download file' });
+    console.error('Error downloading file:', err);
+    if (!res.headersSent) {
+      return res.status(500).json({ 
+        success: false, 
+        message: 'Failed to download file',
+        error: process.env.NODE_ENV === 'development' ? err.message : undefined
+      });
+    }
   }
 });
 
