@@ -207,7 +207,7 @@ router.post('/:id/download', async (req, res) => {
         const file = await ElibraryFile.findOne({
           ...filter,
           $or: [
-            { fileType: 'pdf' },
+            { fileType: { $regex: /pdf/i } },
             { url: { $regex: /\.pdf(\?.*)?$/i } },
           ],
         }).sort({ createdAt: -1 }).exec();
@@ -316,7 +316,7 @@ router.get('/:id/file', async (req, res) => {
 
     // If book has direct pdfUrl and it is a PDF file, return it
     if (book.pdfUrl && isPdfUrl(book.pdfUrl)) {
-      return res.json({ success: true, data: { url: book.pdfUrl } });
+      return res.json({ success: true, data: { url: book.pdfUrl, fileType: 'application/pdf' } });
     }
 
     // Try to find a matching ElibraryFile by title and folderId if available
@@ -331,8 +331,8 @@ router.get('/:id/file', async (req, res) => {
       file = await ElibraryFile.findOne({
         ...filter,
         $or: [
-          { fileType: 'pdf' },
-            { url: { $regex: /\.pdf(\?.*)?$/i } },
+          { fileType: { $regex: /pdf/i } },
+          { url: { $regex: /\.pdf(\?.*)?$/i } },
         ],
       }).sort({ createdAt: -1 }).exec();
     }
@@ -343,7 +343,7 @@ router.get('/:id/file', async (req, res) => {
       file = await ElibraryFile.findOne({
         title: { $regex: titleRegex },
         $or: [
-          { fileType: 'pdf' },
+          { fileType: { $regex: /pdf/i } },
           { url: { $regex: /\.pdf(\?.*)?$/i } },
         ],
       }).sort({ createdAt: -1 }).exec();
@@ -351,7 +351,7 @@ router.get('/:id/file', async (req, res) => {
 
     if (!file) return res.status(404).json({ success: false, message: 'No PDF found for this book' });
 
-    res.json({ success: true, data: { url: file.url, fileId: file._id } });
+    res.json({ success: true, data: { url: file.url, fileId: file._id, fileType: file.fileType || 'application/pdf' } });
   } catch (error) {
     res.status(500).json({ success: false, message: 'Error finding file for book', error: error.message });
   }
