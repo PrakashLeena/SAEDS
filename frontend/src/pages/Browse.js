@@ -113,6 +113,10 @@ const Browse = () => {
 
   // Memoize sections (only recalculate if elibraryFolders changes)
   const sections = useMemo(() => flattenSections(elibraryFolders), []);
+  const paperSections = useMemo(
+    () => sections.filter((s) => s.folderTitle.toLowerCase().includes('papers')),
+    [sections]
+  );
 
   // Memoized book filtering and sorting
   const filteredAndSortedBooks = useMemo(() => {
@@ -153,14 +157,14 @@ const Browse = () => {
 
   // Memoized books by section
   const booksBySection = useMemo(() => {
-    return sections.map(section => ({
+    return paperSections.map(section => ({
       section,
       books: filteredAndSortedBooks.filter(b => {
         const folderId = b.raw?.folderId || b.folderId;
         return folderId === section.folderId;
       })
     })).filter(item => item.books.length > 0);
-  }, [sections, filteredAndSortedBooks]);
+  }, [paperSections, filteredAndSortedBooks]);
 
   // Memoized uncategorized books
   const uncategorizedBooks = useMemo(() => {
@@ -354,7 +358,9 @@ const Browse = () => {
                   Folders in {selectedStream.title}
                 </p>
                 <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-6 gap-2">
-                  {selectedStream.sections.map(section => (
+                  {selectedStream.sections
+                    .filter(section => section.title.toLowerCase() === 'papers')
+                    .map(section => (
                     <button
                       key={section.id}
                       onClick={() => handleSectionClick(section.id)}
