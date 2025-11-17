@@ -1,4 +1,5 @@
 import React, { useState, useMemo, useEffect, useCallback, memo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Search, Filter, X } from 'lucide-react';
 import BookCard from '../components/BookCard';
 import api from '../services/api';
@@ -101,11 +102,14 @@ const SearchBar = memo(({ value, onChange, onClear }) => (
 SearchBar.displayName = 'SearchBar';
 
 const Browse = () => {
+  const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [sortBy, setSortBy] = useState('title');
   const [books, setBooks] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [selectedGrade, setSelectedGrade] = useState(null);
+  const [selectedStream, setSelectedStream] = useState(null);
 
   // Memoize sections (only recalculate if elibraryFolders changes)
   const sections = useMemo(() => flattenSections(elibraryFolders), []);
@@ -222,6 +226,23 @@ const Browse = () => {
     setSortBy(e.target.value);
   }, []);
 
+  const handleGradeClick = useCallback((grade) => {
+    setSelectedGrade(prev => (prev && prev.id === grade.id) ? null : grade);
+    setSelectedStream(null);
+  }, []);
+
+  const handleStreamClick = useCallback((stream) => {
+    if (stream.sections?.length > 0) {
+      setSelectedStream(prev => (prev && prev.id === stream.id) ? null : stream);
+    } else {
+      navigate(`/browse/${stream.id}`);
+    }
+  }, [navigate]);
+
+  const handleSectionClick = useCallback((sectionId) => {
+    navigate(`/browse/${sectionId}`);
+  }, [navigate]);
+
   // Memoized results text
   const resultsText = useMemo(() => {
     const count = filteredAndSortedBooks.length;
@@ -258,6 +279,94 @@ const Browse = () => {
           <p className="text-gray-600 text-sm">
             Explore our collection of {books.length} books
           </p>
+        </div>
+
+        {/* Folder Explorer */}
+        <div className="mb-6 bg-white rounded-lg shadow-sm border border-gray-100 p-4">
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <h2 className="text-lg font-semibold text-gray-900">Browse by Folder</h2>
+              <p className="text-sm text-gray-500">Navigate through Grade → Stream → Folder</p>
+            </div>
+            {(selectedGrade || selectedStream) && (
+              <button
+                onClick={() => { setSelectedGrade(null); setSelectedStream(null); }}
+                className="text-sm text-primary-600 hover:text-primary-700"
+              >
+                Reset
+              </button>
+            )}
+          </div>
+
+          <div className="space-y-4">
+            {/* Grade level */}
+            <div>
+              <p className="text-xs font-semibold text-gray-500 uppercase mb-2">Grade</p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                {elibraryFolders.map(grade => (
+                  <button
+                    key={grade.id}
+                    onClick={() => handleGradeClick(grade)}
+                    className={`border rounded-lg px-4 py-3 text-left transition-all ${
+                      selectedGrade?.id === grade.id
+                        ? 'border-primary-600 bg-primary-50 text-primary-900 shadow-sm'
+                        : 'border-gray-200 hover:border-primary-300 hover:shadow-sm'
+                    }`}
+                  >
+                    <div className="text-sm font-semibold">{grade.title}</div>
+                    <div className="text-xs text-gray-500">{grade.children?.length || 0} streams</div>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Streams */}
+            {selectedGrade && (
+              <div>
+                <p className="text-xs font-semibold text-gray-500 uppercase mb-2">
+                  Streams in {selectedGrade.title}
+                </p>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                  {selectedGrade.children?.map(stream => (
+                    <button
+                      key={stream.id}
+                      onClick={() => handleStreamClick(stream)}
+                      className={`border rounded-lg px-4 py-3 text-left transition-all ${
+                        selectedStream?.id === stream.id
+                          ? 'border-primary-600 bg-primary-50 text-primary-900 shadow-sm'
+                          : 'border-gray-200 hover:border-primary-300 hover:shadow-sm'
+                      }`}
+                    >
+                      <div className="text-sm font-semibold">{stream.title}</div>
+                      <div className="text-xs text-gray-500">
+                        {stream.sections?.length ? `${stream.sections.length} folders` : 'Open'}
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Sections */}
+            {selectedGrade && selectedStream && selectedStream.sections?.length > 0 && (
+              <div>
+                <p className="text-xs font-semibold text-gray-500 uppercase mb-2">
+                  Folders in {selectedStream.title}
+                </p>
+                <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-6 gap-2">
+                  {selectedStream.sections.map(section => (
+                    <button
+                      key={section.id}
+                      onClick={() => handleSectionClick(section.id)}
+                      className="border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-700 hover:border-primary-400 hover:text-primary-700 transition-all"
+                    >
+                      {section.title}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Search and Filters */}
