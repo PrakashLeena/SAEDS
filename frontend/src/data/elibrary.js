@@ -62,6 +62,56 @@ export const elibraryFolders = [
         ]
       }
     ]
+  },
+  {
+    id: 'bio-maths',
+    title: 'Bio / Maths',
+    children: [
+      {
+        id: 'bio-area',
+        title: 'Biology',
+        sections: [
+          { id: 'bio-gen', title: 'General Biology' },
+          { id: 'bio-advanced', title: 'Advanced Biology' }
+        ]
+      },
+      {
+        id: 'maths-area',
+        title: 'Mathematics',
+        sections: [
+          { id: 'maths-core', title: 'Core Maths' },
+          { id: 'maths-applied', title: 'Applied Maths' }
+        ]
+      }
+    ]
+  },
+  {
+    id: 'technology',
+    title: 'Technology',
+    children: [
+      {
+        id: 'tech-general',
+        title: 'General Technology',
+        sections: [
+          { id: 'tech-it', title: 'Information Technology' },
+          { id: 'tech-engineering', title: 'Engineering Technology' }
+        ]
+      }
+    ]
+  },
+  {
+    id: 'arts',
+    title: 'Arts',
+    children: [
+      {
+        id: 'arts-general',
+        title: 'General Arts',
+        sections: [
+          { id: 'arts-literature', title: 'Literature & Language' },
+          { id: 'arts-visual', title: 'Visual & Performing Arts' }
+        ]
+      }
+    ]
   }
 ];
 
