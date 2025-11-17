@@ -7,112 +7,53 @@ export const elibraryFolders = [
     title: 'GCE A/L',
     children: [
       {
-        id: 'gce-al-pastpapers',
-        title: 'Past Papers',
+        id: 'al-bio-maths',
+        title: 'Bio/Maths',
         sections: [
-          { id: 'al-past-maths', title: 'Maths' },
-          { id: 'al-past-bio', title: 'Biology' },
-          { id: 'al-past-physics', title: 'Physics' },
-          { id: 'al-past-chem', title: 'Chemistry' }
-        ]
+          { id: 'al-bio-maths-papers', title: 'Papers' },
+          { id: 'al-bio-maths-notes', title: 'Notes' },
+        ],
       },
       {
-        id: 'gce-al-modelpapers',
-        title: 'Model Papers',
+        id: 'al-technology',
+        title: 'Technology',
         sections: [
-          { id: 'al-model-maths', title: 'Maths' },
-          { id: 'al-model-bio', title: 'Biology' },
-          { id: 'al-model-physics', title: 'Physics' },
-          { id: 'al-model-chem', title: 'Chemistry' }
-        ]
+          { id: 'al-technology-papers', title: 'Papers' },
+          { id: 'al-technology-notes', title: 'Notes' },
+        ],
       },
       {
-        id: 'gce-al-elaboration',
-        title: 'Elaboration',
-        sections: []
+        id: 'al-commerce',
+        title: 'Commerce',
+        sections: [
+          { id: 'al-commerce-papers', title: 'Papers' },
+          { id: 'al-commerce-notes', title: 'Notes' },
+        ],
       },
       {
-        id: 'gce-al-guides',
-        title: 'Guides & Resources',
-        sections: []
-      }
-    ]
+        id: 'al-arts',
+        title: 'Arts',
+        sections: [
+          { id: 'al-arts-papers', title: 'Papers' },
+          { id: 'al-arts-notes', title: 'Notes' },
+        ],
+      },
+    ],
   },
   {
     id: 'gce-ol',
     title: 'GCE O/L',
     children: [
       {
-        id: 'gce-ol-pastpapers',
-        title: 'Past Papers',
+        id: 'ol-general',
+        title: 'General',
         sections: [
-          // If you want specific O/L subjects listed, add them here.
-          { id: 'ol-past-maths', title: 'Maths' },
-          { id: 'ol-past-science', title: 'Science' },
-          { id: 'ol-past-english', title: 'English' }
-        ]
+          { id: 'ol-general-papers', title: 'Papers' },
+          { id: 'ol-general-notes', title: 'Notes' },
+        ],
       },
-      {
-        id: 'gce-ol-modelpapers',
-        title: 'Model Papers',
-        sections: [
-          { id: 'ol-model-maths', title: 'Maths' },
-          { id: 'ol-model-science', title: 'Science' },
-          { id: 'ol-model-english', title: 'English' }
-        ]
-      }
-    ]
+    ],
   },
-  {
-    id: 'bio-maths',
-    title: 'Bio / Maths',
-    children: [
-      {
-        id: 'bio-area',
-        title: 'Biology',
-        sections: [
-          { id: 'bio-gen', title: 'General Biology' },
-          { id: 'bio-advanced', title: 'Advanced Biology' }
-        ]
-      },
-      {
-        id: 'maths-area',
-        title: 'Mathematics',
-        sections: [
-          { id: 'maths-core', title: 'Core Maths' },
-          { id: 'maths-applied', title: 'Applied Maths' }
-        ]
-      }
-    ]
-  },
-  {
-    id: 'technology',
-    title: 'Technology',
-    children: [
-      {
-        id: 'tech-general',
-        title: 'General Technology',
-        sections: [
-          { id: 'tech-it', title: 'Information Technology' },
-          { id: 'tech-engineering', title: 'Engineering Technology' }
-        ]
-      }
-    ]
-  },
-  {
-    id: 'arts',
-    title: 'Arts',
-    children: [
-      {
-        id: 'arts-general',
-        title: 'General Arts',
-        sections: [
-          { id: 'arts-literature', title: 'Literature & Language' },
-          { id: 'arts-visual', title: 'Visual & Performing Arts' }
-        ]
-      }
-    ]
-  }
 ];
 
 export default elibraryFolders;
