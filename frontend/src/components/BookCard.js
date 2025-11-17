@@ -1,4 +1,4 @@
-import React, { memo, useCallback, useMemo } from 'react';
+import React, { memo, useCallback, useMemo, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { Star, Download, BookOpen } from 'lucide-react';
 import api from '../services/api';
@@ -8,6 +8,7 @@ const PDF_REGEX = /\.pdf(\?.*)?$/i;
 
 const BookCard = memo(({ book }) => {
   const { currentUser } = useAuth();
+  const urlCacheRef = useRef(null);
   
   // Memoize user UID to prevent unnecessary re-renders
   const userUid = useMemo(() => currentUser?.uid, [currentUser]);
@@ -27,20 +28,26 @@ const BookCard = memo(({ book }) => {
 
   // Optimize URL resolution - cache the result
   const resolveBookUrl = useCallback(async () => {
-    if (book.pdfUrl && PDF_REGEX.test(book.pdfUrl)) {
-      return book.pdfUrl;
-    }
+    if (urlCacheRef.current) return urlCacheRef.current;
 
     try {
       const f = await api.book.getFile(book.id);
       if (f?.data?.fileId) {
-        return api.elibrary.downloadUrl(f.data.fileId);
+        const proxyUrl = api.elibrary.downloadUrl(f.data.fileId);
+        urlCacheRef.current = proxyUrl;
+        return proxyUrl;
       }
       if (f?.data?.url && PDF_REGEX.test(f.data.url)) {
+        urlCacheRef.current = f.data.url;
         return f.data.url;
       }
     } catch (err) {
       console.error('No file found', err);
+    }
+
+    if (book.pdfUrl && PDF_REGEX.test(book.pdfUrl)) {
+      urlCacheRef.current = book.pdfUrl;
+      return book.pdfUrl;
     }
 
     return null;

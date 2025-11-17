@@ -109,11 +109,6 @@ const BookDetail = () => {
   const resolvePdfUrl = useCallback(async () => {
     if (urlCacheRef.current) return urlCacheRef.current;
     
-    if (book?.pdfUrl && PDF_REGEX.test(book.pdfUrl)) {
-      urlCacheRef.current = book.pdfUrl;
-      return book.pdfUrl;
-    }
-    
     try {
       const f = await api.book.getFile(id);
       if (f?.data?.fileId) {
@@ -127,6 +122,11 @@ const BookDetail = () => {
       }
     } catch (err) {
       console.error('No file found', err);
+    }
+    
+    if (book?.pdfUrl && PDF_REGEX.test(book.pdfUrl)) {
+      urlCacheRef.current = book.pdfUrl;
+      return book.pdfUrl;
     }
     
     return null;

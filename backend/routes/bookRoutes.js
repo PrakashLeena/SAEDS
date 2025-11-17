@@ -301,23 +301,11 @@ router.get('/:id/stats', async (req, res) => {
   }
 });
 
-// Helper to check if a url looks like a PDF
-function isPdfUrl(url) {
-  if (!url || typeof url !== 'string') return false;
-  // basic check - accept common PDF endings with optional query string
-  return /\.pdf(\?.*)?$/i.test(url);
-}
-
 // Find associated e-library file for a book (if book.pdfUrl missing)
 router.get('/:id/file', async (req, res) => {
   try {
     const book = await Book.findById(req.params.id);
     if (!book) return res.status(404).json({ success: false, message: 'Book not found' });
-
-    // If book has direct pdfUrl and it is a PDF file, return it
-    if (book.pdfUrl && isPdfUrl(book.pdfUrl)) {
-      return res.json({ success: true, data: { url: book.pdfUrl, fileType: 'application/pdf' } });
-    }
 
     // Try to find a matching ElibraryFile by title and folderId if available
     const titleRegex = book.title ? new RegExp(book.title.replace(/[.*+?^${}()|[\\]\\]/g, '\\$&'), 'i') : null;
@@ -349,13 +337,73 @@ router.get('/:id/file', async (req, res) => {
       }).sort({ createdAt: -1 }).exec();
     }
 
-    if (!file) return res.status(404).json({ success: false, message: 'No PDF found for this book' });
+    if (!file && book.pdfUrl) {
+      file = await ensureElibraryFileForBook(book);
+    }
 
-    res.json({ success: true, data: { url: file.url, fileId: file._id, fileType: file.fileType || 'application/pdf' } });
+    if (file) {
+      return res.json({ success: true, data: { url: file.url, fileId: file._id, fileType: file.fileType || 'application/pdf' } });
+    }
+
+    if (book.pdfUrl && isPdfUrl(book.pdfUrl)) {
+      return res.json({ success: true, data: { url: book.pdfUrl, fileType: 'application/pdf' } });
+    }
+
+    return res.status(404).json({ success: false, message: 'No PDF found for this book' });
   } catch (error) {
     res.status(500).json({ success: false, message: 'Error finding file for book', error: error.message });
   }
 });
+
+// Helper to check if a url looks like a PDF
+function isPdfUrl(url) {
+  if (!url || typeof url !== 'string') return false;
+  // basic check - accept common PDF endings with optional query string
+  return /\.pdf(\?.*)?$/i.test(url);
+}
+
+async function ensureElibraryFileForBook(book) {
+  try {
+    if (!book.pdfUrl) return null;
+
+    let existing = await ElibraryFile.findOne({ url: book.pdfUrl });
+    if (existing) return existing;
+
+    const folderId = book.folderId || `book-${book._id}`;
+    const folderTitle = book.folderTitle || 'Books';
+    const publicId = extractCloudinaryPublicId(book.pdfUrl) || `book-${book._id}`;
+
+    const fileDoc = new ElibraryFile({
+      title: book.title || 'Untitled',
+      description: book.description || '',
+      url: book.pdfUrl,
+      publicId,
+      uploadedBy: null,
+      folderId,
+      folderTitle,
+      fileType: 'pdf',
+    });
+
+    await fileDoc.save();
+    return fileDoc;
+  } catch (err) {
+    console.error('Failed to ensure e-library file for book:', book._id, err);
+    return null;
+  }
+}
+
+function extractCloudinaryPublicId(url) {
+  try {
+    const parsed = new URL(url);
+    const uploadIdx = parsed.pathname.indexOf('/upload/');
+    if (uploadIdx === -1) return null;
+    let afterUpload = parsed.pathname.slice(uploadIdx + '/upload/'.length);
+    afterUpload = afterUpload.replace(/^v\d+\//, '');
+    return afterUpload.replace(/\.[^/.]+$/, '');
+  } catch (err) {
+    return null;
+  }
+}
 
 // Get book categories
 router.get('/meta/categories', async (req, res) => {
