@@ -4,6 +4,8 @@ import { ArrowLeft, Star, Download, BookOpen, Calendar, FileText, Globe, Heart, 
 import api from '../services/api';
 import { useAuth } from '../context/AuthContext';
 
+const PDF_REGEX = /\.pdf(\?.*)?$/i;
+
 // Memoized star rating component
 const StarRating = memo(({ rating }) => (
   <div className="flex items-center space-x-1">
@@ -107,18 +109,27 @@ const BookDetail = () => {
   const resolvePdfUrl = useCallback(async () => {
     if (urlCacheRef.current) return urlCacheRef.current;
     
-    let url = book?.pdfUrl || '';
-    if (!url) {
-      try {
-        const f = await api.book.getFile(id);
-        if (f?.data?.url) url = f.data.url;
-      } catch (err) {
-        console.error('No file found', err);
-      }
+    if (book?.pdfUrl && PDF_REGEX.test(book.pdfUrl)) {
+      urlCacheRef.current = book.pdfUrl;
+      return book.pdfUrl;
     }
     
-    urlCacheRef.current = url;
-    return url;
+    try {
+      const f = await api.book.getFile(id);
+      if (f?.data?.fileId) {
+        const proxyUrl = api.elibrary.downloadUrl(f.data.fileId);
+        urlCacheRef.current = proxyUrl;
+        return proxyUrl;
+      }
+      if (f?.data?.url && PDF_REGEX.test(f.data.url)) {
+        urlCacheRef.current = f.data.url;
+        return f.data.url;
+      }
+    } catch (err) {
+      console.error('No file found', err);
+    }
+    
+    return null;
   }, [book?.pdfUrl, id]);
 
   // Shared function to refresh user profile

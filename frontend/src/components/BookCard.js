@@ -4,6 +4,8 @@ import { Star, Download, BookOpen } from 'lucide-react';
 import api from '../services/api';
 import { useAuth } from '../context/AuthContext';
 
+const PDF_REGEX = /\.pdf(\?.*)?$/i;
+
 const BookCard = memo(({ book }) => {
   const { currentUser } = useAuth();
   
@@ -25,15 +27,23 @@ const BookCard = memo(({ book }) => {
 
   // Optimize URL resolution - cache the result
   const resolveBookUrl = useCallback(async () => {
-    if (book.pdfUrl) return book.pdfUrl;
-    
+    if (book.pdfUrl && PDF_REGEX.test(book.pdfUrl)) {
+      return book.pdfUrl;
+    }
+
     try {
       const f = await api.book.getFile(book.id);
-      return f?.data?.url || null;
+      if (f?.data?.fileId) {
+        return api.elibrary.downloadUrl(f.data.fileId);
+      }
+      if (f?.data?.url && PDF_REGEX.test(f.data.url)) {
+        return f.data.url;
+      }
     } catch (err) {
       console.error('No file found', err);
-      return null;
     }
+
+    return null;
   }, [book.id, book.pdfUrl]);
 
   // Optimized read handler
