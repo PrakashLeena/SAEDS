@@ -45,7 +45,7 @@ const FolderItem = ({ item }) => {
 const initialData = [
   {
     type: 'folder',
-    name: 'GCE A/L',
+    name: 'A/L',
     children: [
       {
         type: 'folder',
@@ -83,7 +83,7 @@ const initialData = [
   },
   {
     type: 'folder',
-    name: 'GCE O/L',
+    name: 'O/L',
     children: [
       {
         type: 'folder',
