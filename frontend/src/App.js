@@ -32,6 +32,7 @@ const AchievementForm = lazy(() => import('./pages/admin/AchievementForm'));
 const Gallery = lazy(() => import('./pages/Gallery'));
 const GalleryManagement = lazy(() => import('./pages/admin/GalleryManagement'));
 const ElibraryManagement = lazy(() => import('./pages/admin/ElibraryManagement'));
+const FolderStructureAdmin = lazy(() => import('./pages/admin/FolderStructureAdmin'));
 const JoinUs = lazy(() => import('./pages/JoinUs'));
 const JoinSuccess = lazy(() => import('./pages/JoinSuccess'));
 const Members = lazy(() => import('./pages/Members'));
@@ -82,6 +83,7 @@ function App() {
               <Route path="/admin/achievements/edit/:id" element={<ProtectedRoute requireAdmin={true}><AchievementForm /></ProtectedRoute>} />
               <Route path="/admin/gallery" element={<ProtectedRoute requireAdmin={true}><GalleryManagement /></ProtectedRoute>} />
               <Route path="/admin/elibrary" element={<ProtectedRoute requireAdmin={true}><ElibraryManagement /></ProtectedRoute>} />
+              <Route path="/admin/folder-structure" element={<ProtectedRoute requireAdmin={true}><FolderStructureAdmin /></ProtectedRoute>} />
             </Routes>
             </Suspense>
           </main>
