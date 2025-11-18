@@ -99,6 +99,53 @@ const BookSection = memo(({ section, books }) => {
 
 BookSection.displayName = 'BookSection';
 
+// Major folder wrapper component (e.g., GCE A/L, GCE O/L)
+const MajorFolder = memo(({ majorTitle, items }) => {
+  const [open, setOpen] = useState(true);
+
+  if (!items || items.length === 0) return null;
+
+  return (
+    <div className="bg-gray-50 rounded-md border border-gray-200">
+      <button
+        type="button"
+        onClick={() => setOpen(prev => !prev)}
+        className="w-full flex items-center justify-between px-3 py-2"
+      >
+        <div className="flex items-center gap-2">
+          {open ? (
+            <FolderOpen className="w-4 h-4 text-primary-700" />
+          ) : (
+            <Folder className="w-4 h-4 text-primary-700" />
+          )}
+          <span className="text-sm font-semibold text-gray-900">
+            {majorTitle}
+          </span>
+        </div>
+        {open ? (
+          <ChevronDown className="w-4 h-4 text-gray-500" />
+        ) : (
+          <ChevronRight className="w-4 h-4 text-gray-500" />
+        )}
+      </button>
+
+      {open && (
+        <div className="border-t border-gray-100 p-3 space-y-3">
+          {items.map(({ section, books }) => (
+            <BookSection
+              key={section.folderId}
+              section={section}
+              books={books}
+            />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+});
+
+MajorFolder.displayName = 'MajorFolder';
+
 // Memoized search bar component
 const SearchBar = memo(({ value, onChange, onClear }) => (
   <div className="mb-6">
@@ -186,6 +233,24 @@ const Browse = () => {
       })
     })).filter(item => item.books.length > 0);
   }, [sections, filteredAndSortedBooks]);
+
+  // Group sections into major folders (GCE A/L, GCE O/L)
+  const booksByMajor = useMemo(() => {
+    const grouped = {};
+
+    booksBySection.forEach(({ section, books }) => {
+      const [majorTitle] = section.folderTitle.split(' / ');
+      if (!grouped[majorTitle]) {
+        grouped[majorTitle] = [];
+      }
+      grouped[majorTitle].push({ section, books });
+    });
+
+    return Object.entries(grouped).map(([majorTitle, items]) => ({
+      majorTitle,
+      items,
+    }));
+  }, [booksBySection]);
 
   // Memoized uncategorized books
   const uncategorizedBooks = useMemo(() => {
@@ -360,14 +425,14 @@ const Browse = () => {
           <p className="text-gray-600">{resultsText}</p>
         </div>
 
-        {/* Books grouped by folder */}
+        {/* Books grouped by major folders and then by section */}
         {filteredAndSortedBooks.length > 0 ? (
           <div className="space-y-6">
-            {booksBySection.map(({ section, books }) => (
-              <BookSection
-                key={section.folderId}
-                section={section}
-                books={books}
+            {booksByMajor.map(({ majorTitle, items }) => (
+              <MajorFolder
+                key={majorTitle}
+                majorTitle={majorTitle}
+                items={items}
               />
             ))}
 
