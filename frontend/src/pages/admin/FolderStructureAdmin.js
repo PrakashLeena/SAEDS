@@ -51,8 +51,26 @@ const initialData = [
         type: 'folder',
         name: 'Bio/Maths',
         children: [
-          { type: 'folder', name: 'Papers', children: [] },
-          { type: 'folder', name: 'Notes', children: [] },
+          {
+            type: 'folder',
+            name: 'Papers',
+            children: [
+              { type: 'folder', name: 'Bio', children: [] },
+              { type: 'folder', name: 'Maths', children: [] },
+              { type: 'folder', name: 'Physics', children: [] },
+              { type: 'folder', name: 'Chemistry', children: [] },
+            ],
+          },
+          {
+            type: 'folder',
+            name: 'Notes',
+            children: [
+              { type: 'folder', name: 'Bio', children: [] },
+              { type: 'folder', name: 'Maths', children: [] },
+              { type: 'folder', name: 'Physics', children: [] },
+              { type: 'folder', name: 'Chemistry', children: [] },
+            ],
+          },
         ],
       },
       {
