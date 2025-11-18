@@ -64,6 +64,7 @@ const statsRoutes = require('./routes/statsRoutes');
 const membershipRoutes = require('./routes/membershipRoutes');
 const memberRoutes = require('./routes/memberRoutes');
 const achievementRoutes = require('./routes/achievementRoutes');
+const elibraryRoutes = require('./routes/elibraryRoutes');
 
 // API Routes
 app.use('/api/users', userRoutes);
@@ -75,6 +76,7 @@ app.use('/api/stats', statsRoutes);
 app.use('/api/membership', membershipRoutes);
 app.use('/api/members', memberRoutes);
 app.use('/api/achievements', achievementRoutes);
+app.use('/api/elibrary', elibraryRoutes);
 
 // Health check route
 app.get('/api/health', (req, res) => {

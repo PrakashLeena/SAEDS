@@ -344,6 +344,23 @@ export const elibraryAPI = {
   downloadUrl: (id) => `${API_URL}/upload/elibrary/download/${id}`,
 };
 
+// E-Library folders API
+export const elibraryFolderAPI = {
+  getTree: () => apiCall('/elibrary/folders'),
+  create: (payload) => apiCall('/elibrary/folders', {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  }),
+  update: (id, payload) => apiCall(`/elibrary/folders/${id}`, {
+    method: 'PUT',
+    body: JSON.stringify(payload),
+  }),
+  delete: (id, payload = {}) => apiCall(`/elibrary/folders/${id}`, {
+    method: 'DELETE',
+    body: JSON.stringify(payload),
+  }),
+};
+
 // Contact API
 export const contactAPI = {
   sendMessage: (contactData) => apiCall('/contact', {
@@ -389,6 +406,7 @@ const defaultExport = {
   gallery: galleryAPI,
   albums: albumAPI,
   elibrary: elibraryAPI,
+  elibraryFolders: elibraryFolderAPI,
   membership: membershipAPI,
   contact: contactAPI,
   stats: statsAPI,
