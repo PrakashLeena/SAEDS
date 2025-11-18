@@ -99,11 +99,58 @@ const BookSection = memo(({ section, books }) => {
 
 BookSection.displayName = 'BookSection';
 
-// Major folder wrapper component (e.g., GCE A/L, GCE O/L)
-const MajorFolder = memo(({ majorTitle, items }) => {
+// Stream-level folder wrapper (e.g., Bio/Maths, Technology, Commerce, Arts, General)
+const StreamFolder = memo(({ streamTitle, items }) => {
   const [open, setOpen] = useState(true);
 
   if (!items || items.length === 0) return null;
+
+  return (
+    <div className="bg-white rounded-md border border-gray-200">
+      <button
+        type="button"
+        onClick={() => setOpen(prev => !prev)}
+        className="w-full flex items-center justify-between px-3 py-2"
+      >
+        <div className="flex items-center gap-2">
+          {open ? (
+            <FolderOpen className="w-4 h-4 text-primary-600" />
+          ) : (
+            <Folder className="w-4 h-4 text-primary-600" />
+          )}
+          <span className="text-sm font-semibold text-gray-900">
+            {streamTitle}
+          </span>
+        </div>
+        {open ? (
+          <ChevronDown className="w-4 h-4 text-gray-500" />
+        ) : (
+          <ChevronRight className="w-4 h-4 text-gray-500" />
+        )}
+      </button>
+
+      {open && (
+        <div className="border-t border-gray-100 p-3 space-y-3">
+          {items.map(({ section, books }) => (
+            <BookSection
+              key={section.folderId}
+              section={section}
+              books={books}
+            />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+});
+
+StreamFolder.displayName = 'StreamFolder';
+
+// Major folder wrapper component (e.g., GCE A/L, GCE O/L)
+const MajorFolder = memo(({ majorTitle, streams }) => {
+  const [open, setOpen] = useState(true);
+
+  if (!streams || streams.length === 0) return null;
 
   return (
     <div className="bg-gray-50 rounded-md border border-gray-200">
@@ -131,11 +178,11 @@ const MajorFolder = memo(({ majorTitle, items }) => {
 
       {open && (
         <div className="border-t border-gray-100 p-3 space-y-3">
-          {items.map(({ section, books }) => (
-            <BookSection
-              key={section.folderId}
-              section={section}
-              books={books}
+          {streams.map(({ streamTitle, items }) => (
+            <StreamFolder
+              key={streamTitle}
+              streamTitle={streamTitle}
+              items={items}
             />
           ))}
         </div>
@@ -234,21 +281,31 @@ const Browse = () => {
     })).filter(item => item.books.length > 0);
   }, [sections, filteredAndSortedBooks]);
 
-  // Group sections into major folders (GCE A/L, GCE O/L)
+  // Group sections into major folders (GCE A/L, GCE O/L) and streams (Bio/Maths, Technology, Commerce, Arts, General)
   const booksByMajor = useMemo(() => {
     const grouped = {};
 
     booksBySection.forEach(({ section, books }) => {
-      const [majorTitle] = section.folderTitle.split(' / ');
+      const parts = section.folderTitle.split(' / ');
+      const majorTitle = parts[0] || 'Other';
+      const streamTitle = parts[1] || 'Other';
+
       if (!grouped[majorTitle]) {
-        grouped[majorTitle] = [];
+        grouped[majorTitle] = {};
       }
-      grouped[majorTitle].push({ section, books });
+      if (!grouped[majorTitle][streamTitle]) {
+        grouped[majorTitle][streamTitle] = [];
+      }
+
+      grouped[majorTitle][streamTitle].push({ section, books });
     });
 
-    return Object.entries(grouped).map(([majorTitle, items]) => ({
+    return Object.entries(grouped).map(([majorTitle, streamsMap]) => ({
       majorTitle,
-      items,
+      streams: Object.entries(streamsMap).map(([streamTitle, items]) => ({
+        streamTitle,
+        items,
+      })),
     }));
   }, [booksBySection]);
 
@@ -425,14 +482,14 @@ const Browse = () => {
           <p className="text-gray-600">{resultsText}</p>
         </div>
 
-        {/* Books grouped by major folders and then by section */}
+        {/* Books grouped by major folders (GCE A/L, GCE O/L) and then by stream */}
         {filteredAndSortedBooks.length > 0 ? (
           <div className="space-y-6">
-            {booksByMajor.map(({ majorTitle, items }) => (
+            {booksByMajor.map(({ majorTitle, streams }) => (
               <MajorFolder
                 key={majorTitle}
                 majorTitle={majorTitle}
-                items={items}
+                streams={streams}
               />
             ))}
 
