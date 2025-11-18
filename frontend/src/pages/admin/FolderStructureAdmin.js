@@ -45,48 +45,55 @@ const FolderItem = ({ item }) => {
 const initialData = [
   {
     type: 'folder',
-    name: 'src',
+    name: 'GCE A/L',
     children: [
       {
         type: 'folder',
-        name: 'components',
+        name: 'Bio/Maths',
         children: [
-          { type: 'file', name: 'Navbar.js' },
-          { type: 'file', name: 'Footer.js' },
+          { type: 'folder', name: 'Papers', children: [] },
+          { type: 'folder', name: 'Notes', children: [] },
         ],
       },
       {
         type: 'folder',
-        name: 'pages',
+        name: 'Technology',
         children: [
-          { type: 'file', name: 'Home.js' },
-          { type: 'file', name: 'Browse.js' },
-          { type: 'file', name: 'BookDetail.js' },
-          { type: 'file', name: 'Contact.js' },
-          {
-            type: 'folder',
-            name: 'admin',
-            children: [
-              { type: 'file', name: 'AdminDashboard.js' },
-              { type: 'file', name: 'UserManagement.js' },
-              { type: 'file', name: 'BookManagement.js' },
-              { type: 'file', name: 'ActivityManagement.js' },
-              { type: 'file', name: 'MemberManagement.js' },
-              { type: 'file', name: 'AchievementManagement.js' },
-              { type: 'file', name: 'GalleryManagement.js' },
-              { type: 'file', name: 'ElibraryManagement.js' },
-            ],
-          },
+          { type: 'folder', name: 'Papers', children: [] },
+          { type: 'folder', name: 'Notes', children: [] },
         ],
       },
-      { type: 'file', name: 'App.js' },
-      { type: 'file', name: 'index.js' },
+      {
+        type: 'folder',
+        name: 'Commerce',
+        children: [
+          { type: 'folder', name: 'Papers', children: [] },
+          { type: 'folder', name: 'Notes', children: [] },
+        ],
+      },
+      {
+        type: 'folder',
+        name: 'Arts',
+        children: [
+          { type: 'folder', name: 'Papers', children: [] },
+          { type: 'folder', name: 'Notes', children: [] },
+        ],
+      },
     ],
   },
   {
     type: 'folder',
-    name: 'public',
-    children: [{ type: 'file', name: 'index.html' }],
+    name: 'GCE O/L',
+    children: [
+      {
+        type: 'folder',
+        name: 'General',
+        children: [
+          { type: 'folder', name: 'Papers', children: [] },
+          { type: 'folder', name: 'Notes', children: [] },
+        ],
+      },
+    ],
   },
 ];
 
