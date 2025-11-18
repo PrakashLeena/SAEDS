@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useEffect, useCallback, memo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Search, Filter, X } from 'lucide-react';
+import { Search, Filter, X, Folder, FolderOpen, ChevronRight, ChevronDown } from 'lucide-react';
 import BookCard from '../components/BookCard';
 import api from '../services/api';
 import { elibraryFolders } from '../data/elibrary';
@@ -56,18 +56,43 @@ CategoryButton.displayName = 'CategoryButton';
 
 // Memoized book section component
 const BookSection = memo(({ section, books }) => {
+  const [open, setOpen] = useState(false);
+
   if (!books || books.length === 0) return null;
   
   return (
-    <div className="bg-white rounded-md border border-gray-100 shadow-sm p-3">
-      <h3 className="text-sm font-semibold mb-2 text-gray-800">
-        {section.folderTitle}
-      </h3>
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-8 gap-3">
-        {books.map(book => (
-          <BookCard key={book.id} book={book} />
-        ))}
-      </div>
+    <div className="bg-white rounded-md border border-gray-100 shadow-sm">
+      <button
+        type="button"
+        onClick={() => setOpen(prev => !prev)}
+        className="w-full flex items-center justify-between px-3 py-2"
+      >
+        <div className="flex items-center gap-2">
+          {open ? (
+            <FolderOpen className="w-4 h-4 text-primary-600" />
+          ) : (
+            <Folder className="w-4 h-4 text-primary-600" />
+          )}
+          <span className="text-sm font-semibold text-gray-800">
+            {section.folderTitle}
+          </span>
+        </div>
+        {open ? (
+          <ChevronDown className="w-4 h-4 text-gray-500" />
+        ) : (
+          <ChevronRight className="w-4 h-4 text-gray-500" />
+        )}
+      </button>
+
+      {open && (
+        <div className="border-t border-gray-100 px-3 pb-3 pt-2">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-8 gap-3">
+            {books.map(book => (
+              <BookCard key={book.id} book={book} />
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 });
