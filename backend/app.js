@@ -13,7 +13,7 @@ connectDB();
 // Enable CORS for all routes
 app.use((req, res, next) => {
   const defaultFrontend = process.env.FRONTEND_URL || 'https://saeds-klj8.vercel.app';
-  const staticOrigins = [
+  const allowedOrigins = [
     defaultFrontend,
     'https://saeds-klj8.vercel.app',
     'https://saeds.vercel.app',
@@ -27,17 +27,14 @@ app.use((req, res, next) => {
     /^https:\/\/saeds-[a-z0-9-]+-[a-z0-9-]+\.vercel\.app$/,
   ];
 
-  const isPreviewOrigin = (origin) =>
+  const origin = req.headers.origin || '';
+  const isAllowed =
+    !origin ||
+    allowedOrigins.includes(origin) ||
     previewPatterns.some((regex) => regex.test(origin)) ||
     origin.includes('a-g-prakash-leenas-projects.vercel.app');
 
-  const origin = req.headers.origin || '';
-  const isAllowed =
-    !!origin &&
-    (staticOrigins.includes(origin) ||
-      isPreviewOrigin(origin));
-
-  if (isAllowed) {
+  if (isAllowed && origin) {
     res.setHeader('Access-Control-Allow-Origin', origin);
     res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS');
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, x-firebase-uid');
@@ -45,10 +42,10 @@ app.use((req, res, next) => {
   }
 
   if (req.method === 'OPTIONS') {
-    return res.status(isAllowed ? 200 : 403).end();
+    return res.status(200).end();
   }
 
-  return isAllowed || !origin ? next() : res.status(403).json({ success: false, message: 'Origin not allowed by CORS' });
+  next();
 });
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
