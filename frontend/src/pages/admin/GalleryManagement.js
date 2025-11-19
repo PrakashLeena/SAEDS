@@ -12,6 +12,8 @@ const GalleryManagement = () => {
   const [images, setImages] = useState([]);
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
+  const [selectedImageIds, setSelectedImageIds] = useState([]);
+  const [bulkDeleting, setBulkDeleting] = useState(false);
 
   useEffect(() => {
     fetchImages();
@@ -123,6 +125,55 @@ const GalleryManagement = () => {
     }
   };
 
+  const toggleSelectImage = (id) => {
+    setSelectedImageIds((prev) => {
+      if (prev.includes(id)) {
+        return prev.filter((item) => item !== id);
+      }
+      return [...prev, id];
+    });
+  };
+
+  const handleToggleSelectAll = () => {
+    if (!images || images.length === 0) return;
+    if (selectedImageIds.length === images.length) {
+      setSelectedImageIds([]);
+    } else {
+      setSelectedImageIds(images.map((img) => img._id));
+    }
+  };
+
+  const handleDeleteSelected = async () => {
+    if (!currentUser) return alert('Admin login required');
+    if (!selectedImageIds.length) return;
+    if (!window.confirm(`Delete ${selectedImageIds.length} selected image(s)?`)) return;
+    try {
+      setBulkDeleting(true);
+      let hadError = false;
+      for (const id of selectedImageIds) {
+        try {
+          const res = await api.gallery.delete(id, currentUser.uid);
+          if (!res.success) {
+            hadError = true;
+          }
+        } catch (err) {
+          hadError = true;
+          console.error(err);
+        }
+      }
+      setSelectedImageIds([]);
+      fetchImages();
+      if (hadError) {
+        alert('Some images could not be deleted.');
+      }
+    } catch (err) {
+      console.error(err);
+      alert('Failed to delete selected images');
+    } finally {
+      setBulkDeleting(false);
+    }
+  };
+
   const handleDelete = async (id) => {
     if (!currentUser) return alert('Admin login required');
     if (!window.confirm('Delete this image?')) return;
@@ -179,12 +230,44 @@ const GalleryManagement = () => {
           </div>
         </form>
 
+        <div className="flex items-center justify-between mb-2">
+          <div className="text-sm text-gray-700">
+            {selectedImageIds.length > 0 ? `${selectedImageIds.length} selected` : 'No images selected'}
+          </div>
+          <div className="space-x-2">
+            <button
+              type="button"
+              className="text-xs text-primary-600"
+              onClick={handleToggleSelectAll}
+              disabled={!images || images.length === 0}
+            >
+              {images && images.length > 0 && selectedImageIds.length === images.length ? 'Clear selection' : 'Select all'}
+            </button>
+            <button
+              type="button"
+              className="text-xs text-red-600 disabled:opacity-50 disabled:cursor-not-allowed"
+              onClick={handleDeleteSelected}
+              disabled={bulkDeleting || selectedImageIds.length === 0 || !currentUser}
+            >
+              {bulkDeleting ? 'Deleting selected...' : 'Delete selected'}
+            </button>
+          </div>
+        </div>
+
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
           {images.map(img => (
             <div key={img._id} className="bg-white rounded shadow overflow-hidden">
               <img src={img.url} alt={img.title} className="w-full h-40 object-cover" />
               <div className="p-3">
-                <h3 className="font-semibold text-sm">{img.title || 'Untitled'}</h3>
+                <div className="flex items-center justify-between mb-1">
+                  <h3 className="font-semibold text-sm">{img.title || 'Untitled'}</h3>
+                  <input
+                    type="checkbox"
+                    className="h-4 w-4"
+                    checked={selectedImageIds.includes(img._id)}
+                    onChange={() => toggleSelectImage(img._id)}
+                  />
+                </div>
                 <p className="text-xs text-gray-500 mb-2">{img.description}</p>
                 <div className="flex items-center justify-between">
                   <a href={img.url} target="_blank" rel="noreferrer" className="text-xs text-primary-600">Open</a>
