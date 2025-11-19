@@ -318,7 +318,7 @@ const Activity = () => {
   }, []);
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 animate-fade-in">
       {/* Header */}
       <ActivityHeader headerRef={headerRef} headerVisible={headerVisible} />
 
