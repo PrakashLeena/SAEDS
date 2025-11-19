@@ -1,16 +1,24 @@
-const bioMathSubjects = [
-  { id: 'al-bio-maths-subject-bio', title: 'Biology' },
-  { id: 'al-bio-maths-subject-maths', title: 'Mathematics' },
-  { id: 'al-bio-maths-subject-physics', title: 'Physics' },
-  { id: 'al-bio-maths-subject-chemistry', title: 'Chemistry' },
+const createSubjectNode = (prefix, subjectId, subjectTitle, sectionSuffixes) => ({
+  id: `${prefix}-${subjectId}`,
+  title: subjectTitle,
+  sections: sectionSuffixes.map(({ key, title }) => ({
+    id: `${prefix}-${subjectId}-${key}`,
+    title,
+  })),
+});
+
+const bioMathSectionTypes = [
+  { key: 'pastpapers', title: 'Past Papers' },
+  { key: 'notes', title: 'Notes' },
+  { key: 'elaboration', title: 'Elaboration' },
+  { key: 'model-papers', title: 'Model Papers' },
 ];
 
-const technologySubjects = [
-  { id: 'al-technology-subject-e-tech', title: 'Engineering Tech' },
-  { id: 'al-technology-subject-b-tech', title: 'Bio Tech' },
-  { id: 'al-technology-subject-sft', title: 'SFT' },
-  { id: 'al-technology-subject-it', title: 'ICT' },
-  { id: 'al-technology-subject-agri', title: 'Agriculture' },
+const technologySectionTypes = [
+  { key: 'pastpapers', title: 'Past Papers' },
+  { key: 'notes', title: 'Notes' },
+  { key: 'elaboration', title: 'Elaboration' },
+  { key: 'model-papers', title: 'Model Papers' },
 ];
 
 module.exports = [
@@ -21,21 +29,22 @@ module.exports = [
       {
         id: 'al-bio-maths',
         title: 'Bio/Math',
-        sections: [
-          { id: 'al-bio-maths-pastpapers', title: 'Past Papers', subjects: bioMathSubjects },
-          { id: 'al-bio-maths-notes', title: 'Notes', subjects: bioMathSubjects },
-          { id: 'al-bio-maths-elaboration', title: 'Elaboration', subjects: bioMathSubjects },
-          { id: 'al-bio-maths-model-papers', title: 'Model Papers', subjects: bioMathSubjects },
+        children: [
+          createSubjectNode('al-bio-maths', 'biology', 'Biology', bioMathSectionTypes),
+          createSubjectNode('al-bio-maths', 'mathematics', 'Mathematics', bioMathSectionTypes),
+          createSubjectNode('al-bio-maths', 'physics', 'Physics', bioMathSectionTypes),
+          createSubjectNode('al-bio-maths', 'chemistry', 'Chemistry', bioMathSectionTypes),
         ],
       },
       {
         id: 'al-technology',
         title: 'Technology',
-        sections: [
-          { id: 'al-technology-pastpapers', title: 'Past Papers', subjects: technologySubjects },
-          { id: 'al-technology-notes', title: 'Notes', subjects: technologySubjects },
-          { id: 'al-technology-elaboration', title: 'Elaboration', subjects: technologySubjects },
-          { id: 'al-technology-model-papers', title: 'Model Papers', subjects: technologySubjects },
+        children: [
+          createSubjectNode('al-technology', 'e-tech', 'Engineering Tech', technologySectionTypes),
+          createSubjectNode('al-technology', 'b-tech', 'Bio Tech', technologySectionTypes),
+          createSubjectNode('al-technology', 'sft', 'SFT', technologySectionTypes),
+          createSubjectNode('al-technology', 'it', 'ICT', technologySectionTypes),
+          createSubjectNode('al-technology', 'agri', 'Agriculture', technologySectionTypes),
         ],
       },
       {
