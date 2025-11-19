@@ -10,43 +10,42 @@ const app = express();
 // Connect to MongoDB (serverless-friendly: will reuse connection when possible)
 connectDB();
 
-// Enable CORS for all routes
-app.use((req, res, next) => {
-  const defaultFrontend = process.env.FRONTEND_URL || 'https://saeds-klj8.vercel.app';
-  const allowedOrigins = [
-    defaultFrontend,
-    'https://saeds-klj8.vercel.app',
-    'https://saeds.vercel.app',
-    'https://saeds-tau.vercel.app',
-    'http://localhost:3000',
-    'http://localhost:3002',
-  ].filter(Boolean);
+const defaultFrontend = process.env.FRONTEND_URL || 'https://saeds-klj8.vercel.app';
+const staticOrigins = [
+  defaultFrontend,
+  'https://saeds-klj8.vercel.app',
+  'https://saeds.vercel.app',
+  'https://saeds-tau.vercel.app',
+  'http://localhost:3000',
+  'http://localhost:3002',
+].filter(Boolean);
 
-  const previewPatterns = [
-    /^https:\/\/saeds-klj8-[a-z0-9-]+-[a-z0-9-]+\.vercel\.app$/,
-    /^https:\/\/saeds-[a-z0-9-]+-[a-z0-9-]+\.vercel\.app$/,
-  ];
+const previewPatterns = [
+  /^https:\/\/saeds-klj8-[a-z0-9-]+-[a-z0-9-]+\.vercel\.app$/,
+  /^https:\/\/saeds-[a-z0-9-]+-[a-z0-9-]+\.vercel\.app$/,
+];
 
-  const origin = req.headers.origin || '';
+const corsOptionsDelegate = (req, callback) => {
+  const origin = req.header('Origin');
+  if (!origin) {
+    return callback(null, { origin: true, credentials: true });
+  }
+
   const isAllowed =
-    !origin ||
-    allowedOrigins.includes(origin) ||
+    staticOrigins.some((allowed) => allowed === origin) ||
     previewPatterns.some((regex) => regex.test(origin)) ||
     origin.includes('a-g-prakash-leenas-projects.vercel.app');
 
-  if (isAllowed && origin) {
-    res.setHeader('Access-Control-Allow-Origin', origin);
-    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, x-firebase-uid');
-    res.setHeader('Access-Control-Allow-Credentials', 'true');
-  }
+  callback(null, {
+    origin: isAllowed,
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'x-firebase-uid'],
+  });
+};
 
-  if (req.method === 'OPTIONS') {
-    return res.status(200).end();
-  }
-
-  next();
-});
+app.use(cors(corsOptionsDelegate));
+app.options('*', cors(corsOptionsDelegate));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
