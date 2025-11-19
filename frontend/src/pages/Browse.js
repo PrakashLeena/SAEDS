@@ -12,6 +12,7 @@ const SORT_OPTIONS = [
   { value: 'Technology', label: 'Technology' },
   { value: 'Commerce', label: 'Commerce' },
   { value: 'Arts', label: 'Arts' },
+  { value: 'GCE O/L', label: 'GCE O/L' },
 ];
 
 // Flatten sections utility (moved outside component)
@@ -285,7 +286,14 @@ const Browse = () => {
       }))
       .filter(item => {
         if (item.books.length === 0) return false;
-        const streamTitle = item.section.folderTitle.split(' / ')[1] || 'Other';
+        const parts = item.section.folderTitle.split(' / ');
+        const majorTitle = parts[0] || 'Other';
+        const streamTitle = parts[1] || 'Other';
+
+        if (sortBy === 'GCE O/L') {
+          return majorTitle === 'GCE O/L';
+        }
+
         return streamTitle === sortBy;
       });
   }, [sections, filteredAndSortedBooks, sortBy]);
