@@ -4,7 +4,7 @@ import api from '../../services/api';
 
 const GalleryManagement = () => {
   const { currentUser } = useAuth();
-  const [file, setFile] = useState(null);
+  const [files, setFiles] = useState([]);
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [albums, setAlbums] = useState([]);
@@ -73,27 +73,28 @@ const GalleryManagement = () => {
 
   const handleUpload = async (e) => {
     e.preventDefault();
-    if (!file) return alert('Please select an image');
+    if (!files || files.length === 0) return alert('Please select at least one image');
     try {
-      const res = await api.upload.uploadGalleryImage(file, {
-        firebaseUid: currentUser?.uid,
-        title,
-        description,
-        albumId: selectedAlbumId,
-      });
-      // If an album is selected, call dedicated endpoint to attach image to album via albumId
-      if (res.success && selectedAlbumId) {
-        // Update the image with album association by re-uploading metadata link isn't necessary because backend accepts albumId during upload.
+      for (const file of files) {
+        const res = await api.upload.uploadGalleryImage(file, {
+          firebaseUid: currentUser?.uid,
+          title,
+          description,
+          albumId: selectedAlbumId,
+        });
+        // If an album is selected, call dedicated endpoint to attach image to album via albumId
+        if (res.success && selectedAlbumId) {
+          // Update the image with album association by re-uploading metadata link isn't necessary because backend accepts albumId during upload.
+        }
+        if (!res.success) {
+          alert(res.message || 'Upload failed');
+        }
       }
-      if (res.success) {
-        setTitle('');
-        setDescription('');
-        setFile(null);
-        fetchImages();
-        fetchAlbums();
-      } else {
-        alert(res.message || 'Upload failed');
-      }
+      setTitle('');
+      setDescription('');
+      setFiles([]);
+      fetchImages();
+      fetchAlbums();
     } catch (err) {
       console.error('Upload error', err);
       alert('Upload failed');
@@ -123,7 +124,7 @@ const GalleryManagement = () => {
         <form onSubmit={handleUpload} className="bg-white p-6 rounded shadow mb-6">
           <div className="mb-4">
             <label className="block text-sm font-medium text-gray-700">Image</label>
-            <input type="file" accept="image/*" onChange={(e) => setFile(e.target.files[0])} />
+            <input type="file" multiple accept="image/*" onChange={(e) => setFiles(Array.from(e.target.files || []))} />
           </div>
           <div className="mb-4">
             <label className="block text-sm font-medium text-gray-700">Title</label>
