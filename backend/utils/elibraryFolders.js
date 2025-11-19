@@ -20,6 +20,17 @@ const flattenStructure = (nodes, parentId = null, orderOffset = 0) => {
           parentId: node.id,
           order: secIndex,
         });
+
+        if (section.subjects && section.subjects.length > 0) {
+          section.subjects.forEach((subject, subjectIndex) => {
+            entries.push({
+              _id: subject.id,
+              title: subject.title,
+              parentId: section.id,
+              order: subjectIndex,
+            });
+          });
+        }
       });
     }
 

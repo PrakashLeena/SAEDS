@@ -6,15 +6,42 @@ import { elibraryFolders } from '../../data/elibrary';
 
 const flattenSections = (folders) => {
   const sections = [];
-  folders.forEach((f) => {
-    f.children.forEach((c) => {
-      if (c.sections && c.sections.length > 0) {
-        c.sections.forEach((s) => sections.push({ folderId: s.id, folderTitle: `${f.title} / ${c.title} / ${s.title}` }));
-      } else {
-        sections.push({ folderId: c.id, folderTitle: `${f.title} / ${c.title}` });
-      }
+
+  const pushSection = (id, titles) => {
+    sections.push({
+      folderId: id,
+      folderTitle: titles.join(' / '),
     });
-  });
+  };
+
+  const traverseSection = (section, ancestors) => {
+    const path = [...ancestors, section.title];
+    if (section.subjects?.length) {
+      section.subjects.forEach((subject) => {
+        pushSection(subject.id, [...path, subject.title]);
+      });
+    } else {
+      pushSection(section.id, path);
+    }
+  };
+
+  const traverseNode = (node, ancestors = []) => {
+    const path = [...ancestors, node.title];
+
+    if (node.sections?.length) {
+      node.sections.forEach((section) => traverseSection(section, path));
+    }
+
+    if (node.children?.length) {
+      node.children.forEach((child) => traverseNode(child, path));
+    }
+
+    if (!node.sections?.length && !node.children?.length) {
+      pushSection(node.id, path);
+    }
+  };
+
+  folders.forEach((folder) => traverseNode(folder));
   return sections;
 };
 

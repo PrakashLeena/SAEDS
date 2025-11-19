@@ -1,3 +1,18 @@
+const bioMathSubjects = [
+  { id: 'al-bio-maths-subject-bio', title: 'Biology' },
+  { id: 'al-bio-maths-subject-maths', title: 'Mathematics' },
+  { id: 'al-bio-maths-subject-physics', title: 'Physics' },
+  { id: 'al-bio-maths-subject-chemistry', title: 'Chemistry' },
+];
+
+const technologySubjects = [
+  { id: 'al-technology-subject-e-tech', title: 'Engineering Tech' },
+  { id: 'al-technology-subject-b-tech', title: 'Bio Tech' },
+  { id: 'al-technology-subject-sft', title: 'SFT' },
+  { id: 'al-technology-subject-it', title: 'ICT' },
+  { id: 'al-technology-subject-agri', title: 'Agriculture' },
+];
+
 module.exports = [
   {
     id: 'gce-al',
@@ -5,25 +20,30 @@ module.exports = [
     children: [
       {
         id: 'al-bio-maths',
-        title: 'Bio/Maths',
+        title: 'Bio/Math',
         sections: [
-          { id: 'al-bio-maths-papers', title: 'Papers' },
-          { id: 'al-bio-maths-notes', title: 'Notes' },
+          { id: 'al-bio-maths-pastpapers', title: 'Past Papers', subjects: bioMathSubjects },
+          { id: 'al-bio-maths-notes', title: 'Notes', subjects: bioMathSubjects },
+          { id: 'al-bio-maths-elaboration', title: 'Elaboration', subjects: bioMathSubjects },
+          { id: 'al-bio-maths-model-papers', title: 'Model Papers', subjects: bioMathSubjects },
         ],
       },
       {
         id: 'al-technology',
         title: 'Technology',
         sections: [
-          { id: 'al-technology-papers', title: 'Papers' },
-          { id: 'al-technology-notes', title: 'Notes' },
+          { id: 'al-technology-pastpapers', title: 'Past Papers', subjects: technologySubjects },
+          { id: 'al-technology-notes', title: 'Notes', subjects: technologySubjects },
+          { id: 'al-technology-elaboration', title: 'Elaboration', subjects: technologySubjects },
+          { id: 'al-technology-model-papers', title: 'Model Papers', subjects: technologySubjects },
         ],
       },
       {
         id: 'al-commerce',
         title: 'Commerce',
         sections: [
-          { id: 'al-commerce-papers', title: 'Papers' },
+          { id: 'al-commerce-pastpapers', title: 'Past Papers' },
+          { id: 'al-commerce-model-papers', title: 'Model Papers' },
           { id: 'al-commerce-notes', title: 'Notes' },
         ],
       },
@@ -31,7 +51,8 @@ module.exports = [
         id: 'al-arts',
         title: 'Arts',
         sections: [
-          { id: 'al-arts-papers', title: 'Papers' },
+          { id: 'al-arts-pastpapers', title: 'Past Papers' },
+          { id: 'al-arts-model-papers', title: 'Model Papers' },
           { id: 'al-arts-notes', title: 'Notes' },
         ],
       },
@@ -40,15 +61,10 @@ module.exports = [
   {
     id: 'gce-ol',
     title: 'GCE O/L',
-    children: [
-      {
-        id: 'ol-general',
-        title: 'General',
-        sections: [
-          { id: 'ol-general-papers', title: 'Papers' },
-          { id: 'ol-general-notes', title: 'Notes' },
-        ],
-      },
+    sections: [
+      { id: 'ol-pastpapers', title: 'Past Papers' },
+      { id: 'ol-model-papers', title: 'Model Papers' },
+      { id: 'ol-notes', title: 'Notes' },
     ],
   },
 ];
