@@ -187,17 +187,17 @@ const GalleryManagement = () => {
     }
   };
 
-  if (loading) return <div className="p-6">Loading...</div>;
+  if (loading) return <div className="p-6 text-center text-gray-600 animate-pulse">Loading...</div>;
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
+    <div className="min-h-screen bg-gray-50 py-8 animate-fade-in">
       <div className="max-w-4xl mx-auto px-4">
-        <h1 className="text-2xl font-bold mb-4">Gallery Management</h1>
+        <h1 className="text-2xl font-bold mb-4 transition-colors duration-300 text-gray-900">Gallery Management</h1>
 
-        <form onSubmit={handleUpload} className="bg-white p-6 rounded shadow mb-6">
+        <form onSubmit={handleUpload} className="bg-white p-6 rounded shadow-md mb-6 transform transition-all duration-300 hover:-translate-y-1 hover:shadow-xl animate-fade-in-up">
           <div className="mb-4">
             <label className="block text-sm font-medium text-gray-700">Image</label>
-            <input type="file" multiple accept="image/*" onChange={handleFileChange} disabled={uploading} />
+            <input type="file" multiple accept="image/*" onChange={handleFileChange} disabled={uploading} className="mt-1 block w-full text-sm text-gray-700 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-primary-50 file:text-primary-700 hover:file:bg-primary-100 transition-colors duration-200" />
           </div>
           <div className="mb-4">
             <label className="block text-sm font-medium text-gray-700">Title</label>
@@ -216,13 +216,13 @@ const GalleryManagement = () => {
                   <option key={a._id} value={a._id}>{a.title}</option>
                 ))}
               </select>
-              <button type="button" onClick={handleCreateAlbum} className="text-sm text-primary-600">Create album</button>
+              <button type="button" onClick={handleCreateAlbum} className="text-sm text-primary-600 hover:text-primary-800 transition-colors duration-200">Create album</button>
             </div>
           </div>
           <div>
             <button
               type="submit"
-              className="bg-primary-600 text-white px-4 py-2 rounded disabled:opacity-50 disabled:cursor-not-allowed"
+              className="bg-primary-600 text-white px-4 py-2 rounded disabled:opacity-50 disabled:cursor-not-allowed hover:bg-primary-700 transition-colors duration-200 transform hover:-translate-y-0.5"
               disabled={uploading}
             >
               {uploading ? 'Uploading...' : 'Upload'}
@@ -237,7 +237,7 @@ const GalleryManagement = () => {
           <div className="space-x-2">
             <button
               type="button"
-              className="text-xs text-primary-600"
+              className="text-xs text-primary-600 hover:text-primary-800 transition-colors duration-200"
               onClick={handleToggleSelectAll}
               disabled={!images || images.length === 0}
             >
@@ -245,7 +245,7 @@ const GalleryManagement = () => {
             </button>
             <button
               type="button"
-              className="text-xs text-red-600 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="text-xs text-red-600 disabled:opacity-50 disabled:cursor-not-allowed hover:text-red-700 transition-colors duration-200"
               onClick={handleDeleteSelected}
               disabled={bulkDeleting || selectedImageIds.length === 0 || !currentUser}
             >
@@ -254,10 +254,10 @@ const GalleryManagement = () => {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 animate-fade-in-up">
           {images.map(img => (
-            <div key={img._id} className="bg-white rounded shadow overflow-hidden">
-              <img src={img.url} alt={img.title} className="w-full h-40 object-cover" />
+            <div key={img._id} className="bg-white rounded shadow-md overflow-hidden transform transition-all duration-300 hover:shadow-xl hover:-translate-y-1 group">
+              <img src={img.url} alt={img.title} className="w-full h-40 object-cover transition-transform duration-300 group-hover:scale-105" />
               <div className="p-3">
                 <div className="flex items-center justify-between mb-1">
                   <h3 className="font-semibold text-sm">{img.title || 'Untitled'}</h3>
@@ -281,16 +281,16 @@ const GalleryManagement = () => {
 
         <div className="mt-8">
           <h2 className="text-lg font-semibold mb-2">Albums</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 animate-fade-in-up">
             {albums.map(a => (
-              <div key={a._id} className="bg-white rounded shadow p-3 flex items-center justify-between">
+              <div key={a._id} className="bg-white rounded shadow-md p-3 flex items-center justify-between transform transition-all duration-300 hover:shadow-xl hover:-translate-y-1">
                 <div>
                   <div className="font-semibold">{a.title}</div>
                   <div className="text-xs text-gray-500">{typeof a.count === 'number' ? `${a.count} photo${a.count !== 1 ? 's' : ''}` : ''}</div>
                 </div>
                 <div className="space-x-2">
-                  <button onClick={() => { setSelectedAlbumId(a._id); }} className="text-xs text-primary-600">Select</button>
-                  <button onClick={() => handleDeleteAlbum(a._id)} className="text-xs text-red-600">Delete</button>
+                  <button onClick={() => { setSelectedAlbumId(a._id); }} className="text-xs text-primary-600 hover:text-primary-800 transition-colors duration-200">Select</button>
+                  <button onClick={() => handleDeleteAlbum(a._id)} className="text-xs text-red-600 hover:text-red-700 transition-colors duration-200">Delete</button>
                 </div>
               </div>
             ))}
