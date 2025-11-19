@@ -8,11 +8,10 @@ import { elibraryFolders } from '../data/elibrary';
 // Constants
 const CATEGORIES = ['All', 'A/L', 'O/L', 'Other'];
 const SORT_OPTIONS = [
-  { value: 'title', label: 'Title (A-Z)' },
-  { value: 'author', label: 'Author (A-Z)' },
-  { value: 'rating', label: 'Highest Rated' },
-  { value: 'year', label: 'Newest First' },
-  { value: 'popular', label: 'Most Popular' }
+  { value: 'Bio/Math', label: 'Bio/Maths' },
+  { value: 'Technology', label: 'Technology' },
+  { value: 'Commerce', label: 'Commerce' },
+  { value: 'Arts', label: 'Arts' },
 ];
 
 // Flatten sections utility (moved outside component)
@@ -243,7 +242,7 @@ const Browse = () => {
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
-  const [sortBy, setSortBy] = useState('title');
+  const [sortBy, setSortBy] = useState('Bio/Math');
   const [books, setBooks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedGrade, setSelectedGrade] = useState(null);
@@ -270,35 +269,26 @@ const Browse = () => {
       );
     }
 
-    // Sort books
-    return [...filtered].sort((a, b) => {
-      switch (sortBy) {
-        case 'title':
-          return a.title.localeCompare(b.title);
-        case 'author':
-          return a.author.localeCompare(b.author);
-        case 'rating':
-          return b.rating - a.rating;
-        case 'year':
-          return (b.year || 0) - (a.year || 0);
-        case 'popular':
-          return (b.downloads || 0) - (a.downloads || 0);
-        default:
-          return 0;
-      }
-    });
-  }, [searchQuery, selectedCategory, sortBy, books]);
+    // Default alphabetical sort for consistent ordering
+    return [...filtered].sort((a, b) => a.title.localeCompare(b.title));
+  }, [searchQuery, selectedCategory, books]);
 
   // Memoized books by section (for all folders/sections)
   const booksBySection = useMemo(() => {
-    return sections.map(section => ({
-      section,
-      books: filteredAndSortedBooks.filter(b => {
-        const folderId = b.raw?.folderId || b.folderId;
-        return folderId === section.folderId;
-      })
-    })).filter(item => item.books.length > 0);
-  }, [sections, filteredAndSortedBooks]);
+    return sections
+      .map(section => ({
+        section,
+        books: filteredAndSortedBooks.filter(b => {
+          const folderId = b.raw?.folderId || b.folderId;
+          return folderId === section.folderId;
+        })
+      }))
+      .filter(item => {
+        if (item.books.length === 0) return false;
+        const streamTitle = item.section.folderTitle.split(' / ')[1] || 'Other';
+        return streamTitle === sortBy;
+      });
+  }, [sections, filteredAndSortedBooks, sortBy]);
 
   // Group sections into major folders (GCE A/L, GCE O/L) and streams (Bio/Maths, Technology, Commerce, Arts, General)
   const booksByMajor = useMemo(() => {
