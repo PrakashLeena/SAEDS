@@ -217,9 +217,10 @@ const Home = () => {
   const [members, setMembers] = useState([]);
   const [achievements, setAchievements] = useState([]);
   const [activities, setActivities] = useState([]);
-  const [activeMembers, setActiveMembers] = useState('5,000+');
-  const [eventsHosted, setEventsHosted] = useState('150+');
+  const [activeMembers, setActiveMembers] = useState(null);
+  const [eventsHosted, setEventsHosted] = useState(null);
   const [isJoinModalOpen, setIsJoinModalOpen] = useState(false);
+  const [statsLoading, setStatsLoading] = useState(true);
 
   // Memoized format function
   const formatStat = useCallback((n) => {
@@ -239,6 +240,7 @@ const Home = () => {
     api.clearAllCache();
 
     // Fetch all data in parallel for better performance
+    setStatsLoading(true);
     Promise.all([
       api.stats.getOverview(),
       api.member.getAll({ _ts: Date.now() }),
@@ -249,8 +251,8 @@ const Home = () => {
       
       // Set stats
       const { activeMembers: a, eventsHosted: e } = statsRes?.data || {};
-      if (typeof a !== 'undefined') setActiveMembers(formatStat(a));
-      if (typeof e !== 'undefined') setEventsHosted(formatStat(e));
+      if (typeof a === 'number') setActiveMembers(formatStat(a));
+      if (typeof e === 'number') setEventsHosted(formatStat(e));
       
       // Set members (all), enrich if role is missing in list payload
       const membersList = (membersRes?.data || []).map(normalizeMember);
@@ -281,6 +283,8 @@ const Home = () => {
       setActivities(activitiesList);
     }).catch(err => {
       console.error('Failed to fetch data:', err);
+    }).finally(() => {
+      if (mounted) setStatsLoading(false);
     });
 
     return () => { mounted = false; };
@@ -392,12 +396,18 @@ const Home = () => {
               access resources, and support each other's growth and development.
             </p>
           </div>
-          
-          <div className={`grid grid-cols-3 gap-2 sm:gap-4 md:gap-8 text-center transition-all duration-700 delay-200 ${aboutVisible ? 'animate-fade-in' : 'opacity-0'}`}>
-            <StatCard icon={Users} value={activeMembers} label="Active Members" />
-            <StatCard icon={Calendar} value={eventsHosted} label="Events Hosted" />
-            <StatCard icon={Heart} value="100%" label="Community Driven" />
-          </div>
+
+          {statsLoading ? (
+            <div className={`text-center py-8 transition-all duration-700 delay-200 ${aboutVisible ? 'animate-fade-in' : 'opacity-0'}`}>
+              <p className="text-gray-600">Loading community stats...</p>
+            </div>
+          ) : (
+            <div className={`grid grid-cols-3 gap-2 sm:gap-4 md:gap-8 text-center transition-all duration-700 delay-200 ${aboutVisible ? 'animate-fade-in' : 'opacity-0'}`}>
+              <StatCard icon={Users} value={activeMembers} label="Active Members" />
+              <StatCard icon={Calendar} value={eventsHosted} label="Events Hosted" />
+              <StatCard icon={Heart} value="100%" label="Community Driven" />
+            </div>
+          )}
         </div>
       </section>
 
