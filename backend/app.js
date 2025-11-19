@@ -49,7 +49,7 @@ app.use(cors(corsOptionsDelegate));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-const uploadsRoot = process.env.FILE_STORAGE_PATH || path.join(__dirname, 'uploads');
+const uploadsRoot = process.env.FILE_STORAGE_PATH || path.join('/tmp', 'saeds', 'uploads');
 if (!fs.existsSync(uploadsRoot)) {
   try {
     fs.mkdirSync(uploadsRoot, { recursive: true });

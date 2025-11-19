@@ -6,7 +6,7 @@ const User = require('../models/User');
 
 const router = express.Router();
 
-const storageRoot = process.env.FILE_STORAGE_PATH || path.join(__dirname, '..', 'uploads');
+const storageRoot = process.env.FILE_STORAGE_PATH || path.join('/tmp', 'saeds', 'uploads');
 const uploadsDir = path.join(storageRoot, 'images');
 if (!fs.existsSync(uploadsDir)) {
   fs.mkdirSync(uploadsDir, { recursive: true });
