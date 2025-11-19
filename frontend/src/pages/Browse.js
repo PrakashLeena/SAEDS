@@ -121,7 +121,7 @@ BookSection.displayName = 'BookSection';
 
 // Stream-level folder wrapper (e.g., Bio/Maths, Technology, Commerce, Arts, General)
 const StreamFolder = memo(({ streamTitle, items }) => {
-  const [open, setOpen] = useState(true);
+  const [open, setOpen] = useState(false);
 
   if (!items || items.length === 0) return null;
 
@@ -168,7 +168,7 @@ StreamFolder.displayName = 'StreamFolder';
 
 // Major folder wrapper component (e.g., GCE A/L, GCE O/L)
 const MajorFolder = memo(({ majorTitle, streams }) => {
-  const [open, setOpen] = useState(true);
+  const [open, setOpen] = useState(false);
 
   if (!streams || streams.length === 0) return null;
 
