@@ -3,6 +3,7 @@ const express = require('express');
 const cors = require('cors');
 const connectDB = require('./config/db');
 const path = require('path');
+const fs = require('fs');
 
 // Initialize Express app
 const app = express();
@@ -48,8 +49,17 @@ app.use(cors(corsOptionsDelegate));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+const uploadsRoot = process.env.FILE_STORAGE_PATH || path.join(__dirname, 'uploads');
+if (!fs.existsSync(uploadsRoot)) {
+  try {
+    fs.mkdirSync(uploadsRoot, { recursive: true });
+  } catch (err) {
+    console.warn('Unable to create uploads root directory:', uploadsRoot, err.message);
+  }
+}
+
 // Serve uploaded static files (uploads folder) with caching
-app.use('/uploads', express.static(path.join(__dirname, 'uploads'), {
+app.use('/uploads', express.static(uploadsRoot, {
   maxAge: '7d',
   immutable: true
 }));
