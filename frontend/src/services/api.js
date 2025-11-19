@@ -301,6 +301,53 @@ export const galleryAPI = {
   },
 };
 
+// File system gallery API
+const uploadFsImage = async (file, firebaseUid) => {
+  const formData = new FormData();
+  formData.append('image', file);
+  if (firebaseUid) {
+    formData.append('firebaseUid', firebaseUid);
+  }
+
+  const response = await fetch(`${API_URL}/gallery-fs/upload`, {
+    method: 'POST',
+    body: formData,
+    credentials: 'include',
+  });
+
+  if (!response.ok) {
+    let errorMessage = 'Failed to upload image';
+    try {
+      const data = await response.json();
+      errorMessage = data?.message || errorMessage;
+    } catch {
+      // ignore
+    }
+    throw new Error(errorMessage);
+  }
+
+  return response.json();
+};
+
+export const galleryFsAPI = {
+  list: () => apiCall('/gallery-fs/images', { skipCache: false }),
+
+  upload: (file, firebaseUid) => {
+    clearCachePattern('/gallery-fs');
+    return uploadFsImage(file, firebaseUid);
+  },
+
+  delete: (id, firebaseUid) => {
+    clearCachePattern('/gallery-fs');
+    const headers = firebaseUid ? { 'x-firebase-uid': firebaseUid } : {};
+    return apiCall(`/gallery-fs/images/${id}`, {
+      method: 'DELETE',
+      headers,
+      body: JSON.stringify({ firebaseUid }),
+    });
+  },
+};
+
 // Album API
 export const albumAPI = {
   getAll: () => apiCall('/upload/albums'),
@@ -404,6 +451,7 @@ const defaultExport = {
   activity: activityAPI,
   upload: uploadAPI,
   gallery: galleryAPI,
+  galleryFs: galleryFsAPI,
   albums: albumAPI,
   elibrary: elibraryAPI,
   elibraryFolders: elibraryFolderAPI,
