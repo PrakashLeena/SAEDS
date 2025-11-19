@@ -12,39 +12,37 @@ connectDB();
 
 // Enable CORS for all routes
 app.use((req, res, next) => {
-  const defaultFrontend = process.env.FRONTEND_URL || 'https://saeds-klj8.vercel.app';
-  const allowedOrigins = [
-    defaultFrontend,
-    'https://saeds-klj8.vercel.app',
-    'https://saeds.vercel.app',
-    'https://saeds-tau.vercel.app',
-    'http://localhost:3000',
-    'http://localhost:3002',
-  ].filter(Boolean);
-
-  const previewPatterns = [
-    /^https:\/\/saeds-klj8-[a-z0-9-]+-[a-z0-9-]+\.vercel\.app$/,
-    /^https:\/\/saeds-[a-z0-9-]+-[a-z0-9-]+\.vercel\.app$/,
-  ];
-
-  const origin = req.headers.origin || '';
-  const isAllowed =
-    !origin ||
-    allowedOrigins.includes(origin) ||
-    previewPatterns.some((regex) => regex.test(origin)) ||
-    origin.includes('a-g-prakash-leenas-projects.vercel.app');
-
-  if (isAllowed && origin) {
+  // Get frontend URL from environment variable or use default
+  const frontendUrl = process.env.FRONTEND_URL || 'https://saeds-klj8.vercel.app';
+  
+  const origin = req.headers.origin;
+  
+  // Check if origin is allowed
+  const isAllowed = 
+    origin === frontendUrl ||
+    origin === 'https://saeds-klj8.vercel.app' ||
+    origin === 'https://saeds.vercel.app' ||
+    origin === 'http://localhost:3000' ||
+    origin === 'http://localhost:3002' ||
+    // Allow all Vercel preview deployments for saeds-klj8
+    (origin && origin.match(/^https:\/\/saeds-klj8-[a-z0-9-]+-[a-z0-9-]+\.vercel\.app$/)) ||
+    // Allow all Vercel preview deployments for saeds
+    (origin && origin.match(/^https:\/\/saeds-[a-z0-9-]+-[a-z0-9-]+\.vercel\.app$/)) ||
+    // Allow all preview deployments with the pattern
+    (origin && origin.includes('a-g-prakash-leenas-projects.vercel.app'));
+  
+  if (isAllowed) {
     res.setHeader('Access-Control-Allow-Origin', origin);
     res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS');
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, x-firebase-uid');
     res.setHeader('Access-Control-Allow-Credentials', 'true');
   }
-
+  
+  // Handle preflight requests
   if (req.method === 'OPTIONS') {
     return res.status(200).end();
   }
-
+  
   next();
 });
 app.use(express.json());
@@ -67,7 +65,6 @@ const membershipRoutes = require('./routes/membershipRoutes');
 const memberRoutes = require('./routes/memberRoutes');
 const achievementRoutes = require('./routes/achievementRoutes');
 const elibraryRoutes = require('./routes/elibraryRoutes');
-const galleryFsRoutes = require('./routes/galleryFsRoutes');
 
 // API Routes
 app.use('/api/users', userRoutes);
@@ -80,7 +77,6 @@ app.use('/api/membership', membershipRoutes);
 app.use('/api/members', memberRoutes);
 app.use('/api/achievements', achievementRoutes);
 app.use('/api/elibrary', elibraryRoutes);
-app.use('/api/gallery-fs', galleryFsRoutes);
 
 // Health check route
 app.get('/api/health', (req, res) => {

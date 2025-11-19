@@ -3,7 +3,7 @@ import { Navigate, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
 // Constants - moved outside component for better performance
-export const ADMIN_EMAILS = [
+const ADMIN_EMAILS = [
   'kibo@gmail.com',
   'saedsmail2025@gmail.com',
 ];
