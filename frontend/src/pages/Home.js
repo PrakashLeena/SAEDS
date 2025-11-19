@@ -210,11 +210,13 @@ const Home = () => {
   const [aboutRef, aboutVisible] = useScrollAnimation();
   const [membersRef, membersVisible] = useScrollAnimation();
   const [achievementsRef, achievementsVisible] = useScrollAnimation();
+  const [activitiesRef, activitiesVisible] = useScrollAnimation();
   const [servicesRef, servicesVisible] = useScrollAnimation();
   const [booksRef, booksVisible] = useScrollAnimation();
   
   const [members, setMembers] = useState([]);
   const [achievements, setAchievements] = useState([]);
+  const [activities, setActivities] = useState([]);
   const [activeMembers, setActiveMembers] = useState('5,000+');
   const [eventsHosted, setEventsHosted] = useState('150+');
   const [isJoinModalOpen, setIsJoinModalOpen] = useState(false);
@@ -240,8 +242,9 @@ const Home = () => {
     Promise.all([
       api.stats.getOverview(),
       api.member.getAll({ _ts: Date.now() }),
-      api.achievement.getAll()
-    ]).then(([statsRes, membersRes, achievementsRes]) => {
+      api.achievement.getAll(),
+      api.activity.getAll()
+    ]).then(([statsRes, membersRes, achievementsRes, activitiesRes]) => {
       if (!mounted) return;
       
       // Set stats
@@ -272,6 +275,10 @@ const Home = () => {
       // Set achievements
       const achievementsList = achievementsRes?.data || [];
       setAchievements(achievementsList);
+
+      // Set activities (for home section)
+      const activitiesList = activitiesRes?.data || [];
+      setActivities(activitiesList);
     }).catch(err => {
       console.error('Failed to fetch data:', err);
     });
@@ -477,9 +484,9 @@ const Home = () => {
       </section>
 
       {/* Community Activities Section */}
-      <section id="activity" className="py-16 bg-white">
+      <section id="activity" ref={activitiesRef} className="py-16 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
+          <div className={`text-center mb-12 transition-all duration-700 ${activitiesVisible ? 'animate-fade-in-up' : 'opacity-0'}`}>
             <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
               Community Activities & Events
             </h2>
@@ -487,7 +494,55 @@ const Home = () => {
               Join our workshops, seminars, and networking events
             </p>
           </div>
-          <div className="text-center py-8">
+          {activities.length === 0 ? (
+            <div className={`text-center py-8 transition-all duration-700 ${activitiesVisible ? 'animate-fade-in' : 'opacity-0'}`}>
+              <p className="text-gray-600 mb-4">
+                We don't have activities to display yet. Check back soon or view all activities.
+              </p>
+            </div>
+          ) : (
+            <div
+              className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-8 transition-all duration-700 ${
+                activitiesVisible ? 'animate-fade-in-up' : 'opacity-0'
+              }`}
+            >
+              {activities.slice(0, 6).map((activity, index) => (
+                <div
+                  key={activity._id || index}
+                  className="bg-white rounded-lg shadow-md p-5 border border-gray-100 hover:shadow-xl hover:-translate-y-1 transition-all duration-300"
+                  style={{ animationDelay: `${index * 100}ms` }}
+                >
+                  <div className="flex items-center justify-between mb-2">
+                    <h3 className="text-lg font-semibold text-gray-900 line-clamp-2">
+                      {activity.title}
+                    </h3>
+                    {activity.category && (
+                      <span className="ml-2 px-2 py-1 text-xs font-semibold rounded-full bg-primary-50 text-primary-700">
+                        {activity.category}
+                      </span>
+                    )}
+                  </div>
+                  <div className="space-y-1 text-sm text-gray-600 mb-3">
+                    {activity.date && (
+                      <div className="flex items-center">
+                        <Calendar className="h-4 w-4 mr-2 text-primary-600" />
+                        <span>{new Date(activity.date).toLocaleDateString()}</span>
+                      </div>
+                    )}
+                    {activity.location && (
+                      <p className="text-xs text-gray-500">📍 {activity.location}</p>
+                    )}
+                  </div>
+                  {activity.description && (
+                    <p className="text-sm text-gray-600 line-clamp-3">
+                      {activity.description}
+                    </p>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+          <div className={`text-center py-2 transition-all duration-700 ${activitiesVisible ? 'animate-fade-in' : 'opacity-0'}`}>
             <p className="text-gray-600 mb-6">Explore our upcoming events and activities</p>
             <Link
               to="/activity"
