@@ -8,6 +8,7 @@ import { elibraryFolders } from '../data/elibrary';
 // Constants
 const CATEGORIES = ['All', 'A/L', 'O/L', 'Other'];
 const SORT_OPTIONS = [
+  { value: 'all', label: 'Show All' },
   { value: 'Bio/Math', label: 'Bio/Maths' },
   { value: 'Technology', label: 'Technology' },
   { value: 'Commerce', label: 'Commerce' },
@@ -243,7 +244,7 @@ const Browse = () => {
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
-  const [sortBy, setSortBy] = useState('Bio/Math');
+  const [sortBy, setSortBy] = useState('all');
   const [books, setBooks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedGrade, setSelectedGrade] = useState(null);
@@ -286,6 +287,8 @@ const Browse = () => {
       }))
       .filter(item => {
         if (item.books.length === 0) return false;
+        if (sortBy === 'all') return true;
+
         const parts = item.section.folderTitle.split(' / ');
         const majorTitle = parts[0] || 'Other';
         const streamTitle = parts[1] || 'Other';
