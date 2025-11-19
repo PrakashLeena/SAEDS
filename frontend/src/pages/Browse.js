@@ -259,7 +259,29 @@ const Browse = () => {
 
     // Filter by category
     if (selectedCategory !== 'All') {
-      filtered = filtered.filter(book => book.category === selectedCategory);
+      const normalize = (str) => (str || '').trim().toLowerCase();
+      const selectedCategoryLabel = normalize(selectedCategory);
+
+      filtered = filtered.filter(book => {
+        const categoryLabel = normalize(book.category);
+        const folderPath = book.raw?.folderTitle || book.folderTitle || '';
+        const majorTitle = folderPath.split(' / ')[0] || '';
+        const majorLabel = normalize(majorTitle);
+
+        const isAL = categoryLabel === 'a/l' || categoryLabel === 'gce a/l' || majorLabel === 'gce a/l';
+        const isOL = categoryLabel === 'o/l' || categoryLabel === 'gce o/l' || majorLabel === 'gce o/l';
+
+        switch (selectedCategory) {
+          case 'A/L':
+            return isAL;
+          case 'O/L':
+            return isOL;
+          case 'Other':
+            return !isAL && !isOL;
+          default:
+            return categoryLabel === selectedCategoryLabel || majorLabel === selectedCategoryLabel;
+        }
+      });
     }
 
     // Filter by search query
