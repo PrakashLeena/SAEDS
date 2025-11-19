@@ -249,25 +249,24 @@ const Home = () => {
       if (typeof a !== 'undefined') setActiveMembers(formatStat(a));
       if (typeof e !== 'undefined') setEventsHosted(formatStat(e));
       
-      // Set members (first 6), enrich if role is missing in list payload
+      // Set members (all), enrich if role is missing in list payload
       const membersList = (membersRes?.data || []).map(normalizeMember);
-      const first6 = membersList.slice(0, 6);
-      const needsEnrichment = first6.some(m => !m?.roleInCommunity);
+      const needsEnrichment = membersList.some(m => !m?.roleInCommunity);
       if (!needsEnrichment) {
-        setMembers(first6);
+        setMembers(membersList);
       } else {
-        Promise.all(first6.map(m => api.member.getById(m._id)))
+        Promise.all(membersList.map(m => api.member.getById(m._id)))
           .then(detailResponses => {
             if (!mounted) return;
             const detailed = detailResponses.map((r, idx) => {
               if (r?.data && r?.success) {
-                return normalizeMember({ ...first6[idx], ...r.data });
+                return normalizeMember({ ...membersList[idx], ...r.data });
               }
-              return first6[idx];
+              return membersList[idx];
             });
             setMembers(detailed);
           })
-          .catch(() => setMembers(first6));
+          .catch(() => setMembers(membersList));
       }
       
       // Set achievements
