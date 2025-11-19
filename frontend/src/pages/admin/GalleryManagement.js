@@ -11,6 +11,7 @@ const GalleryManagement = () => {
   const [selectedAlbumId, setSelectedAlbumId] = useState(null);
   const [images, setImages] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [uploading, setUploading] = useState(false);
 
   useEffect(() => {
     fetchImages();
@@ -71,10 +72,29 @@ const GalleryManagement = () => {
     }
   };
 
+  const handleFileChange = (e) => {
+    const selectedFiles = Array.from(e.target.files || []);
+    const seen = new Set();
+    const deduped = [];
+    for (const file of selectedFiles) {
+      const key = `${file.name}_${file.size}_${file.lastModified}`;
+      if (!seen.has(key)) {
+        seen.add(key);
+        deduped.push(file);
+      }
+    }
+    if (deduped.length > 25) {
+      alert('You can upload a maximum of 25 images at a time. Extra files will be ignored.');
+    }
+    setFiles(deduped.slice(0, 25));
+  };
+
   const handleUpload = async (e) => {
     e.preventDefault();
     if (!files || files.length === 0) return alert('Please select at least one image');
+    if (uploading) return;
     try {
+      setUploading(true);
       for (const file of files) {
         const res = await api.upload.uploadGalleryImage(file, {
           firebaseUid: currentUser?.uid,
@@ -98,6 +118,8 @@ const GalleryManagement = () => {
     } catch (err) {
       console.error('Upload error', err);
       alert('Upload failed');
+    } finally {
+      setUploading(false);
     }
   };
 
@@ -124,7 +146,7 @@ const GalleryManagement = () => {
         <form onSubmit={handleUpload} className="bg-white p-6 rounded shadow mb-6">
           <div className="mb-4">
             <label className="block text-sm font-medium text-gray-700">Image</label>
-            <input type="file" multiple accept="image/*" onChange={(e) => setFiles(Array.from(e.target.files || []))} />
+            <input type="file" multiple accept="image/*" onChange={handleFileChange} disabled={uploading} />
           </div>
           <div className="mb-4">
             <label className="block text-sm font-medium text-gray-700">Title</label>
@@ -147,7 +169,13 @@ const GalleryManagement = () => {
             </div>
           </div>
           <div>
-            <button type="submit" className="bg-primary-600 text-white px-4 py-2 rounded">Upload</button>
+            <button
+              type="submit"
+              className="bg-primary-600 text-white px-4 py-2 rounded disabled:opacity-50 disabled:cursor-not-allowed"
+              disabled={uploading}
+            >
+              {uploading ? 'Uploading...' : 'Upload'}
+            </button>
           </div>
         </form>
 
