@@ -23,7 +23,8 @@ const Slide = memo(({ slide, isActive }) => {
         <img
           src={slide.image}
           alt={slide.title}
-          className="w-full h-full object-cover"
+          className={`w-full h-full object-cover transition-transform duration-[10000ms] ease-out ${isActive ? 'scale-110' : 'scale-100'
+            }`}
           loading={slide.id === 1 ? "eager" : "lazy"}
           fetchPriority={slide.id === 1 ? "high" : "auto"}
         />
@@ -123,8 +124,8 @@ const HeroSlider = () => {
           key={index}
           onClick={() => goToSlide(index)}
           className={`w-2 h-2 sm:w-3 sm:h-3 rounded-full transition-all duration-300 ${index === currentSlide
-              ? 'bg-white w-6 sm:w-8'
-              : 'bg-white/50 hover:bg-white/75'
+            ? 'bg-white w-6 sm:w-8'
+            : 'bg-white/50 hover:bg-white/75'
             }`}
           aria-label={`Go to slide ${index + 1}`}
         />
