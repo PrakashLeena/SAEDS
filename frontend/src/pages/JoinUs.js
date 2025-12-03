@@ -80,100 +80,148 @@ const JoinUs = () => {
     const { name, value } = e.target;
     setFormData(prev => ({
       ...prev,
-      value={ formData.name }
-    onChange={ handleChange }
-    required
-    placeholder="Enter your full name"
+      [name]: value
+    }));
+  }, []);
+
+  // Memoized submit handler
+  const handleSubmit = useCallback(async (e) => {
+    e.preventDefault();
+    setError('');
+    setLoading(true);
+
+    try {
+      await api.member.create(formData);
+      setSuccess(true);
+      setTimeout(() => navigate('/'), 2000);
+    } catch (err) {
+      setError(err.response?.data?.message || 'Failed to submit application. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  }, [formData, navigate]);
+
+  // Memoized cancel handler
+  const handleCancel = useCallback(() => {
+    navigate('/');
+  }, [navigate]);
+
+  return (
+    <div className="min-h-screen bg-gray-50 py-12">
+      <SEO
+        title="Join Us - SAEDS Community"
+        description="Join the SAEDS community and be part of our mission to promote environmental development and education."
       />
+      <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="bg-white rounded-lg shadow-md p-8">
+          <div className="text-center mb-8">
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">Join Our Community</h1>
+            <p className="text-gray-600">
+              Become a member and contribute to environmental development
+            </p>
+          </div>
 
-  <FormField
-    label="Age"
-    name="age"
-    value={formData.age}
-    onChange={handleChange}
-    type="number"
-    min="1"
-    placeholder="Enter your age"
-  />
+          {error && <AlertMessage type="error" message={error} />}
+          {success && <AlertMessage type="success" message="Application submitted successfully! Redirecting..." />}
 
-  <FormField
-    label="University / Institution"
-    name="university"
-    value={formData.university}
-    onChange={handleChange}
-    placeholder="Enter your university or institution"
-  />
+          <div className="space-y-6">
+            <FormField
+              label="Full Name"
+              name="name"
+              value={formData.name}
+              onChange={handleChange}
+              required
+              placeholder="Enter your full name"
+            />
 
-  <FormField
-    label="Email Address"
-    name="email"
-    value={formData.email}
-    onChange={handleChange}
-    type="email"
-    placeholder="your.email@example.com"
-  />
+            <FormField
+              label="Age"
+              name="age"
+              value={formData.age}
+              onChange={handleChange}
+              type="number"
+              min="1"
+              placeholder="Enter your age"
+            />
 
-  <FormField
-    label="Why are you joining us?"
-    name="reason"
-    value={formData.reason}
-    onChange={handleChange}
-    rows={5}
-    required
-    placeholder="Tell us about your motivation and what you hope to gain from joining our community..."
-  />
+            <FormField
+              label="University / Institution"
+              name="university"
+              value={formData.university}
+              onChange={handleChange}
+              placeholder="Enter your university or institution"
+            />
 
-  {/* Buttons */ }
-      < div className = "flex items-center justify-between pt-4" >
-    <button
-      type="button"
-      onClick={handleSubmit}
-      disabled={loading || success}
-      className="bg-primary-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-primary-700 transition-all hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 flex items-center space-x-2 shadow-lg"
-    >
-      {loading ? (
-        <>
-          <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white" />
-          <span>Submitting...</span>
-        </>
-      ) : success ? (
-        <>
-          <CheckCircle className="h-5 w-5" />
-          <span>Submitted!</span>
-        </>
-      ) : (
-        <>
-          <UserPlus className="h-5 w-5" />
-          <span>Submit Application</span>
-        </>
-      )}
-    </button>
+            <FormField
+              label="Email Address"
+              name="email"
+              value={formData.email}
+              onChange={handleChange}
+              type="email"
+              placeholder="your.email@example.com"
+            />
 
-    <button
-      type="button"
-      onClick={handleCancel}
-      disabled={loading}
-      className="text-gray-600 hover:text-gray-900 px-6 py-3 rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-    >
-      Cancel
-    </button>
-  </div >
-</div >
+            <FormField
+              label="Why are you joining us?"
+              name="reason"
+              value={formData.reason}
+              onChange={handleChange}
+              rows={5}
+              required
+              placeholder="Tell us about your motivation and what you hope to gain from joining our community..."
+            />
 
-  {/* Info Section */ }
-  < div className = "mt-8 pt-6 border-t border-gray-200" >
-    <div className="bg-primary-50 rounded-lg p-4">
-      <h3 className="text-sm font-semibold text-primary-900 mb-2">What happens next?</h3>
-      <ul className="text-sm text-primary-700 space-y-1">
-        <li>• We'll review your application within 2-3 business days</li>
-        <li>• You'll receive a confirmation email once approved</li>
-        <li>• Gain access to all community resources and events</li>
-      </ul>
+            {/* Buttons */}
+            <div className="flex items-center justify-between pt-4">
+              <button
+                type="button"
+                onClick={handleSubmit}
+                disabled={loading || success}
+                className="bg-primary-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-primary-700 transition-all hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 flex items-center space-x-2 shadow-lg"
+              >
+                {loading ? (
+                  <>
+                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white" />
+                    <span>Submitting...</span>
+                  </>
+                ) : success ? (
+                  <>
+                    <CheckCircle className="h-5 w-5" />
+                    <span>Submitted!</span>
+                  </>
+                ) : (
+                  <>
+                    <UserPlus className="h-5 w-5" />
+                    <span>Submit Application</span>
+                  </>
+                )}
+              </button>
+
+              <button
+                type="button"
+                onClick={handleCancel}
+                disabled={loading}
+                className="text-gray-600 hover:text-gray-900 px-6 py-3 rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+
+          {/* Info Section */}
+          <div className="mt-8 pt-6 border-t border-gray-200">
+            <div className="bg-primary-50 rounded-lg p-4">
+              <h3 className="text-sm font-semibold text-primary-900 mb-2">What happens next?</h3>
+              <ul className="text-sm text-primary-700 space-y-1">
+                <li>• We'll review your application within 2-3 business days</li>
+                <li>• You'll receive a confirmation email once approved</li>
+                <li>• Gain access to all community resources and events</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
-</div >
-        </div >
-      </div >
-    </div >
   );
 };
 
