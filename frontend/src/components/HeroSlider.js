@@ -93,7 +93,6 @@ Slide.displayName = 'Slide';
 
 const HeroSlider = () => {
   const [currentSlide, setCurrentSlide] = useState(0);
-  const [isPaused, setIsPaused] = useState(false);
 
   // Memoized navigation handlers
   const nextSlide = useCallback(() => {
@@ -108,13 +107,11 @@ const HeroSlider = () => {
     setCurrentSlide(index);
   }, []);
 
-  // Auto-advance slider
+  // Auto-advance slider - never stops
   useEffect(() => {
-    if (isPaused) return;
-
     const timer = setInterval(nextSlide, 5000);
     return () => clearInterval(timer);
-  }, [isPaused, nextSlide]);
+  }, [nextSlide]);
 
   // Memoized dot indicators
   const dotIndicators = useMemo(() => (
@@ -134,11 +131,7 @@ const HeroSlider = () => {
   ), [currentSlide, goToSlide]);
 
   return (
-    <div
-      className="relative w-full h-[400px] sm:h-[500px] md:h-[600px] lg:h-[700px] overflow-hidden bg-gray-900"
-      onMouseEnter={() => setIsPaused(true)}
-      onMouseLeave={() => setIsPaused(false)}
-    >
+    <div className="relative w-full h-[400px] sm:h-[500px] md:h-[600px] lg:h-[700px] overflow-hidden bg-gray-900">
       {/* Slides */}
       <div className="relative h-full">
         {heroSlides.map((slide, index) => (
