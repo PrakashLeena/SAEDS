@@ -12,7 +12,7 @@
     "lucide-react": "^0.548.0",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
-    "react-helmet-async": "^3.0.0",
+    "react-helmet-async": "^2.0.6-beta.1",
     "react-router-dom": "^7.9.4",
     "react-scripts": "5.0.1"
   },
