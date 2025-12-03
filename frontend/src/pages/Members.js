@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback, useMemo, memo } from 'react';
 import { TrendingUp, Mail, Phone, MapPin, Calendar, Search } from 'lucide-react';
 import { memberAPI } from '../services/api';
+import SEO from '../components/SEO';
 
 const resolveRole = (member) => {
   if (!member || typeof member !== 'object') return '';
@@ -105,7 +106,7 @@ EmptyState.displayName = 'EmptyState';
 // Memoized contact info row
 const ContactRow = memo(({ icon: Icon, text }) => {
   if (!text) return null;
-  
+
   return (
     <div className="flex items-center text-sm text-gray-600">
       <Icon className="h-4 w-4 mr-2 text-primary-500 flex-shrink-0" />
@@ -122,8 +123,8 @@ const MemberCard = memo(({ member, index }) => {
   const communityRole = member?.roleInCommunity ? member.roleInCommunity : '';
   const jobOrUniversity = member?.universityOrRole ? member.universityOrRole : '';
   const bio = member.notes || '';
-  
-  const sinceYear = useMemo(() => 
+
+  const sinceYear = useMemo(() =>
     member.since || (member.joinedAt ? new Date(member.joinedAt).getFullYear() : ''),
     [member.since, member.joinedAt]
   );
@@ -297,6 +298,10 @@ const Members = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 py-8 animate-fade-in">
+      <SEO
+        title="Our Members"
+        description="Meet the amazing people who make our community thrive. Connect with SAEDS members."
+      />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="mb-8">
@@ -351,9 +356,9 @@ const Members = () => {
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {filteredMembers.map((member, index) => (
-              <MemberCard 
-                key={member._id || index} 
-                member={member} 
+              <MemberCard
+                key={member._id || index}
+                member={member}
                 index={index}
               />
             ))}

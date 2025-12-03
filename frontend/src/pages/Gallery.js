@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useCallback, useMemo, memo } from 'react';
 import api from '../services/api';
 import BounceCards from '../components/BounceCards';
+import SEO from '../components/SEO';
 
 // Memoized loading state
 const LoadingState = memo(() => (
@@ -27,9 +28,9 @@ const AlbumCard = memo(({ album, coverImage, imageCount, onClick }) => (
     <div className="flex items-center">
       <div className="w-16 h-16 flex-shrink-0 overflow-hidden bg-gray-100 flex items-center justify-center">
         {coverImage ? (
-          <img 
-            src={coverImage.url} 
-            alt={album.title} 
+          <img
+            src={coverImage.url}
+            alt={album.title}
             className="w-full h-full object-cover"
             loading="lazy"
           />
@@ -59,9 +60,9 @@ AlbumCard.displayName = 'AlbumCard';
 const ImageCard = memo(({ image }) => (
   <div className="bg-white rounded-lg overflow-hidden shadow hover:shadow-lg transition-shadow">
     <a href={image.url} target="_blank" rel="noreferrer">
-      <img 
-        src={image.url} 
-        alt={image.title || 'Gallery image'} 
+      <img
+        src={image.url}
+        alt={image.title || 'Gallery image'}
         className="w-full h-48 object-cover"
         loading="lazy"
       />
@@ -97,10 +98,10 @@ const Gallery = () => {
   const albumsWithData = useMemo(() => {
     return albums.map((album) => {
       const coverImage = imagesAll.find((img) => img.albumId === album._id);
-      const imageCount = typeof album.count === 'number' 
-        ? album.count 
+      const imageCount = typeof album.count === 'number'
+        ? album.count
         : imagesAll.filter((img) => img.albumId === album._id).length;
-      
+
       return {
         ...album,
         coverImage,
@@ -117,7 +118,7 @@ const Gallery = () => {
           api.albums.getAll(),
           api.gallery.getAll({ limit: 500 }),
         ]);
-        
+
         setAlbums(albumsRes.data || []);
         const imgs = imagesRes.data || [];
         setImagesAll(imgs);
@@ -128,7 +129,7 @@ const Gallery = () => {
         setLoading(false);
       }
     };
-    
+
     fetchGalleryData();
   }, []);
 
@@ -136,7 +137,7 @@ const Gallery = () => {
   const openAlbum = useCallback(async (album) => {
     setSelectedAlbum(album);
     setLoading(true);
-    
+
     try {
       const res = await api.gallery.getAll({ limit: 500, albumId: album._id });
       setImages(res.data || []);
@@ -163,6 +164,10 @@ const Gallery = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 py-12 animate-fade-in">
+      <SEO
+        title="Image Gallery"
+        description="Explore photos from our events and community activities."
+      />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <h1 className="text-3xl font-bold text-gray-900 mb-6">Image Gallery</h1>
 
@@ -214,8 +219,8 @@ const Gallery = () => {
           <div>
             <div className="mb-6 flex items-center justify-between">
               <div>
-                <button 
-                  onClick={backToAlbums} 
+                <button
+                  onClick={backToAlbums}
                   className="text-sm text-gray-600 hover:text-gray-900 mr-3 transition-colors"
                 >
                   ← Back to albums

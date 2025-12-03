@@ -4,6 +4,7 @@ import { Search, Filter, X, Folder, FolderOpen, ChevronRight, ChevronDown } from
 import BookCard from '../components/BookCard';
 import api from '../services/api';
 import { elibraryFolders } from '../data/elibrary';
+import SEO from '../components/SEO';
 
 // Constants
 const CATEGORIES = ['All', 'A/L', 'O/L', 'Other'];
@@ -62,11 +63,10 @@ const flattenSections = (folders) => {
 const CategoryButton = memo(({ category, isSelected, onClick }) => (
   <button
     onClick={onClick}
-    className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
-      isSelected
-        ? 'bg-primary-600 text-white'
-        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-    }`}
+    className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${isSelected
+      ? 'bg-primary-600 text-white'
+      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+      }`}
   >
     {category}
   </button>
@@ -79,7 +79,7 @@ const BookSection = memo(({ section, books }) => {
   const [open, setOpen] = useState(false);
 
   if (!books || books.length === 0) return null;
-  
+
   return (
     <div className="bg-white rounded-md border border-gray-100 shadow-sm">
       <button
@@ -353,7 +353,7 @@ const Browse = () => {
 
   // Memoized uncategorized books
   const uncategorizedBooks = useMemo(() => {
-    return filteredAndSortedBooks.filter(b => 
+    return filteredAndSortedBooks.filter(b =>
       !b.raw?.folderId && !b.folderId
     );
   }, [filteredAndSortedBooks]);
@@ -361,14 +361,14 @@ const Browse = () => {
   // Load books
   useEffect(() => {
     let mounted = true;
-    
+
     const loadBooks = async () => {
       try {
         const res = await api.book.getAll();
         const list = res?.data || [];
-        
+
         if (!mounted) return;
-        
+
         // Map backend shape to UI shape
         const mapped = list.map(b => ({
           id: b._id,
@@ -385,7 +385,7 @@ const Browse = () => {
           available: Boolean(b.pdfUrl || b.coverImage),
           raw: b,
         }));
-        
+
         setBooks(mapped);
       } catch (err) {
         console.error('Failed to load books:', err);
@@ -436,10 +436,10 @@ const Browse = () => {
   const resultsText = useMemo(() => {
     const count = filteredAndSortedBooks.length;
     const plural = count !== 1 ? 's' : '';
-    const categoryText = selectedCategory !== 'All' 
-      ? ` in ${selectedCategory}` 
+    const categoryText = selectedCategory !== 'All'
+      ? ` in ${selectedCategory}`
       : '';
-    
+
     return (
       <>
         Showing <span className="font-semibold">{count}</span> book{plural}
@@ -461,6 +461,10 @@ const Browse = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 py-6 animate-fade-in">
+      <SEO
+        title="Browse Books"
+        description="Explore our extensive E-Library collection. Find books, past papers, and educational resources for A/L, O/L, and more."
+      />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="mb-6">

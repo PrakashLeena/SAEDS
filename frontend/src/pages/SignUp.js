@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { createUserWithEmailAndPassword, signInWithPopup, GoogleAuthProvider, updateProfile } from 'firebase/auth';
 import { auth } from '../config';
 import { Mail, Lock, User, UserPlus, AlertCircle } from 'lucide-react';
+import SEO from '../components/SEO';
 
 // Memoized error alert component
 const ErrorAlert = memo(({ message }) => (
@@ -15,13 +16,13 @@ const ErrorAlert = memo(({ message }) => (
 ErrorAlert.displayName = 'ErrorAlert';
 
 // Memoized input field component
-const InputField = memo(({ 
-  id, 
-  label, 
-  type, 
-  value, 
-  onChange, 
-  placeholder, 
+const InputField = memo(({
+  id,
+  label,
+  type,
+  value,
+  onChange,
+  placeholder,
   icon: Icon,
   autoComplete,
   helperText
@@ -108,7 +109,7 @@ const SignUp = () => {
     if (!formData.name.trim()) {
       return 'Please enter your name';
     }
-    
+
     if (formData.password !== formData.confirmPassword) {
       return 'Passwords do not match';
     }
@@ -134,7 +135,7 @@ const SignUp = () => {
   // Memoized email sign up handler
   const handleEmailSignUp = useCallback(async (e) => {
     e.preventDefault();
-    
+
     // Validate form
     const validationError = validateForm();
     if (validationError) {
@@ -151,7 +152,7 @@ const SignUp = () => {
         formData.email,
         formData.password
       );
-      
+
       // Update user profile with display name
       await updateProfile(userCredential.user, {
         displayName: formData.name
@@ -166,7 +167,7 @@ const SignUp = () => {
         'auth/operation-not-allowed': 'Email/password accounts are not enabled.',
         'auth/weak-password': 'Password is too weak. Please use a stronger password.',
       };
-      
+
       setError(errorMessages[err.code] || 'Failed to create account. Please try again.');
     } finally {
       setLoading(false);
@@ -236,6 +237,10 @@ const SignUp = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary-50 to-primary-100 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 animate-fade-in">
+      <SEO
+        title="Create Account"
+        description="Join the SAEDS community. Create your account today."
+      />
       <div className="max-w-md w-full space-y-8 bg-white p-8 rounded-xl shadow-2xl">
         {/* Header */}
         <div className="text-center">
@@ -306,8 +311,8 @@ const SignUp = () => {
         {/* Sign In Link */}
         <p className="text-center text-sm text-gray-600">
           Already have an account?{' '}
-          <Link 
-            to="/signin" 
+          <Link
+            to="/signin"
             className="font-medium text-primary-600 hover:text-primary-700 transition-colors"
           >
             Sign in

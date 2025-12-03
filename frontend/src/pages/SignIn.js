@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { signInWithEmailAndPassword, signInWithPopup, GoogleAuthProvider } from 'firebase/auth';
 import { auth } from '../config';
 import { Mail, Lock, LogIn, AlertCircle } from 'lucide-react';
+import SEO from '../components/SEO';
 
 // Memoized error alert component
 const ErrorAlert = memo(({ message }) => (
@@ -15,15 +16,15 @@ const ErrorAlert = memo(({ message }) => (
 ErrorAlert.displayName = 'ErrorAlert';
 
 // Memoized input field component
-const InputField = memo(({ 
-  id, 
-  label, 
-  type, 
-  value, 
-  onChange, 
-  placeholder, 
+const InputField = memo(({
+  id,
+  label,
+  type,
+  value,
+  onChange,
+  placeholder,
   icon: Icon,
-  autoComplete 
+  autoComplete
 }) => (
   <div>
     <label htmlFor={id} className="block text-sm font-medium text-gray-700 mb-2">
@@ -125,7 +126,7 @@ const SignIn = () => {
         'auth/user-disabled': 'This account has been disabled.',
         'auth/too-many-requests': 'Too many failed attempts. Please try again later.',
       };
-      
+
       setError(errorMessages[err.code] || 'Failed to sign in. Please try again.');
     } finally {
       setLoading(false);
@@ -156,6 +157,10 @@ const SignIn = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary-50 to-primary-100 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 animate-fade-in">
+      <SEO
+        title="Sign In"
+        description="Sign in to your SAEDS account."
+      />
       <div className="max-w-md w-full space-y-8 bg-white p-8 rounded-xl shadow-2xl">
         {/* Header */}
         <div className="text-center">
@@ -201,8 +206,8 @@ const SignIn = () => {
 
           {/* Forgot Password Link */}
           <div className="flex items-center justify-end">
-            <Link 
-              to="/forgot-password" 
+            <Link
+              to="/forgot-password"
               className="text-sm font-medium text-primary-600 hover:text-primary-700 transition-colors"
             >
               Forgot your password?
@@ -243,8 +248,8 @@ const SignIn = () => {
         {/* Sign Up Link */}
         <p className="text-center text-sm text-gray-600">
           Don't have an account?{' '}
-          <Link 
-            to="/signup" 
+          <Link
+            to="/signup"
             className="font-medium text-primary-600 hover:text-primary-700 transition-colors"
           >
             Sign up now

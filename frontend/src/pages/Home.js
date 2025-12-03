@@ -3,6 +3,8 @@ import { Link } from 'react-router-dom';
 import { ArrowRight, BookOpen, Users, Calendar, Heart, Globe, TrendingUp, Trophy, Award, Medal, Star } from 'lucide-react';
 import api from '../services/api';
 import { useScrollAnimation } from '../hooks/useScrollAnimation';
+import SEO from '../components/SEO';
+
 const HeroSlider = lazy(() => import('../components/HeroSlider'));
 const JoinModal = lazy(() => import('../components/JoinModal'));
 
@@ -100,7 +102,7 @@ const AchievementCard = memo(({ achievement, index, visible }) => {
     medal: Medal,
     star: Star,
   }), []);
-  
+
   const IconComponent = iconMap[achievement.icon] || Trophy;
 
   return (
@@ -139,13 +141,13 @@ const MemberCard = memo(({ member, index }) => {
   const communityRole = member?.roleInCommunity ? member.roleInCommunity : '';
   const jobOrUniversity = member?.universityOrRole ? member.universityOrRole : '';
   const bio = member.notes || '';
-  const sinceYear = useMemo(() => 
+  const sinceYear = useMemo(() =>
     member.since || (member.joinedAt ? new Date(member.joinedAt).getFullYear() : ''),
     [member.since, member.joinedAt]
   );
 
   return (
-    <div 
+    <div
       className="flex-shrink-0 w-80 bg-white rounded-lg shadow-md p-6 hover:shadow-xl transition-all hover:-translate-y-2"
     >
       <div className="flex items-center space-x-4 mb-4">
@@ -166,7 +168,7 @@ const MemberCard = memo(({ member, index }) => {
           {jobOrUniversity && (
             <p className="text-xs text-gray-600">{jobOrUniversity}</p>
           )}
-          
+
         </div>
       </div>
     </div>
@@ -177,7 +179,7 @@ MemberCard.displayName = 'MemberCard';
 
 // Memoized service card
 const ServiceCard = memo(({ icon: Icon, title, description, link, linkText, bgColor, delay }) => (
-  <div 
+  <div
     className="bg-white rounded-lg shadow-md p-8 hover:shadow-xl transition-all hover:scale-105 hover:-translate-y-1 animate-fade-in-up"
     style={{ animationDelay: delay }}
   >
@@ -213,7 +215,7 @@ const Home = () => {
   const [activitiesRef, activitiesVisible] = useScrollAnimation();
   const [servicesRef, servicesVisible] = useScrollAnimation();
   const [booksRef, booksVisible] = useScrollAnimation();
-  
+
   const [members, setMembers] = useState([]);
   const [achievements, setAchievements] = useState([]);
   const [activities, setActivities] = useState([]);
@@ -248,12 +250,12 @@ const Home = () => {
       api.activity.getAll()
     ]).then(([statsRes, membersRes, achievementsRes, activitiesRes]) => {
       if (!mounted) return;
-      
+
       // Set stats
       const { activeMembers: a, eventsHosted: e } = statsRes?.data || {};
       if (typeof a === 'number') setActiveMembers(formatStat(a));
       if (typeof e === 'number') setEventsHosted(formatStat(e));
-      
+
       // Set members (all), enrich if role is missing in list payload
       const membersList = (membersRes?.data || []).map(normalizeMember);
       const needsEnrichment = membersList.some(m => !m?.roleInCommunity);
@@ -273,7 +275,7 @@ const Home = () => {
           })
           .catch(() => setMembers(membersList));
       }
-      
+
       // Set achievements
       const achievementsList = achievementsRes?.data || [];
       setAchievements(achievementsList);
@@ -334,11 +336,15 @@ const Home = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 animate-fade-in">
+      <SEO
+        title="Home"
+        description="Welcome to SAEDS - Student Association for Environmental Development & Sustainability. Join our community to access resources, events, and more."
+      />
       {/* Hero Slider */}
-      <Suspense fallback={<HeroLoading />}> 
+      <Suspense fallback={<HeroLoading />}>
         <HeroSlider onOpenJoinModal={openJoinModal} />
       </Suspense>
-      
+
       {/* Join Modal */}
       <Suspense fallback={null}>
         <JoinModal isOpen={isJoinModalOpen} onClose={closeJoinModal} />
@@ -376,7 +382,7 @@ const Home = () => {
               </h2>
               <div className="h-0.5 md:h-1 w-12 md:w-20 bg-green-600 mx-auto mb-3 md:mb-6"></div>
               <p className="text-center text-xs sm:text-sm md:text-lg font-medium text-gray-700 leading-relaxed">
-                CREATING A BETTER-EDUCATED AND THRIVING SOCIETY FOR OUR VILLAGE, 
+                CREATING A BETTER-EDUCATED AND THRIVING SOCIETY FOR OUR VILLAGE,
                 EMPOWERING EVERYONE THROUGH ACCESSIBLE AND QUALITY EDUCATION.
               </p>
             </div>
@@ -392,7 +398,7 @@ const Home = () => {
               Building a Stronger Community Together
             </h2>
             <p className="text-lg text-gray-600 max-w-3xl mx-auto">
-              We are dedicated to creating a vibrant space where members can connect, share knowledge, 
+              We are dedicated to creating a vibrant space where members can connect, share knowledge,
               access resources, and support each other's growth and development.
             </p>
           </div>
@@ -466,7 +472,7 @@ const Home = () => {
             </div>
           ) : (
             <div className="relative overflow-x-auto">
-              <div 
+              <div
                 className={`flex gap-6 animate-scroll-horizontal transition-all duration-700 ${membersVisible ? 'opacity-100' : 'opacity-0'}`}
                 style={scrollAnimationStyle}
               >
@@ -512,9 +518,8 @@ const Home = () => {
             </div>
           ) : (
             <div
-              className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-8 transition-all duration-700 ${
-                activitiesVisible ? 'animate-fade-in-up' : 'opacity-0'
-              }`}
+              className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-8 transition-all duration-700 ${activitiesVisible ? 'animate-fade-in-up' : 'opacity-0'
+                }`}
             >
               {activities.slice(0, 6).map((activity, index) => (
                 <div
@@ -593,8 +598,8 @@ const Home = () => {
               <h2 className="text-3xl font-bold text-gray-900 mb-2">Featured from E-Library</h2>
               <p className="text-gray-600 text-lg">Unlock a world of knowledge at your fingertips</p>
               <p className="text-gray-700 mt-3 leading-relaxed">
-                <span className="font-semibold text-primary-600">Advanced Level:</span> Past papers, model papers, comprehensive guides & detailed elaborations • 
-                <span className="font-semibold text-primary-600 ml-2">Ordinary Level:</span> Past papers, model papers & essential study materials • 
+                <span className="font-semibold text-primary-600">Advanced Level:</span> Past papers, model papers, comprehensive guides & detailed elaborations •
+                <span className="font-semibold text-primary-600 ml-2">Ordinary Level:</span> Past papers, model papers & essential study materials •
                 <span className="font-semibold text-primary-600 ml-2">Plus:</span> A vast collection of reference books and educational resources
               </p>
             </div>

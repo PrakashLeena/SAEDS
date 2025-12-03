@@ -2,21 +2,22 @@ import React, { useState, useCallback, memo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { UserPlus, AlertCircle, CheckCircle } from 'lucide-react';
 import api from '../services/api';
+import SEO from '../components/SEO';
 
 // Memoized form field component
-const FormField = memo(({ 
-  label, 
-  name, 
-  value, 
-  onChange, 
-  type = 'text', 
+const FormField = memo(({
+  label,
+  name,
+  value,
+  onChange,
+  type = 'text',
   required = false,
   rows,
   min,
-  placeholder 
+  placeholder
 }) => {
   const InputComponent = rows ? 'textarea' : 'input';
-  
+
   return (
     <div>
       <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -60,7 +61,7 @@ AlertMessage.displayName = 'AlertMessage';
 
 const JoinUs = () => {
   const navigate = useNavigate();
-  
+
   // Form state using single object for better performance
   const [formData, setFormData] = useState({
     name: '',
@@ -69,7 +70,7 @@ const JoinUs = () => {
     reason: '',
     email: ''
   });
-  
+
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
@@ -79,174 +80,100 @@ const JoinUs = () => {
     const { name, value } = e.target;
     setFormData(prev => ({
       ...prev,
-      [name]: value
-    }));
-    // Clear error on input change
-    if (error) setError('');
-  }, [error]);
+      value={ formData.name }
+    onChange={ handleChange }
+    required
+    placeholder="Enter your full name"
+      />
 
-  // Memoized submit handler
-  const handleSubmit = useCallback(async (e) => {
-    e.preventDefault();
-    setLoading(true);
-    setError('');
-    setSuccess(false);
+  <FormField
+    label="Age"
+    name="age"
+    value={formData.age}
+    onChange={handleChange}
+    type="number"
+    min="1"
+    placeholder="Enter your age"
+  />
 
-    try {
-      const res = await api.membership.apply(formData);
-      
-      if (res?.success) {
-        setSuccess(true);
-        // Navigate after showing success message
-        setTimeout(() => {
-          navigate('/join-success');
-        }, 1500);
-      } else {
-        setError(res?.message || 'Failed to submit application. Please try again.');
-      }
-    } catch (err) {
-      console.error('Membership application error:', err);
-      setError('Failed to submit application. Please check your connection and try again.');
-    } finally {
-      setLoading(false);
-    }
-  }, [formData, navigate]);
+  <FormField
+    label="University / Institution"
+    name="university"
+    value={formData.university}
+    onChange={handleChange}
+    placeholder="Enter your university or institution"
+  />
 
-  // Memoized cancel handler
-  const handleCancel = useCallback(() => {
-    navigate(-1);
-  }, [navigate]);
+  <FormField
+    label="Email Address"
+    name="email"
+    value={formData.email}
+    onChange={handleChange}
+    type="email"
+    placeholder="your.email@example.com"
+  />
 
-  return (
-    <div className="min-h-screen bg-gray-50 py-12 animate-fade-in">
-      <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="bg-white rounded-lg shadow-lg p-8">
-          {/* Header */}
-          <div className="flex items-center space-x-3 mb-6">
-            <div className="bg-primary-100 p-3 rounded-full">
-              <UserPlus className="h-8 w-8 text-primary-600" />
-            </div>
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900">Join Our Community</h1>
-              <p className="text-gray-600 mt-1">Fill out the form below to apply for membership</p>
-            </div>
-          </div>
+  <FormField
+    label="Why are you joining us?"
+    name="reason"
+    value={formData.reason}
+    onChange={handleChange}
+    rows={5}
+    required
+    placeholder="Tell us about your motivation and what you hope to gain from joining our community..."
+  />
 
-          {/* Success Message */}
-          {success && (
-            <AlertMessage 
-              type="success" 
-              message="Application submitted successfully! Redirecting..." 
-            />
-          )}
+  {/* Buttons */ }
+      < div className = "flex items-center justify-between pt-4" >
+    <button
+      type="button"
+      onClick={handleSubmit}
+      disabled={loading || success}
+      className="bg-primary-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-primary-700 transition-all hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 flex items-center space-x-2 shadow-lg"
+    >
+      {loading ? (
+        <>
+          <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white" />
+          <span>Submitting...</span>
+        </>
+      ) : success ? (
+        <>
+          <CheckCircle className="h-5 w-5" />
+          <span>Submitted!</span>
+        </>
+      ) : (
+        <>
+          <UserPlus className="h-5 w-5" />
+          <span>Submit Application</span>
+        </>
+      )}
+    </button>
 
-          {/* Error Message */}
-          {error && (
-            <AlertMessage 
-              type="error" 
-              message={error} 
-            />
-          )}
+    <button
+      type="button"
+      onClick={handleCancel}
+      disabled={loading}
+      className="text-gray-600 hover:text-gray-900 px-6 py-3 rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+    >
+      Cancel
+    </button>
+  </div >
+</div >
 
-          {/* Form */}
-          <div className="space-y-6">
-            <FormField
-              label="Full Name"
-              name="name"
-              value={formData.name}
-              onChange={handleChange}
-              required
-              placeholder="Enter your full name"
-            />
-
-            <FormField
-              label="Age"
-              name="age"
-              value={formData.age}
-              onChange={handleChange}
-              type="number"
-              min="1"
-              placeholder="Enter your age"
-            />
-
-            <FormField
-              label="University / Institution"
-              name="university"
-              value={formData.university}
-              onChange={handleChange}
-              placeholder="Enter your university or institution"
-            />
-
-            <FormField
-              label="Email Address"
-              name="email"
-              value={formData.email}
-              onChange={handleChange}
-              type="email"
-              placeholder="your.email@example.com"
-            />
-
-            <FormField
-              label="Why are you joining us?"
-              name="reason"
-              value={formData.reason}
-              onChange={handleChange}
-              rows={5}
-              required
-              placeholder="Tell us about your motivation and what you hope to gain from joining our community..."
-            />
-
-            {/* Buttons */}
-            <div className="flex items-center justify-between pt-4">
-              <button
-                type="button"
-                onClick={handleSubmit}
-                disabled={loading || success}
-                className="bg-primary-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-primary-700 transition-all hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 flex items-center space-x-2 shadow-lg"
-              >
-                {loading ? (
-                  <>
-                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white" />
-                    <span>Submitting...</span>
-                  </>
-                ) : success ? (
-                  <>
-                    <CheckCircle className="h-5 w-5" />
-                    <span>Submitted!</span>
-                  </>
-                ) : (
-                  <>
-                    <UserPlus className="h-5 w-5" />
-                    <span>Submit Application</span>
-                  </>
-                )}
-              </button>
-
-              <button
-                type="button"
-                onClick={handleCancel}
-                disabled={loading}
-                className="text-gray-600 hover:text-gray-900 px-6 py-3 rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                Cancel
-              </button>
-            </div>
-          </div>
-
-          {/* Info Section */}
-          <div className="mt-8 pt-6 border-t border-gray-200">
-            <div className="bg-primary-50 rounded-lg p-4">
-              <h3 className="text-sm font-semibold text-primary-900 mb-2">What happens next?</h3>
-              <ul className="text-sm text-primary-700 space-y-1">
-                <li>• We'll review your application within 2-3 business days</li>
-                <li>• You'll receive a confirmation email once approved</li>
-                <li>• Gain access to all community resources and events</li>
-              </ul>
-            </div>
-          </div>
-        </div>
-      </div>
+  {/* Info Section */ }
+  < div className = "mt-8 pt-6 border-t border-gray-200" >
+    <div className="bg-primary-50 rounded-lg p-4">
+      <h3 className="text-sm font-semibold text-primary-900 mb-2">What happens next?</h3>
+      <ul className="text-sm text-primary-700 space-y-1">
+        <li>• We'll review your application within 2-3 business days</li>
+        <li>• You'll receive a confirmation email once approved</li>
+        <li>• Gain access to all community resources and events</li>
+      </ul>
     </div>
+</div >
+        </div >
+      </div >
+    </div >
   );
 };
 

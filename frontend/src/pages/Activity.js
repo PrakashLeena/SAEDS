@@ -3,6 +3,8 @@ import { Calendar, MapPin, Users as UsersIcon, Filter, X } from 'lucide-react';
 import api from '../services/api';
 import { useScrollAnimation } from '../hooks/useScrollAnimation';
 
+import SEO from '../components/SEO';
+
 // Constants
 const DEFAULT_CATEGORIES = ['All'];
 
@@ -26,11 +28,10 @@ const getAttendeeCount = (activity) => {
 const ActivityHeader = memo(({ headerRef, headerVisible }) => (
   <section className="bg-gradient-to-r from-primary-600 to-primary-800 text-white py-16">
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div 
-        ref={headerRef} 
-        className={`text-center transition-all duration-700 ${
-          headerVisible ? 'animate-fade-in-up' : 'opacity-0'
-        }`}
+      <div
+        ref={headerRef}
+        className={`text-center transition-all duration-700 ${headerVisible ? 'animate-fade-in-up' : 'opacity-0'
+          }`}
       >
         <h1 className="text-4xl md:text-5xl font-bold mb-4">Community Activities</h1>
         <p className="text-xl text-primary-100">
@@ -47,11 +48,10 @@ ActivityHeader.displayName = 'ActivityHeader';
 const FilterButton = memo(({ category, isSelected, onClick }) => (
   <button
     onClick={onClick}
-    className={`px-4 py-2 rounded-lg text-sm font-medium transition-all hover:scale-105 ${
-      isSelected
-        ? 'bg-primary-600 text-white shadow-md'
-        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-    }`}
+    className={`px-4 py-2 rounded-lg text-sm font-medium transition-all hover:scale-105 ${isSelected
+      ? 'bg-primary-600 text-white shadow-md'
+      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+      }`}
   >
     {category}
   </button>
@@ -88,14 +88,14 @@ const ActivityCard = memo(({ activity, index, onClick }) => {
               </div>
             </div>
           )}
-          
+
           {/* Overlay on hover */}
           <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
             <div className="absolute bottom-0 left-0 right-0 p-6 text-white">
               <p className="text-sm line-clamp-3">{activity.description}</p>
             </div>
           </div>
-          
+
           {/* Category Badge */}
           <div className="absolute top-4 right-4">
             <span className="bg-white/90 backdrop-blur-sm text-gray-900 px-3 py-1 rounded-full text-xs font-semibold">
@@ -141,10 +141,10 @@ const ActivityModal = memo(({ activity, onClose }) => {
     const handleEscape = (e) => {
       if (e.key === 'Escape') onClose();
     };
-    
+
     document.addEventListener('keydown', handleEscape);
     document.body.style.overflow = 'hidden';
-    
+
     return () => {
       document.removeEventListener('keydown', handleEscape);
       document.body.style.overflow = 'unset';
@@ -197,7 +197,7 @@ const ActivityModal = memo(({ activity, onClose }) => {
             <h2 className="text-3xl font-bold text-gray-900 mb-4">
               {activity.title}
             </h2>
-            
+
             <p className="text-gray-700 text-lg mb-6 leading-relaxed">
               {activity.description}
             </p>
@@ -255,20 +255,20 @@ const Activity = () => {
   // Load activities from backend
   useEffect(() => {
     let mounted = true;
-    
+
     const loadActivities = async () => {
       setLoading(true);
       setError(null);
-      
+
       try {
         const res = await api.activity.getAll();
-        
+
         if (!mounted) return;
-        
+
         if (res?.success) {
           const items = res.data || [];
           setActivities(items);
-          
+
           // Extract unique categories
           const uniqueCategories = Array.from(
             new Set(items.map(i => i.category).filter(Boolean))
@@ -288,9 +288,9 @@ const Activity = () => {
         }
       }
     };
-    
+
     loadActivities();
-    
+
     return () => {
       mounted = false;
     };
@@ -319,6 +319,10 @@ const Activity = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 animate-fade-in">
+      <SEO
+        title="Community Activities"
+        description="Join our workshops, seminars, and networking events. Stay updated with SAEDS community activities."
+      />
       {/* Header */}
       <ActivityHeader headerRef={headerRef} headerVisible={headerVisible} />
 

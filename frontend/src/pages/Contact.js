@@ -1,6 +1,7 @@
 import React, { useState, useCallback, memo } from 'react';
 import { Mail, Phone, MapPin, Send, CheckCircle, AlertCircle } from 'lucide-react';
 import { contactAPI } from '../services/api';
+import SEO from '../components/SEO';
 
 // Memoized contact info cards to prevent unnecessary re-renders
 const ContactInfoCard = memo(({ icon: Icon, title, children, href }) => (
@@ -49,7 +50,7 @@ AlertMessage.displayName = 'AlertMessage';
 // Memoized input field component
 const InputField = memo(({ label, name, type = 'text', value, onChange, required = false, placeholder, rows }) => {
   const InputComponent = rows ? 'textarea' : 'input';
-  
+
   return (
     <div>
       <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -101,7 +102,7 @@ const Contact = () => {
 
     try {
       const response = await contactAPI.sendMessage(formData);
-      
+
       if (response.success) {
         setSuccess(true);
         setFormData({
@@ -125,6 +126,10 @@ const Contact = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 animate-fade-in">
+      <SEO
+        title="Contact Us"
+        description="Get in touch with SAEDS. We are here to help with any inquiries about our community, events, or resources."
+      />
       {/* Header */}
       <section className="bg-gradient-to-r from-primary-600 to-primary-800 text-white py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -145,7 +150,7 @@ const Contact = () => {
             <div className="lg:col-span-1">
               <div className="bg-white rounded-lg shadow-md p-8 sticky top-24">
                 <h2 className="text-2xl font-bold text-gray-900 mb-6">Get in Touch</h2>
-                
+
                 <div className="space-y-6">
                   <ContactInfoCard
                     icon={Mail}
@@ -279,7 +284,7 @@ const Contact = () => {
             <h2 className="text-3xl font-bold text-gray-900 mb-4">Find Us</h2>
             <p className="text-gray-600">Visit our office or community center</p>
           </div>
-          
+
           <div className="rounded-lg overflow-hidden shadow-lg h-96">
             <iframe
               title="SAEDS Location"
