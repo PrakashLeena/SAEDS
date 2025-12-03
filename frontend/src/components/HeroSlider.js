@@ -1,10 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 
-// Import your hero image
-// Ensure this image is in your src/assets/images folder or public folder
-import heroImage from '../assets/images/saeds-hero-education.webp';
-
 const HeroSlider = () => {
   const [currentSlide, setCurrentSlide] = useState(0);
 
@@ -22,10 +18,10 @@ const HeroSlider = () => {
       <div className="relative h-full w-full">
         {/* Image */}
         <img
-          src={heroImage}
+          src="/logo.png"
           alt="SAEDS student community studying together in Sri Lanka, promoting education"
           className="w-full h-full object-cover opacity-60"
-          loading="eager" // Load immediately for LCP (Largest Contentful Paint)
+          loading="eager"
           width="1920"
           height="1080"
           fetchPriority="high"

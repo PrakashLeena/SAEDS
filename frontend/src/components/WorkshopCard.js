@@ -1,16 +1,12 @@
 import React from 'react';
 import { Calendar, MapPin, Users } from 'lucide-react';
 
-// Default image if none provided
-// You might need to adjust this path if the image is not present
-import defaultWorkshopImg from '../assets/images/saeds-education-workshop.webp';
-
 const WorkshopCard = ({
     title = "Community Workshop",
     description,
     date,
     location = "Mannar, Sri Lanka",
-    image = defaultWorkshopImg
+    image = "/logo.png"
 }) => {
     return (
         <div className="flex flex-col md:flex-row bg-white rounded-2xl shadow-sm hover:shadow-lg transition-shadow duration-300 overflow-hidden border border-gray-100">
