@@ -15,6 +15,154 @@
       user's mobile device or desktop. See https://developers.google.com/web/fundamentals/web-app-manifest/
     -->
   <link rel="manifest" href="%PUBLIC_URL%/manifest.json" />
+  <script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "NGO",
+  "name": "SAEDS",
+  "alternateName": "Student Association for Environmental Development & Sustainability",
+  "url": "https://saeds.vercel.app/",
+  "logo": "https://saeds.vercel.app/logo.png",
+  "description": "A student-led association dedicated to educational development and environmental sustainability in Mannar and Sri Lanka.",
+  "areaServed": {
+    "@type": "City",
+    "name": "Mannar",
+    "address": {
+      "@type": "PostalAddress",
+      "addressCountry": "LK",
+      "addressRegion": "Northern Province",
+      "addressLocality": "Mannar"
+    }
+  },
+  "address": {
+    "@type": "PostalAddress",
+    "addressLocality": "Mannar",
+    "addressRegion": "Northern Province",
+    "addressCountry": "LK"
+  },
+  "sameAs": [
+    "https://www.facebook.com/saeds",
+    "https://twitter.com/saeds",
+    "https://www.linkedin.com/company/saeds"
+  ],
+  "contactPoint": {
+    "@type": "ContactPoint",
+    "contactType": "customer support",
+    "areaServed": "LK",
+    "availableLanguage": ["English", "Sinhala", "Tamil"]
+  }
+}
+</script>
+
+  <script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "WebSite",
+      "@id": "https://saeds.vercel.app/#website",
+      "url": "https://saeds.vercel.app/",
+      "name": "SAEDS Community Hub",
+      "description": "Student Association for Environmental Development & Sustainability",
+      "potentialAction": {
+        "@type": "SearchAction",
+        "target": "https://saeds.vercel.app/search?q={search_term_string}",
+        "query-input": "required name=search_term_string"
+      }
+    },
+    {
+      "@type": ["EducationalOrganization", "NGO", "LocalBusiness"],
+      "@id": "https://saeds.vercel.app/#organization",
+      "name": "SAEDS",
+      "alternateName": "Student Association for Environmental Development & Sustainability",
+      "url": "https://saeds.vercel.app/",
+      "logo": "https://saeds.vercel.app/logo.png",
+      "image": "https://saeds.vercel.app/logo.png",
+      "description": "A student-led association dedicated to educational development and environmental sustainability in Mannar and Sri Lanka.",
+      "address": {
+        "@type": "PostalAddress",
+        "addressLocality": "Mannar",
+        "addressRegion": "Northern Province",
+        "addressCountry": "LK"
+      },
+      "areaServed": {
+        "@type": "City",
+        "name": "Mannar"
+      },
+      "sameAs": [
+        "https://www.facebook.com/saeds",
+        "https://twitter.com/saeds",
+        "https://www.linkedin.com/company/saeds"
+      ],
+      "priceRange": "$0",
+      "contactPoint": {
+        "@type": "ContactPoint",
+        "contactType": "customer support",
+        "areaServed": "LK",
+        "availableLanguage": ["English", "Sinhala", "Tamil"]
+      }
+    },
+    {
+      "@type": "BreadcrumbList",
+      "@id": "https://saeds.vercel.app/#breadcrumb",
+      "itemListElement": [
+        {
+          "@type": "ListItem",
+          "position": 1,
+          "name": "Home",
+          "item": "https://saeds.vercel.app/"
+        },
+        {
+          "@type": "ListItem",
+          "position": 2,
+          "name": "Browse Books",
+          "item": "https://saeds.vercel.app/browse"
+        },
+        {
+          "@type": "ListItem",
+          "position": 3,
+          "name": "Activities",
+          "item": "https://saeds.vercel.app/activity"
+        },
+        {
+          "@type": "ListItem",
+          "position": 4,
+          "name": "Contact",
+          "item": "https://saeds.vercel.app/contact"
+        }
+      ]
+    }
+  ]
+}
+</script>
+
+  {
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  "url": "https://saeds.vercel.app/",
+  "name": "SAEDS Community Hub",
+  "potentialAction": {
+  "@type": "SearchAction",
+  "target": "https://saeds.vercel.app/search?q={search_term_string}",
+  "query-input": "required name=search_term_string"
+  }
+  }
+
+  {
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [{
+  "@type": "ListItem",
+  "position": 1,
+  "name": "Home",
+  "item": "https://saeds.vercel.app/"
+  },{
+  "@type": "ListItem",
+  "position": 2,
+  "name": "Join Us",
+  "item": "https://saeds.vercel.app/join"
+  }]
+  }
 
   <!-- Open Graph / Facebook -->
   <meta property="og:type" content="website" />
