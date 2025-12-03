@@ -337,13 +337,22 @@ const Home = () => {
   return (
     <div className="min-h-screen bg-gray-50 animate-fade-in">
       <SEO
-        title="Home"
-        description="Welcome to SAEDS - Student Association for Environmental Development & Sustainability. Join our community to access resources, events, and more."
+        title="SAEDS Community Hub | Sri Lanka's Premier Student E-Library & Environment Association"
+        description="Join SAEDS, the Student Association for Environmental Development. Access free A/L & O/L past papers, E-Library resources, and join our student community in Sri Lanka."
       />
       {/* Hero Slider */}
       <Suspense fallback={<HeroLoading />}>
         <HeroSlider onOpenJoinModal={openJoinModal} />
       </Suspense>
+
+      {/* Main H1 Section */}
+      <div className="bg-white py-8 border-b border-gray-100">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <h1 className="text-2xl md:text-4xl font-extrabold text-gray-900 leading-tight">
+            SAEDS Community Hub – Student Association for Environmental Development
+          </h1>
+        </div>
+      </div>
 
       {/* Join Modal */}
       <Suspense fallback={null}>
@@ -353,35 +362,38 @@ const Home = () => {
       {/* Mission and Vision Section */}
       <section className="py-16 bg-gradient-to-br from-primary-50 via-white to-primary-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-2 gap-4 md:gap-8 lg:gap-12">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900">Our Mission & Vision</h2>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 lg:gap-12">
             {/* Mission */}
-            <div className="bg-white rounded-2xl shadow-xl p-4 sm:p-6 md:p-10 border-t-4 border-primary-600 hover:shadow-2xl transition-all duration-300 hover:-translate-y-1">
-              <div className="flex items-center justify-center mb-3 md:mb-6">
-                <div className="bg-primary-100 p-2 sm:p-3 md:p-4 rounded-full">
-                  <TrendingUp className="h-6 w-6 sm:h-8 sm:w-8 md:h-10 md:w-10 text-primary-600" />
+            <div className="bg-white rounded-2xl shadow-xl p-6 md:p-10 border-t-4 border-primary-600 hover:shadow-2xl transition-all duration-300 hover:-translate-y-1">
+              <div className="flex items-center justify-center mb-6">
+                <div className="bg-primary-100 p-4 rounded-full">
+                  <TrendingUp className="h-10 w-10 text-primary-600" />
                 </div>
               </div>
-              <h2 className="text-sm sm:text-xl md:text-3xl font-bold text-center text-gray-900 mb-2 md:mb-4">
+              <h3 className="text-2xl font-bold text-center text-gray-900 mb-4">
                 OUR MISSION
-              </h2>
-              <div className="h-0.5 md:h-1 w-12 md:w-20 bg-primary-600 mx-auto mb-3 md:mb-6"></div>
-              <p className="text-center text-xs sm:text-base md:text-xl font-semibold text-primary-700 leading-relaxed">
+              </h3>
+              <div className="h-1 w-20 bg-primary-600 mx-auto mb-6"></div>
+              <p className="text-center text-lg font-semibold text-primary-700 leading-relaxed">
                 TOGETHER WE MAKE A DIFFERENCE
               </p>
             </div>
 
             {/* Vision */}
-            <div className="bg-white rounded-2xl shadow-xl p-4 sm:p-6 md:p-10 border-t-4 border-green-600 hover:shadow-2xl transition-all duration-300 hover:-translate-y-1">
-              <div className="flex items-center justify-center mb-3 md:mb-6">
-                <div className="bg-green-100 p-2 sm:p-3 md:p-4 rounded-full">
-                  <BookOpen className="h-6 w-6 sm:h-8 sm:w-8 md:h-10 md:w-10 text-green-600" />
+            <div className="bg-white rounded-2xl shadow-xl p-6 md:p-10 border-t-4 border-green-600 hover:shadow-2xl transition-all duration-300 hover:-translate-y-1">
+              <div className="flex items-center justify-center mb-6">
+                <div className="bg-green-100 p-4 rounded-full">
+                  <BookOpen className="h-10 w-10 text-green-600" />
                 </div>
               </div>
-              <h2 className="text-sm sm:text-xl md:text-3xl font-bold text-center text-gray-900 mb-2 md:mb-4">
+              <h3 className="text-2xl font-bold text-center text-gray-900 mb-4">
                 OUR VISION
-              </h2>
-              <div className="h-0.5 md:h-1 w-12 md:w-20 bg-green-600 mx-auto mb-3 md:mb-6"></div>
-              <p className="text-center text-xs sm:text-sm md:text-lg font-medium text-gray-700 leading-relaxed">
+              </h3>
+              <div className="h-1 w-20 bg-green-600 mx-auto mb-6"></div>
+              <p className="text-center text-base md:text-lg font-medium text-gray-700 leading-relaxed">
                 CREATING A BETTER-EDUCATED AND THRIVING SOCIETY FOR OUR VILLAGE,
                 EMPOWERING EVERYONE THROUGH ACCESSIBLE AND QUALITY EDUCATION.
               </p>
@@ -454,7 +466,7 @@ const Home = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className={`text-center mb-12 transition-all duration-700 ${membersVisible ? 'animate-fade-in-up' : 'opacity-0'}`}>
             <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-              Meet Our Community Members
+              Meet the Team
             </h2>
             <p className="text-lg text-gray-600">
               Connect with amazing people making a difference
@@ -504,7 +516,7 @@ const Home = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className={`text-center mb-12 transition-all duration-700 ${activitiesVisible ? 'animate-fade-in-up' : 'opacity-0'}`}>
             <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-              Community Activities & Events
+              Community Workshops & Activities
             </h2>
             <p className="text-lg text-gray-600">
               Join our workshops, seminars, and networking events
@@ -595,13 +607,22 @@ const Home = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className={`flex justify-between items-center mb-8 transition-all duration-700 ${booksVisible ? 'animate-fade-in-up' : 'opacity-0'}`}>
             <div>
-              <h2 className="text-3xl font-bold text-gray-900 mb-2">Featured from E-Library</h2>
+              <h2 className="text-3xl font-bold text-gray-900 mb-2">Free E-Library Resources</h2>
               <p className="text-gray-600 text-lg">Unlock a world of knowledge at your fingertips</p>
-              <p className="text-gray-700 mt-3 leading-relaxed">
-                <span className="font-semibold text-primary-600">Advanced Level:</span> Past papers, model papers, comprehensive guides & detailed elaborations •
-                <span className="font-semibold text-primary-600 ml-2">Ordinary Level:</span> Past papers, model papers & essential study materials •
-                <span className="font-semibold text-primary-600 ml-2">Plus:</span> A vast collection of reference books and educational resources
-              </p>
+              <div className="mt-4 grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div className="bg-primary-50 p-4 rounded-lg">
+                  <h3 className="font-bold text-primary-800 mb-1">A/L Past Papers</h3>
+                  <p className="text-sm text-primary-600">Comprehensive collection for all streams</p>
+                </div>
+                <div className="bg-primary-50 p-4 rounded-lg">
+                  <h3 className="font-bold text-primary-800 mb-1">O/L Model Papers</h3>
+                  <p className="text-sm text-primary-600">Essential practice materials</p>
+                </div>
+                <div className="bg-primary-50 p-4 rounded-lg">
+                  <h3 className="font-bold text-primary-800 mb-1">Reference Books</h3>
+                  <p className="text-sm text-primary-600">Vast collection of educational resources</p>
+                </div>
+              </div>
             </div>
           </div>
 

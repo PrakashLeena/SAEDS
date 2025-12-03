@@ -462,15 +462,17 @@ const Browse = () => {
   return (
     <div className="min-h-screen bg-gray-50 py-6 animate-fade-in">
       <SEO
-        title="Browse Books"
-        description="Explore our extensive E-Library collection. Find books, past papers, and educational resources for A/L, O/L, and more."
+        title="Free E-Library Sri Lanka | Download A/L & O/L Past Papers - SAEDS"
+        description="Access Sri Lanka's largest free student E-Library. Download GCE A/L past papers, O/L model papers, and educational resources for Science, Commerce, Arts, and Technology streams."
       />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="mb-6">
-          <h1 className="text-3xl font-bold text-gray-900 mb-1">Browse Books</h1>
+          <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-2">
+            SAEDS Free E-Library: A/L & O/L Resources
+          </h1>
           <p className="text-gray-600 text-sm">
-            Explore our collection of {books.length} books
+            Explore our collection of {books.length} books, past papers, and educational materials
           </p>
         </div>
 
@@ -556,6 +558,29 @@ const Browse = () => {
             <p className="text-gray-600">
               No books found. Use the Admin panel to add books or upload files to the E-Library.
             </p>
+            {/* SEO Content Block */}
+            <div className="bg-white rounded-lg shadow-sm p-6 mt-12 border-t-4 border-primary-600">
+              <h2 className="text-2xl font-bold text-gray-900 mb-4">
+                Empowering Sri Lankan Students with Free Educational Resources
+              </h2>
+              <div className="prose max-w-none text-gray-600">
+                <p className="mb-4">
+                  Welcome to the SAEDS E-Library, your premier destination for <strong>free educational resources in Sri Lanka</strong>.
+                  We understand the challenges students face in accessing quality study materials, which is why we have curated a comprehensive collection of
+                  <strong>GCE A/L past papers</strong>, marking schemes, and <strong>O/L model papers</strong>.
+                </p>
+                <p className="mb-4">
+                  Whether you are studying in the <strong>Science (Bio/Maths)</strong>, <strong>Commerce</strong>, <strong>Arts</strong>, or
+                  <strong>Technology</strong> stream, our digital library provides easy access to the tools you need to succeed.
+                  Our platform is designed to support students from Mannar to Colombo, ensuring that every student has the opportunity to excel in their exams.
+                </p>
+                <p>
+                  Explore our vast collection of reference books, teacher guides, and term test papers.
+                  Join the <strong>SAEDS student community</strong> today and take advantage of these free resources to prepare for your future.
+                  Together, we are building a knowledgeable and sustainable society.
+                </p>
+              </div>
+            </div>
           </div>
         )}
       </div>

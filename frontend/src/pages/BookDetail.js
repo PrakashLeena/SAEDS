@@ -3,6 +3,7 @@ import { useParams, Link, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Star, Download, BookOpen, Calendar, FileText, Globe, Heart, Share2 } from 'lucide-react';
 import api from '../services/api';
 import { useAuth } from '../context/AuthContext';
+import SEO from '../components/SEO';
 
 const PDF_REGEX = /\.pdf(\?.*)?$/i;
 
@@ -12,11 +13,10 @@ const StarRating = memo(({ rating }) => (
     {[...Array(5)].map((_, i) => (
       <Star
         key={i}
-        className={`h-5 w-5 ${
-          i < Math.floor(rating)
-            ? 'text-yellow-400 fill-current'
-            : 'text-gray-300'
-        }`}
+        className={`h-5 w-5 ${i < Math.floor(rating)
+          ? 'text-yellow-400 fill-current'
+          : 'text-gray-300'
+          }`}
       />
     ))}
     <span className="ml-2 text-lg font-semibold text-gray-700">
@@ -80,7 +80,7 @@ const BookDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { currentUser } = useAuth();
-  
+
   const [book, setBook] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -90,7 +90,7 @@ const BookDetail = () => {
   const [downloadsCount, setDownloadsCount] = useState(0);
   const [favoritesCount, setFavoritesCount] = useState(0);
   const [backendUser, setBackendUser] = useState(null);
-  
+
   const viewerRef = useRef(null);
   const urlCacheRef = useRef(null);
 
@@ -108,7 +108,7 @@ const BookDetail = () => {
   // Shared function to resolve PDF URL
   const resolvePdfUrl = useCallback(async () => {
     if (urlCacheRef.current) return urlCacheRef.current;
-    
+
     try {
       const f = await api.book.getFile(id);
       if (f?.data?.fileId) {
@@ -123,19 +123,19 @@ const BookDetail = () => {
     } catch (err) {
       console.error('No file found', err);
     }
-    
+
     if (book?.pdfUrl && PDF_REGEX.test(book.pdfUrl)) {
       urlCacheRef.current = book.pdfUrl;
       return book.pdfUrl;
     }
-    
+
     return null;
   }, [book?.pdfUrl, id]);
 
   // Shared function to refresh user profile
   const refreshUserProfile = useCallback(async () => {
     if (!currentUser) return;
-    
+
     try {
       const ru = await api.user.getByFirebaseUid(currentUser.uid);
       if (ru?.data) {
@@ -162,21 +162,21 @@ const BookDetail = () => {
   // Load book data
   useEffect(() => {
     let mounted = true;
-    
+
     const loadBook = async () => {
       try {
         const res = await api.book.getById(id);
         if (!mounted) return;
-        
+
         const b = res.data || {};
         b.year = b.publishedYear || (b.createdAt ? new Date(b.createdAt).getFullYear() : '');
         b.pages = b.pages || 0;
         b.downloads = b.downloads || 0;
         b.rating = b.rating || 0;
         b.available = Boolean(b.pdfUrl || b.coverImage);
-        
+
         setBook(b);
-        
+
         // Load stats
         try {
           const statsRes = await api.book.getStats(id);
@@ -194,7 +194,7 @@ const BookDetail = () => {
         if (mounted) setLoading(false);
       }
     };
-    
+
     loadBook();
     return () => { mounted = false; };
   }, [id]);
@@ -202,19 +202,19 @@ const BookDetail = () => {
   // Load user data and check favorites
   useEffect(() => {
     let mounted = true;
-    
+
     const loadUser = async () => {
       if (!currentUser) return;
-      
+
       try {
         const res = await api.user.getByFirebaseUid(currentUser.uid);
         if (!mounted) return;
-        
+
         if (res?.data) {
           setBackendUser(res.data);
-          
+
           if (Array.isArray(res.data.favorites) && book) {
-            const has = res.data.favorites.some(f => 
+            const has = res.data.favorites.some(f =>
               (f._id ? f._id === book._id : f === book._id || f === id)
             );
             setIsFavorite(has);
@@ -224,7 +224,7 @@ const BookDetail = () => {
         console.error('Failed to load backend user', err);
       }
     };
-    
+
     loadUser();
     return () => { mounted = false; };
   }, [currentUser, book, id]);
@@ -235,10 +235,10 @@ const BookDetail = () => {
     if (!url) return;
 
     try {
-      await api.book.incrementDownload(book._id || id, { 
-        firebaseUid: currentUser?.uid 
+      await api.book.incrementDownload(book._id || id, {
+        firebaseUid: currentUser?.uid
       });
-      
+
       await Promise.all([
         refreshStats(),
         refreshUserProfile()
@@ -265,8 +265,8 @@ const BookDetail = () => {
     if (!url) return;
 
     try {
-      await api.book.markRead(book._id || id, { 
-        firebaseUid: currentUser?.uid 
+      await api.book.markRead(book._id || id, {
+        firebaseUid: currentUser?.uid
       });
       await refreshStats();
     } catch (err) {
@@ -275,7 +275,7 @@ const BookDetail = () => {
 
     setViewerUrl(url);
     setShowViewer(true);
-    
+
     setTimeout(() => {
       viewerRef.current?.scrollIntoView({ behavior: 'smooth' });
     }, 150);
@@ -284,10 +284,10 @@ const BookDetail = () => {
   // Handle favorite toggle
   const handleFavoriteToggle = useCallback(async () => {
     let userId = backendUser?._id;
-    
+
     if (!userId) {
       if (!currentUser) return navigate('/signin');
-      
+
       try {
         const ru = await api.user.getByFirebaseUid(currentUser.uid);
         if (ru?.data) {
@@ -309,9 +309,9 @@ const BookDetail = () => {
       } else {
         await api.user.removeFavorite(userId, id);
       }
-      
+
       setIsFavorite(!isFavorite);
-      
+
       await Promise.all([
         refreshStats(),
         refreshUserProfile()
@@ -329,14 +329,14 @@ const BookDetail = () => {
   // Handle open in new tab from viewer
   const handleOpenNewTab = useCallback(async () => {
     try {
-      await api.book.incrementDownload(book._id || id, { 
-        firebaseUid: currentUser?.uid 
+      await api.book.incrementDownload(book._id || id, {
+        firebaseUid: currentUser?.uid
       });
       await refreshUserProfile();
     } catch (err) {
       console.error(err);
     }
-    
+
     window.open(viewerUrl, '_blank', 'noopener,noreferrer');
   }, [book, id, currentUser, viewerUrl, refreshUserProfile]);
 
@@ -344,7 +344,7 @@ const BookDetail = () => {
   const statsDisplay = useMemo(() => {
     const downloads = downloadsCount || book?.downloads || 0;
     const favorites = favoritesCount || 0;
-    
+
     return (
       <>
         <span className="text-gray-600">
@@ -384,6 +384,12 @@ const BookDetail = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
+      {book && (
+        <SEO
+          title={`${book.title} | Free Download - SAEDS E-Library`}
+          description={`Download ${book.title} for free. Get the best study materials for ${book.category} students in Sri Lanka. Available now at SAEDS E-Library.`}
+        />
+      )}
       {/* Back Button */}
       <div className="bg-white border-b">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
@@ -409,9 +415,8 @@ const BookDetail = () => {
                   loading="eager"
                   className="w-full rounded-lg shadow-lg"
                 />
-                <span className={`absolute top-4 right-4 px-3 py-1 rounded-full text-sm font-semibold text-white ${
-                  book.available ? 'bg-green-500' : 'bg-red-500'
-                }`}>
+                <span className={`absolute top-4 right-4 px-3 py-1 rounded-full text-sm font-semibold text-white ${book.available ? 'bg-green-500' : 'bg-red-500'
+                  }`}>
                   {book.available ? 'Available' : 'Unavailable'}
                 </span>
               </div>
@@ -436,11 +441,10 @@ const BookDetail = () => {
                 <div className="flex space-x-2">
                   <button
                     onClick={handleFavoriteToggle}
-                    className={`flex-1 py-3 px-4 rounded-lg font-semibold flex items-center justify-center space-x-2 transition-colors ${
-                      isFavorite
-                        ? 'bg-red-50 border-2 border-red-500 text-red-500'
-                        : 'bg-white border-2 border-gray-300 text-gray-700 hover:border-red-500 hover:text-red-500'
-                    }`}
+                    className={`flex-1 py-3 px-4 rounded-lg font-semibold flex items-center justify-center space-x-2 transition-colors ${isFavorite
+                      ? 'bg-red-50 border-2 border-red-500 text-red-500'
+                      : 'bg-white border-2 border-gray-300 text-gray-700 hover:border-red-500 hover:text-red-500'
+                      }`}
                   >
                     <Heart className={`h-5 w-5 ${isFavorite ? 'fill-current' : ''}`} />
                     <span>{isFavorite ? 'Saved' : 'Save'}</span>
@@ -460,7 +464,7 @@ const BookDetail = () => {
               <div className="mb-6">
                 <h1 className="text-4xl font-bold text-gray-900 mb-2">{book.title}</h1>
                 <p className="text-xl text-gray-600 mb-4">by {book.author}</p>
-                
+
                 <div className="flex items-center space-x-4 mb-4">
                   <StarRating rating={book.rating} />
                   <span className="text-gray-400">|</span>
@@ -486,9 +490,24 @@ const BookDetail = () => {
 
               {/* Description */}
               <div className="mb-8">
-                <h2 className="text-2xl font-bold text-gray-900 mb-4">About this book</h2>
-                <p className="text-gray-700 leading-relaxed">{book.description}</p>
+                <h2 className="text-2xl font-bold text-gray-900 mb-4">About this Resource</h2>
+                <div className="prose text-gray-600 mb-8">
+                  <p>{book.description}</p>
+                  <p className="mt-4">
+                    This resource is part of the <strong>SAEDS E-Library collection</strong>, dedicated to helping Sri Lankan students achieve academic excellence.
+                    By downloading this <strong>{book.category} material</strong>, you gain access to high-quality content curated by educators and student leaders.
+                  </p>
+                  <p className="mt-2">
+                    <strong>Why use SAEDS?</strong> We provide fast, free, and reliable downloads for GCE A/L and O/L students.
+                    Prepare for your exams with confidence using our verified past papers and model questions.
+                  </p>
+                </div>
               </div>
+
+              {/* Related Section Title (Placeholder for future) */}
+              <h3 className="text-lg font-bold text-gray-900 mb-4">
+                More {book.category} Resources
+              </h3>
             </div>
 
             {/* PDF Viewer */}

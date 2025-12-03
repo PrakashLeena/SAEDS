@@ -18,45 +18,6 @@
   <script type="application/ld+json">
 {
   "@context": "https://schema.org",
-  "@type": "NGO",
-  "name": "SAEDS",
-  "alternateName": "Student Association for Environmental Development & Sustainability",
-  "url": "https://saeds.vercel.app/",
-  "logo": "https://saeds.vercel.app/logo.png",
-  "description": "A student-led association dedicated to educational development and environmental sustainability in Mannar and Sri Lanka.",
-  "areaServed": {
-    "@type": "City",
-    "name": "Mannar",
-    "address": {
-      "@type": "PostalAddress",
-      "addressCountry": "LK",
-      "addressRegion": "Northern Province",
-      "addressLocality": "Mannar"
-    }
-  },
-  "address": {
-    "@type": "PostalAddress",
-    "addressLocality": "Mannar",
-    "addressRegion": "Northern Province",
-    "addressCountry": "LK"
-  },
-  "sameAs": [
-    "https://www.facebook.com/saeds",
-    "https://twitter.com/saeds",
-    "https://www.linkedin.com/company/saeds"
-  ],
-  "contactPoint": {
-    "@type": "ContactPoint",
-    "contactType": "customer support",
-    "areaServed": "LK",
-    "availableLanguage": ["English", "Sinhala", "Tamil"]
-  }
-}
-</script>
-
-  <script type="application/ld+json">
-{
-  "@context": "https://schema.org",
   "@graph": [
     {
       "@type": "WebSite",
@@ -81,9 +42,16 @@
       "description": "A student-led association dedicated to educational development and environmental sustainability in Mannar and Sri Lanka.",
       "address": {
         "@type": "PostalAddress",
+        "streetAddress": "Main Street",
         "addressLocality": "Mannar",
         "addressRegion": "Northern Province",
+        "postalCode": "41000",
         "addressCountry": "LK"
+      },
+      "geo": {
+        "@type": "GeoCoordinates",
+        "latitude": "8.9810",
+        "longitude": "79.9044"
       },
       "areaServed": {
         "@type": "City",
@@ -92,7 +60,8 @@
       "sameAs": [
         "https://www.facebook.com/saeds",
         "https://twitter.com/saeds",
-        "https://www.linkedin.com/company/saeds"
+        "https://www.linkedin.com/company/saeds",
+        "https://www.instagram.com/saeds"
       ],
       "priceRange": "$0",
       "contactPoint": {
@@ -101,6 +70,19 @@
         "areaServed": "LK",
         "availableLanguage": ["English", "Sinhala", "Tamil"]
       }
+    },
+    {
+      "@type": "WebPage",
+      "@id": "https://saeds.vercel.app/#webpage",
+      "url": "https://saeds.vercel.app/",
+      "name": "SAEDS Community Hub | Sri Lanka's Premier Student E-Library & Environment Association",
+      "isPartOf": {
+        "@id": "https://saeds.vercel.app/#website"
+      },
+      "about": {
+        "@id": "https://saeds.vercel.app/#organization"
+      },
+      "description": "Join SAEDS, the Student Association for Environmental Development. Access free A/L & O/L past papers, E-Library resources, and join our student community in Sri Lanka."
     },
     {
       "@type": "BreadcrumbList",
@@ -131,38 +113,56 @@
           "item": "https://saeds.vercel.app/contact"
         }
       ]
+    },
+    {
+      "@type": "FAQPage",
+      "@id": "https://saeds.vercel.app/#faq",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "How can I join SAEDS?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "You can join SAEDS by visiting our 'Join Us' page and filling out the membership application form. Membership is open to all students interested in environmental development and education."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Is the E-Library free to use?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Yes, the SAEDS E-Library is completely free. We provide access to A/L and O/L past papers, model papers, and reference books to support students in Sri Lanka."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Where is SAEDS located?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "SAEDS is based in Mannar, Northern Province, Sri Lanka. We operate various community projects and educational seminars throughout the region."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Can I volunteer for environmental projects?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Absolutely! We welcome volunteers for our tree planting campaigns, beach cleanups, and sustainability workshops. Contact us or join our community to get involved."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Do you offer seminars for A/L students?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Yes, we organize free seminars and workshops for GCE Advanced Level (A/L) and Ordinary Level (O/L) students, featuring experienced teachers and lecturers."
+          }
+        }
+      ]
     }
   ]
 }
 </script>
-
-  {
-  "@context": "https://schema.org",
-  "@type": "WebSite",
-  "url": "https://saeds.vercel.app/",
-  "name": "SAEDS Community Hub",
-  "potentialAction": {
-  "@type": "SearchAction",
-  "target": "https://saeds.vercel.app/search?q={search_term_string}",
-  "query-input": "required name=search_term_string"
-  }
-  }
-
-  {
-  "@context": "https://schema.org",
-  "@type": "BreadcrumbList",
-  "itemListElement": [{
-  "@type": "ListItem",
-  "position": 1,
-  "name": "Home",
-  "item": "https://saeds.vercel.app/"
-  },{
-  "@type": "ListItem",
-  "position": 2,
-  "name": "Join Us",
-  "item": "https://saeds.vercel.app/join"
-  }]
-  }
 
   <!-- Open Graph / Facebook -->
   <meta property="og:type" content="website" />

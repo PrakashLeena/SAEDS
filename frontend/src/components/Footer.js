@@ -5,11 +5,11 @@ import { Link } from 'react-router-dom';
 // Memoized link component to prevent re-renders
 const FooterLink = memo(({ to, href, children, external = false }) => {
   const linkClass = "text-sm hover:text-primary-500 transition-colors";
-  
+
   if (external || href) {
     return (
-      <a 
-        href={href} 
+      <a
+        href={href}
         className={linkClass}
         target={external ? "_blank" : undefined}
         rel={external ? "noopener noreferrer" : undefined}
@@ -18,7 +18,7 @@ const FooterLink = memo(({ to, href, children, external = false }) => {
       </a>
     );
   }
-  
+
   return (
     <Link to={to} className={linkClass}>
       {children}
@@ -41,7 +41,7 @@ ContactItem.displayName = 'ContactItem';
 const Footer = memo(() => {
   // Memoize current year to prevent recalculation
   const currentYear = useMemo(() => new Date().getFullYear(), []);
-  
+
   // Memoize navigation sections
   const quickLinks = useMemo(() => [
     { to: '/', label: 'Home' },
@@ -75,8 +75,8 @@ const Footer = memo(() => {
         Building connections, sharing knowledge, and growing together as a vibrant community.
       </p>
       <div className="flex space-x-4">
-        <a 
-          href="https://www.facebook.com/share/19wmzf2Byh/" 
+        <a
+          href="https://www.facebook.com/share/19wmzf2Byh/"
           className="text-gray-400 hover:text-primary-500 transition-colors"
           target="_blank"
           rel="noopener noreferrer"
@@ -113,8 +113,8 @@ const Footer = memo(() => {
             <ul className="space-y-2">
               {services.map((service, index) => (
                 <li key={service.to || service.href || index}>
-                  <FooterLink 
-                    to={service.to} 
+                  <FooterLink
+                    to={service.to}
                     href={service.href}
                   >
                     {service.label}
@@ -135,6 +135,15 @@ const Footer = memo(() => {
               ))}
             </ul>
           </div>
+        </div>
+
+        {/* SEO Paragraph */}
+        <div className="mt-8 pt-8 border-t border-gray-800 text-sm text-gray-400">
+          <p>
+            Download free <strong>GCE A/L past papers</strong> and <strong>O/L model papers</strong> for Sri Lankan students.
+            SAEDS E-Library provides PDF downloads for all streams — Science, Commerce, Arts, and Technology.
+            Your trusted partner for <strong>educational development in Sri Lanka</strong>.
+          </p>
         </div>
 
         {/* Bottom Bar */}
