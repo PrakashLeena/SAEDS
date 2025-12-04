@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback, useMemo, memo } from 'react';
+import { Link } from 'react-router-dom';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { heroSlides } from '../data/slider';
 import OptimizedImage from './OptimizedImage';
@@ -72,18 +73,18 @@ const Slide = memo(({ slide, isActive }) => {
               className={`flex flex-col sm:flex-row gap-3 sm:gap-4 transition-all duration-700 delay-700 ${isActive ? 'translate-x-0 opacity-100' : '-translate-x-10 opacity-0'
                 }`}
             >
-              <a
-                href={slide.cta.primary.link}
+              <Link
+                to={slide.cta.primary.link}
                 className="px-6 sm:px-8 py-2.5 sm:py-3 bg-primary-600 hover:bg-primary-700 text-white font-bold rounded-lg transition-all hover:scale-105 shadow-lg text-center text-sm sm:text-base"
               >
                 {slide.cta.primary.text}
-              </a>
-              <a
-                href={slide.cta.secondary.link}
+              </Link>
+              <Link
+                to={slide.cta.secondary.link}
                 className="px-6 sm:px-8 py-2.5 sm:py-3 bg-white/90 hover:bg-white text-gray-900 font-bold rounded-lg transition-all hover:scale-105 shadow-lg text-center text-sm sm:text-base"
               >
                 {slide.cta.secondary.text}
-              </a>
+              </Link>
             </div>
           </div>
         </div>
