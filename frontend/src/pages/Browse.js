@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect, useCallback, memo } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Search, Filter, X, Folder, FolderOpen, ChevronRight, ChevronDown } from 'lucide-react';
 import BookCard from '../components/BookCard';
 import api from '../services/api';
@@ -242,6 +242,7 @@ SearchBar.displayName = 'SearchBar';
 
 const Browse = () => {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [sortBy, setSortBy] = useState('all');
@@ -249,6 +250,39 @@ const Browse = () => {
   const [loading, setLoading] = useState(true);
   const [selectedGrade, setSelectedGrade] = useState(null);
   const [selectedStream, setSelectedStream] = useState(null);
+
+  // Initialize category from URL params
+  useEffect(() => {
+    const categoryParam = searchParams.get('category');
+    if (categoryParam && CATEGORIES.includes(categoryParam)) {
+      setSelectedCategory(categoryParam);
+    } else {
+      setSelectedCategory('All');
+    }
+  }, [searchParams]);
+
+  // Dynamic SEO Title based on category
+  const seoTitle = useMemo(() => {
+    switch (selectedCategory) {
+      case 'A/L':
+        return 'GCE A/L Past Papers | Free Download';
+      case 'O/L':
+        return 'GCE O/L Past Papers | Free Download';
+      default:
+        return 'Free E-Library Sri Lanka | Download A/L & O/L Past Papers';
+    }
+  }, [selectedCategory]);
+
+  const seoDescription = useMemo(() => {
+    switch (selectedCategory) {
+      case 'A/L':
+        return 'Download GCE A/L past papers for all subjects. Free PDFs, answers, and marking schemes. Updated collection for Sri Lankan students.';
+      case 'O/L':
+        return 'Download GCE O/L past papers, model papers, and notes. Comprehensive free resources for Ordinary Level students in Sri Lanka.';
+      default:
+        return 'Access Sri Lanka\'s largest free student E-Library. Download GCE A/L past papers, O/L model papers, and educational resources for Science, Commerce, Arts, and Technology streams.';
+    }
+  }, [selectedCategory]);
 
   // Memoize sections (only recalculate if elibraryFolders changes)
   const sections = useMemo(() => flattenSections(elibraryFolders), []);
@@ -409,7 +443,13 @@ const Browse = () => {
 
   const handleCategoryChange = useCallback((category) => {
     setSelectedCategory(category);
-  }, []);
+    // Update URL params
+    if (category === 'All') {
+      setSearchParams({});
+    } else {
+      setSearchParams({ category });
+    }
+  }, [setSearchParams]);
 
   const handleSortChange = useCallback((e) => {
     setSortBy(e.target.value);
@@ -448,6 +488,76 @@ const Browse = () => {
     );
   }, [filteredAndSortedBooks.length, selectedCategory]);
 
+  // Dynamic Page Description based on category
+  const pageDescription = useMemo(() => {
+    switch (selectedCategory) {
+      case 'A/L':
+        return (
+          <>
+            <p className="mb-4">
+              Welcome to the ultimate resource for advanced level students. Here you can <strong>download GCE A/L past papers</strong> for all streams including Science, Commerce, Arts, and Technology. Our extensive library is updated regularly to ensure you have the latest materials for your exam preparation.
+            </p>
+            <div className="my-6">
+              <img
+                src="/images/al-papers.jpg"
+                alt="GCE A/L past papers PDF download"
+                className="w-full h-auto rounded-lg shadow-md object-cover max-h-[400px]"
+                loading="lazy"
+              />
+            </div>
+            <p>
+              All past papers are available as <strong>free PDF downloads</strong> with answers and marking schemes. Whether you are looking for Biology, Physics, Chemistry, or Combined Maths, we have you covered. Start practicing today to achieve your best results.
+            </p>
+          </>
+        );
+      case 'O/L':
+        return (
+          <>
+            <p className="mb-4">
+              Prepare for your Ordinary Level exams with our comprehensive collection. Here you can <strong>download GCE O/L past papers</strong>, model papers, and revision notes. We provide resources for all core subjects including Mathematics, Science, English, and Sinhala.
+            </p>
+            <p>
+              Access <strong>free PDF downloads</strong> of past papers with answers to help you understand the exam structure and improve your performance. Our goal is to support every student in achieving excellence.
+            </p>
+          </>
+        );
+      default:
+        return (
+          <>
+            <p className="mb-4">
+              Welcome to the SAEDS E-Library, your premier destination for <strong>free educational resources in Sri Lanka</strong>.
+              We understand the challenges students face in accessing quality study materials, which is why we have curated a comprehensive collection of
+              <strong>GCE A/L past papers</strong>, marking schemes, and <strong>O/L model papers</strong>.
+            </p>
+            <p className="mb-4">
+              Whether you are studying in the <strong>Science (Bio/Maths)</strong>, <strong>Commerce</strong>, <strong>Arts</strong>, or
+              <strong>Technology</strong> stream, our digital library provides easy access to the tools you need to succeed.
+              Our platform is designed to support students from Mannar to Colombo, ensuring that every student has the opportunity to excel in their exams.
+            </p>
+            <p>
+              Explore our vast collection of reference books, teacher guides, and term test papers.
+              Join the <strong>SAEDS student community</strong> today and take advantage of these free resources to prepare for your future.
+              Together, we are building a knowledgeable and sustainable society.
+            </p>
+          </>
+        );
+    }
+  }, [selectedCategory]);
+
+  // Structured Data for SEO
+  const structuredData = useMemo(() => {
+    if (selectedCategory === 'A/L') {
+      return {
+        "@context": "https://schema.org",
+        "@type": "ItemList",
+        "name": "GCE A/L Past Papers",
+        "description": "Free GCE A/L past papers with answers and marking schemes.",
+        "itemListElement": []
+      };
+    }
+    return null;
+  }, [selectedCategory]);
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 py-6 flex items-center justify-center">
@@ -462,14 +572,15 @@ const Browse = () => {
   return (
     <div className="min-h-screen bg-gray-50 py-6 animate-fade-in">
       <SEO
-        title="Free E-Library Sri Lanka | Download A/L & O/L Past Papers - SAEDS"
-        description="Access Sri Lanka's largest free student E-Library. Download GCE A/L past papers, O/L model papers, and educational resources for Science, Commerce, Arts, and Technology streams."
+        title={seoTitle}
+        description={seoDescription}
+        structuredData={structuredData}
       />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="mb-6">
           <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-2">
-            SAEDS Free E-Library: A/L & O/L Resources
+            {pageTitle}
           </h1>
           <p className="text-gray-600 text-sm">
             Explore our collection of {books.length} books, past papers, and educational materials
@@ -558,31 +669,18 @@ const Browse = () => {
             <p className="text-gray-600">
               No books found. Use the Admin panel to add books or upload files to the E-Library.
             </p>
-            {/* SEO Content Block */}
-            <div className="bg-white rounded-lg shadow-sm p-6 mt-12 border-t-4 border-primary-600">
-              <h2 className="text-2xl font-bold text-gray-900 mb-4">
-                Empowering Sri Lankan Students with Free Educational Resources
-              </h2>
-              <div className="prose max-w-none text-gray-600">
-                <p className="mb-4">
-                  Welcome to the SAEDS E-Library, your premier destination for <strong>free educational resources in Sri Lanka</strong>.
-                  We understand the challenges students face in accessing quality study materials, which is why we have curated a comprehensive collection of
-                  <strong>GCE A/L past papers</strong>, marking schemes, and <strong>O/L model papers</strong>.
-                </p>
-                <p className="mb-4">
-                  Whether you are studying in the <strong>Science (Bio/Maths)</strong>, <strong>Commerce</strong>, <strong>Arts</strong>, or
-                  <strong>Technology</strong> stream, our digital library provides easy access to the tools you need to succeed.
-                  Our platform is designed to support students from Mannar to Colombo, ensuring that every student has the opportunity to excel in their exams.
-                </p>
-                <p>
-                  Explore our vast collection of reference books, teacher guides, and term test papers.
-                  Join the <strong>SAEDS student community</strong> today and take advantage of these free resources to prepare for your future.
-                  Together, we are building a knowledgeable and sustainable society.
-                </p>
-              </div>
-            </div>
           </div>
         )}
+
+        {/* SEO Content Block - Always Visible */}
+        <div className="bg-white rounded-lg shadow-sm p-6 mt-12 border-t-4 border-primary-600">
+          <h2 className="text-2xl font-bold text-gray-900 mb-4">
+            {selectedCategory === 'All' ? 'Empowering Sri Lankan Students with Free Educational Resources' : pageTitle}
+          </h2>
+          <div className="prose max-w-none text-gray-600">
+            {pageDescription}
+          </div>
+        </div>
       </div>
     </div>
   );
