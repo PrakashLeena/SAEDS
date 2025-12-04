@@ -5,7 +5,7 @@ import api from '../services/api';
 import { useScrollAnimation } from '../hooks/useScrollAnimation';
 import SEO from '../components/SEO';
 
-const HeroSlider = lazy(() => import('../components/HeroSlider'));
+import HeroSlider from '../components/HeroSlider';
 const JoinModal = lazy(() => import('../components/JoinModal'));
 
 const resolveRole = (member) => {
@@ -341,9 +341,7 @@ const Home = () => {
         description="Join SAEDS, the Student Association for Environmental Development. Access free A/L & O/L past papers, E-Library resources, and join our student community in Sri Lanka."
       />
       {/* Hero Slider */}
-      <Suspense fallback={<HeroLoading />}>
-        <HeroSlider onOpenJoinModal={openJoinModal} />
-      </Suspense>
+      <HeroSlider onOpenJoinModal={openJoinModal} />
 
       {/* Main H1 Section */}
       <div className="bg-white py-8 border-b border-gray-100">

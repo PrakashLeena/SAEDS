@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback, useMemo, memo } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { heroSlides } from '../data/slider';
+import OptimizedImage from './OptimizedImage';
 
 // Memoized slide component
 const Slide = memo(({ slide, isActive }) => {
@@ -20,9 +21,11 @@ const Slide = memo(({ slide, isActive }) => {
     <div className="relative h-full w-full">
       {/* Background Image */}
       <div className="absolute inset-0">
-        <img
+        <OptimizedImage
           src={slide.image}
           alt={slide.title}
+          width={1920}
+          height={1080}
           className={`w-full h-full object-cover transition-transform duration-[10000ms] ease-out ${isActive ? 'scale-110' : 'scale-100'
             }`}
           loading={slide.id === 1 ? "eager" : "lazy"}

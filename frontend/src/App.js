@@ -7,7 +7,7 @@ import Footer from './components/Footer';
 import ErrorBoundary from './components/ErrorBoundary';
 import ProtectedRoute from './components/ProtectedRoute';
 // Lazy-loaded pages
-const Home = lazy(() => import('./pages/Home'));
+import Home from './pages/Home';
 const Browse = lazy(() => import('./pages/Browse'));
 const BrowseSection = lazy(() => import('./pages/BrowseSection'));
 const BookDetail = lazy(() => import('./pages/BookDetail'));
