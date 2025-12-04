@@ -6,7 +6,7 @@ const WorkshopCard = ({
     description,
     date,
     location = "Mannar, Sri Lanka",
-    image = "/logo.webp"
+    image = "/logo.png"
 }) => {
     return (
         <div className="flex flex-col md:flex-row bg-white rounded-2xl shadow-sm hover:shadow-lg transition-shadow duration-300 overflow-hidden border border-gray-100">

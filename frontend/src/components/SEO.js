@@ -4,7 +4,7 @@ import { Helmet } from 'react-helmet-async';
 const SEO = ({ title, description, name, type, image, url, structuredData }) => {
   const siteTitle = "SAEDS Community Hub";
   const defaultDescription = "Join the Student Association for Environmental Development & Sustainability. Explore our library, activities, and community events.";
-  const defaultImage = "/logo.webp"; // Ensure this exists in public folder
+  const defaultImage = "/logo.png"; // Ensure this exists in public folder
   const siteUrl = "https://saeds.org"; // Replace with actual domain if known, or use window.location.origin
 
   return (
