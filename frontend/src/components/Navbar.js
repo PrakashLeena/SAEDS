@@ -3,7 +3,7 @@ import { Link, useLocation } from 'react-router-dom';
 import { Search, User, Menu, X, Home, Library, Image, LogIn, Shield, Mail, Users } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { userAPI } from '../services/api';
-import img from '../assets/images/logo.png';
+import img from '../assets/images/logo.webp';
 
 // Memoized nav link component
 const NavLink = memo(({ link, isActive, onClick, isMobile = false }) => {
@@ -13,7 +13,7 @@ const NavLink = memo(({ link, isActive, onClick, isMobile = false }) => {
   const activeClass = isActive
     ? 'text-primary-600 bg-primary-50'
     : 'text-gray-700 hover:text-primary-600 hover:bg-gray-50';
-  
+
   return (
     <Link
       to={link.path}
@@ -35,7 +35,7 @@ const AdminLink = memo(({ isActive, onClick, isMobile = false }) => {
   const activeClass = isActive
     ? 'text-purple-600 bg-purple-50'
     : 'text-gray-700 hover:text-purple-600 hover:bg-purple-50';
-  
+
   return (
     <Link
       to="/admin"
@@ -74,7 +74,7 @@ const AuthButtons = memo(({ isMobile = false, onClick }) => {
       </>
     );
   }
-  
+
   return (
     <div className="flex items-center space-x-2">
       <Link
@@ -118,7 +118,7 @@ const Navbar = memo(() => {
   const isActive = useCallback((path) => location.pathname === path, [location.pathname]);
 
   // Memoized admin check status
-  const isAdminPath = useMemo(() => 
+  const isAdminPath = useMemo(() =>
     location.pathname.startsWith('/admin'),
     [location.pathname]
   );
@@ -133,7 +133,7 @@ const Navbar = memo(() => {
 
       // Prevent duplicate checks
       if (isCheckingAdmin) return;
-      
+
       setIsCheckingAdmin(true);
       try {
         const { data } = await userAPI.getByFirebaseUid(currentUser.uid);
@@ -172,11 +172,10 @@ const Navbar = memo(() => {
           {isAdmin && <AdminLink isActive={isAdminPath} />}
           <Link
             to="/profile"
-            className={`p-2 rounded-full transition-all hover:scale-110 ${
-              isActive('/profile')
+            className={`p-2 rounded-full transition-all hover:scale-110 ${isActive('/profile')
                 ? 'text-primary-600 bg-primary-50'
                 : 'text-gray-600 hover:text-primary-600 hover:bg-gray-100'
-            }`}
+              }`}
           >
             <User className="h-5 w-5" />
           </Link>
@@ -192,20 +191,19 @@ const Navbar = memo(() => {
       return (
         <>
           {isAdmin && (
-            <AdminLink 
-              isActive={isAdminPath} 
+            <AdminLink
+              isActive={isAdminPath}
               onClick={handleMobileMenuClose}
-              isMobile 
+              isMobile
             />
           )}
           <Link
             to="/profile"
             onClick={handleMobileMenuClose}
-            className={`flex items-center space-x-2 px-3 py-2 rounded-md text-base font-medium ${
-              isActive('/profile')
+            className={`flex items-center space-x-2 px-3 py-2 rounded-md text-base font-medium ${isActive('/profile')
                 ? 'text-primary-600 bg-primary-50'
                 : 'text-gray-700 hover:text-primary-600 hover:bg-gray-50'
-            }`}
+              }`}
           >
             <User className="h-5 w-5" />
             <span>Profile</span>
@@ -221,14 +219,14 @@ const Navbar = memo(() => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
-          <Link 
-            to="/" 
+          <Link
+            to="/"
             className="flex items-center space-x-2 hover:scale-105 transition-transform"
             onClick={handleMobileMenuClose}
           >
-            <img 
-              src={img} 
-              alt="SAEDS Logo" 
+            <img
+              src={img}
+              alt="SAEDS Logo"
               className="h-10 w-10 object-contain"
               loading="eager"
             />
@@ -248,7 +246,7 @@ const Navbar = memo(() => {
 
           {/* Right side icons */}
           <div className="hidden md:flex items-center space-x-4">
-            <button 
+            <button
               className="p-2 text-gray-600 hover:text-primary-600 hover:bg-gray-100 rounded-full transition-all hover:scale-110 hover:rotate-12"
               aria-label="Search"
             >

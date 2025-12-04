@@ -511,7 +511,7 @@ const Browse = () => {
             </p>
             <div className="my-6">
               <img
-                src="/images/al-papers.jpg"
+                src="/images/al-papers.webp"
                 alt="GCE A/L past papers PDF download"
                 className="w-full h-auto rounded-lg shadow-md object-cover max-h-[400px]"
                 loading="lazy"

@@ -229,7 +229,7 @@ const UserForm = () => {
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Profile Photo (Optional)
             </label>
-            
+
             {photoPreview || formData.photoURL ? (
               <div className="flex items-start space-x-4">
                 <div className="relative">
@@ -282,7 +282,7 @@ const UserForm = () => {
                 </p>
               </div>
             )}
-            
+
             {/* Manual URL input as fallback */}
             <div className="mt-3">
               <label className="text-xs text-gray-600 mb-1 block">Or enter photo URL manually:</label>
@@ -293,7 +293,7 @@ const UserForm = () => {
                   name="photoURL"
                   value={formData.photoURL}
                   onChange={handleChange}
-                  placeholder="https://example.com/photo.jpg"
+                  placeholder="https://example.com/photo.webp"
                   className="w-full pl-9 pr-4 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                 />
               </div>

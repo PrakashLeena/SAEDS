@@ -247,7 +247,7 @@ const BookForm = () => {
             <p className="text-sm text-red-800">{error}</p>
           </div>
         )}
-        
+
         {success && (
           <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-6">
             <p className="text-sm text-green-800">{success}</p>
@@ -326,7 +326,7 @@ const BookForm = () => {
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Cover Image *
               </label>
-              
+
               {formData.coverImage ? (
                 <div className="flex items-start space-x-4">
                   <div className="relative">
@@ -378,7 +378,7 @@ const BookForm = () => {
                   </p>
                 </div>
               )}
-              
+
               {/* Manual URL input */}
               <div className="mt-3">
                 <label className="text-xs text-gray-600 mb-1 block">Or enter image URL:</label>
@@ -388,7 +388,7 @@ const BookForm = () => {
                   value={formData.coverImage}
                   onChange={handleChange}
                   className="w-full px-4 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                  placeholder="https://example.com/cover.jpg"
+                  placeholder="https://example.com/cover.webp"
                 />
               </div>
             </div>
@@ -398,7 +398,7 @@ const BookForm = () => {
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Book PDF (Optional)
               </label>
-              
+
               {formData.pdfUrl ? (
                 <div className="bg-green-50 border border-green-200 rounded-lg p-4">
                   <div className="flex items-center justify-between">
@@ -458,7 +458,7 @@ const BookForm = () => {
                   </p>
                 </div>
               )}
-              
+
               {/* Manual URL input */}
               <div className="mt-3">
                 <label className="text-xs text-gray-600 mb-1 block">Or enter PDF URL:</label>
