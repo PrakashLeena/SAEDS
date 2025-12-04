@@ -488,6 +488,18 @@ const Browse = () => {
     );
   }, [filteredAndSortedBooks.length, selectedCategory]);
 
+  // Dynamic Page Title based on category
+  const pageTitle = useMemo(() => {
+    switch (selectedCategory) {
+      case 'A/L':
+        return 'GCE A/L Past Papers';
+      case 'O/L':
+        return 'GCE O/L Past Papers';
+      default:
+        return 'SAEDS Free E-Library: A/L & O/L Resources';
+    }
+  }, [selectedCategory]);
+
   // Dynamic Page Description based on category
   const pageDescription = useMemo(() => {
     switch (selectedCategory) {
