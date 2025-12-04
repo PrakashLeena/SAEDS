@@ -2,6 +2,8 @@ import React, { useEffect, useState, useCallback, useMemo, memo } from 'react';
 import api from '../services/api';
 import BounceCards from '../components/BounceCards';
 import SEO from '../components/SEO';
+import OptimizedImage from '../components/OptimizedImage';
+import { applyPreset } from '../utils/cloudinaryHelper';
 
 // Memoized loading state
 const LoadingState = memo(() => (
@@ -28,9 +30,11 @@ const AlbumCard = memo(({ album, coverImage, imageCount, onClick }) => (
     <div className="flex items-center">
       <div className="w-16 h-16 flex-shrink-0 overflow-hidden bg-gray-100 flex items-center justify-center">
         {coverImage ? (
-          <img
-            src={coverImage.url}
+          <OptimizedImage
+            src={applyPreset(coverImage.url, 'thumbnail')}
             alt={album.title}
+            width={64}
+            height={64}
             className="w-full h-full object-cover"
             loading="lazy"
           />
@@ -60,9 +64,11 @@ AlbumCard.displayName = 'AlbumCard';
 const ImageCard = memo(({ image }) => (
   <div className="bg-white rounded-lg overflow-hidden shadow hover:shadow-lg transition-shadow">
     <a href={image.url} target="_blank" rel="noreferrer">
-      <img
-        src={image.url}
+      <OptimizedImage
+        src={applyPreset(image.url, 'card')}
         alt={image.title || 'Gallery image'}
+        width={400}
+        height={300}
         className="w-full h-48 object-cover"
         loading="lazy"
       />

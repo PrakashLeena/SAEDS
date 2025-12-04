@@ -513,6 +513,8 @@ const Browse = () => {
               <img
                 src="/images/al-papers.webp"
                 alt="GCE A/L past papers PDF download"
+                width={1200}
+                height={400}
                 className="w-full h-auto rounded-lg shadow-md object-cover max-h-[400px]"
                 loading="lazy"
               />

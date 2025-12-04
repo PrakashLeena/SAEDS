@@ -4,6 +4,8 @@ import api from '../services/api';
 import { useScrollAnimation } from '../hooks/useScrollAnimation';
 
 import SEO from '../components/SEO';
+import OptimizedImage from '../components/OptimizedImage';
+import { applyPreset } from '../utils/cloudinaryHelper';
 
 // Constants
 const DEFAULT_CATEGORIES = ['All'];
@@ -74,9 +76,11 @@ const ActivityCard = memo(({ activity, index, onClick }) => {
         {/* Image */}
         <div className="relative h-80 overflow-hidden bg-gray-200">
           {activity.image ? (
-            <img
-              src={activity.image}
+            <OptimizedImage
+              src={applyPreset(activity.image, 'card')}
               alt={activity.title}
+              width={400}
+              height={320}
               loading="lazy"
               className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
             />
@@ -172,10 +176,13 @@ const ActivityModal = memo(({ activity, onClose }) => {
           {/* Large Image */}
           <div className="relative h-96 lg:h-auto">
             {activity.image ? (
-              <img
-                src={activity.image}
+              <OptimizedImage
+                src={applyPreset(activity.image, 'gallery')}
                 alt={activity.title}
+                width={600}
+                height={400}
                 className="w-full h-full object-cover"
+                loading="eager"
               />
             ) : (
               <div className="w-full h-full bg-gray-100 flex items-center justify-center">

@@ -4,6 +4,8 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { books } from '../data/books';
 import api from '../services/api';
+import OptimizedImage from '../components/OptimizedImage';
+import { applyPreset } from '../utils/cloudinaryHelper';
 
 // Memoized stat card component
 const StatCard = memo(({ icon: Icon, value, label, color }) => (
@@ -31,15 +33,17 @@ InfoRow.displayName = 'InfoRow';
 // Memoized recent activity item
 const ActivityItem = memo(({ book }) => (
   <div className="flex items-center space-x-4 p-4 rounded-lg hover:bg-gray-50 transition-colors border border-gray-200">
-    <img
-      src={book.coverImage}
+    <OptimizedImage
+      src={applyPreset(book.coverImage, 'thumbnail')}
       alt={book.title}
+      width={64}
+      height={96}
       className="w-16 h-24 object-cover rounded"
       loading="lazy"
     />
     <div className="flex-1">
-      <Link 
-        to={`/book/${book.id}`} 
+      <Link
+        to={`/book/${book.id}`}
         className="font-semibold text-gray-900 hover:text-primary-600 transition-colors"
       >
         {book.title}
@@ -82,11 +86,11 @@ const Profile = () => {
     const loadStats = async () => {
       try {
         if (!currentUser?.uid) return;
-        
+
         const res = await api.user.getByFirebaseUid(currentUser.uid);
-        
+
         if (!mounted || !res?.success || !res.data) return;
-        
+
         const userData = res.data;
         setStats({
           booksRead: userData.booksRead || 0,
@@ -107,7 +111,7 @@ const Profile = () => {
   const handleProfileUpdate = useCallback((e) => {
     const userData = e?.detail;
     if (!userData) return;
-    
+
     setStats({
       booksRead: userData.booksRead || 0,
       downloads: userData.downloads || 0,
@@ -131,13 +135,13 @@ const Profile = () => {
   // Memoized user data
   const user = useMemo(() => {
     if (!currentUser) return null;
-    
+
     return {
       name: currentUser.displayName || 'User',
       email: currentUser.email,
-      joinDate: new Date(currentUser.metadata.creationTime).toLocaleDateString('en-US', { 
-        month: 'long', 
-        year: 'numeric' 
+      joinDate: new Date(currentUser.metadata.creationTime).toLocaleDateString('en-US', {
+        month: 'long',
+        year: 'numeric'
       }),
       avatar: currentUser.photoURL || 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400&h=400&fit=crop',
     };
@@ -165,13 +169,15 @@ const Profile = () => {
         <div className="bg-white rounded-lg shadow-md p-8 mb-8">
           <div className="flex flex-col md:flex-row items-center md:items-start space-y-4 md:space-y-0 md:space-x-6">
             <div className="relative">
-              <img
-                src={user.avatar}
+              <OptimizedImage
+                src={applyPreset(user.avatar, 'profileCard')}
                 alt={user.name}
+                width={128}
+                height={128}
                 className="w-32 h-32 rounded-full object-cover border-4 border-primary-100"
                 loading="eager"
               />
-              <button 
+              <button
                 className="absolute bottom-0 right-0 bg-primary-600 text-white p-2 rounded-full hover:bg-primary-700 transition-colors"
                 aria-label="Edit profile picture"
               >
@@ -189,7 +195,7 @@ const Profile = () => {
                 <button className="bg-primary-600 text-white px-6 py-2 rounded-lg hover:bg-primary-700 transition-colors font-medium">
                   Edit Profile
                 </button>
-                <button 
+                <button
                   onClick={handleLogout}
                   className="bg-red-600 text-white px-6 py-2 rounded-lg hover:bg-red-700 transition-colors font-medium flex items-center space-x-2"
                 >
@@ -217,7 +223,7 @@ const Profile = () => {
         {/* Recent Activity */}
         <div className="bg-white rounded-lg shadow-md p-8">
           <h2 className="text-2xl font-bold text-gray-900 mb-6">Recent Activity</h2>
-          
+
           <div className="space-y-4">
             {recentBooks.map((book) => (
               <ActivityItem key={book.id} book={book} />
