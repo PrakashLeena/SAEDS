@@ -4,6 +4,8 @@ import { ArrowRight, BookOpen, Users, Calendar, Heart, Globe, TrendingUp, Trophy
 import api from '../services/api';
 import { useScrollAnimation } from '../hooks/useScrollAnimation';
 import SEO from '../components/SEO';
+import OptimizedImage from '../components/OptimizedImage';
+import { applyPreset } from '../utils/cloudinaryHelper';
 
 import HeroSlider from '../components/HeroSlider';
 const JoinModal = lazy(() => import('../components/JoinModal'));
@@ -113,9 +115,11 @@ const AchievementCard = memo(({ achievement, index, visible }) => {
       <div className="flex justify-center mb-3 md:mb-4">
         {achievement.imageURL ? (
           <div className="bg-white/20 p-2 rounded-lg">
-            <img
-              src={achievement.imageURL}
+            <OptimizedImage
+              src={applyPreset(achievement.imageURL, 'thumbnail')}
               alt={achievement.title}
+              width={80}
+              height={80}
               className="h-16 w-16 md:h-20 md:w-20 object-contain"
               loading="lazy"
             />
@@ -151,9 +155,11 @@ const MemberCard = memo(({ member, index }) => {
       className="flex-shrink-0 w-80 bg-white rounded-lg shadow-md p-6 hover:shadow-xl transition-all hover:-translate-y-2"
     >
       <div className="flex items-center space-x-4 mb-4">
-        <img
-          src={avatar}
+        <OptimizedImage
+          src={applyPreset(avatar, 'avatar')}
           alt={member.name}
+          width={64}
+          height={64}
           className="w-16 h-16 rounded-full object-cover border-2 border-primary-200"
           loading="lazy"
         />

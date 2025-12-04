@@ -2,6 +2,8 @@ import React, { useState, useEffect, useCallback, useMemo, memo } from 'react';
 import { TrendingUp, Mail, Phone, MapPin, Calendar, Search } from 'lucide-react';
 import { memberAPI } from '../services/api';
 import SEO from '../components/SEO';
+import OptimizedImage from '../components/OptimizedImage';
+import { applyPreset } from '../utils/cloudinaryHelper';
 
 const resolveRole = (member) => {
   if (!member || typeof member !== 'object') return '';
@@ -133,9 +135,11 @@ const MemberCard = memo(({ member, index }) => {
     <div className="bg-white rounded-lg shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden group">
       {/* Avatar Section */}
       <div className="relative h-48 bg-gradient-to-br from-primary-500 to-primary-700 flex items-center justify-center">
-        <img
-          src={avatar}
+        <OptimizedImage
+          src={applyPreset(avatar, 'profileCard')}
           alt={member.name}
+          width={128}
+          height={128}
           className="w-32 h-32 rounded-full object-cover border-4 border-white shadow-lg group-hover:scale-110 transition-transform duration-300"
           loading="lazy"
         />
