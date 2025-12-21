@@ -148,8 +148,8 @@ const BookForm = () => {
       return;
     }
 
-    if (file.size > 10 * 1024 * 1024) {
-      setError('PDF size should be less than 10MB');
+    if (file.size > 100 * 1024 * 1024) {
+      setError('PDF size should be less than 100MB');
       return;
     }
 
@@ -454,7 +454,7 @@ const BookForm = () => {
                     />
                   </label>
                   <p className="text-xs text-gray-500 mt-2">
-                    PDF up to 10MB
+                    PDF up to 100MB
                   </p>
                 </div>
               )}
