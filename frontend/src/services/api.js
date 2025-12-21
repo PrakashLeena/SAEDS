@@ -263,49 +263,7 @@ const uploadFile = async (endpoint, file, additionalData = {}) => {
 export const uploadAPI = {
   uploadProfilePhoto: (file) => uploadFile('profile-photo', file),
   uploadBookCover: (file) => uploadFile('book-cover', file),
-  uploadBookPDF: async (file) => {
-    const signatureResponse = await apiCall('/upload/book-pdf-signature', {
-      method: 'POST',
-      body: JSON.stringify({}),
-    });
-
-    if (!signatureResponse.success) {
-      throw new Error(signatureResponse.message || 'Failed to get upload signature');
-    }
-
-    const { cloudName, apiKey, timestamp, signature, folder } = signatureResponse.data;
-
-    const formData = new FormData();
-    formData.append('file', file);
-    formData.append('api_key', apiKey);
-    formData.append('timestamp', timestamp);
-    formData.append('signature', signature);
-    formData.append('folder', folder);
-
-    const response = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/raw/upload`, {
-      method: 'POST',
-      body: formData,
-    });
-
-    const result = await response.json();
-
-    if (!response.ok) {
-      const message =
-        (result && result.error && result.error.message) ||
-        (result && result.message) ||
-        'Failed to upload PDF';
-      throw new Error(message);
-    }
-
-    return {
-      success: true,
-      message: 'Book PDF uploaded successfully',
-      data: {
-        url: result.secure_url,
-        publicId: result.public_id,
-      },
-    };
-  },
+  uploadBookPDF: (file) => uploadFile('book-pdf', file),
   
   uploadElibraryFile: (file, data = {}) => {
     clearCachePattern('/upload/elibrary');

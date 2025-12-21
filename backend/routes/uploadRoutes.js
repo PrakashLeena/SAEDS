@@ -157,43 +157,6 @@ router.post('/book-pdf', upload.single('pdfFile'), async (req, res) => {
   }
 });
 
-router.post('/book-pdf-signature', (req, res) => {
-  try {
-    const timestamp = Math.round(Date.now() / 1000);
-    const folder = 'saeds/book-pdfs';
-    const cloudinaryConfig = cloudinary.config();
-    const apiSecret = process.env.CLOUDINARY_API_SECRET || cloudinaryConfig.api_secret;
-
-    if (!apiSecret) {
-      return res.status(500).json({
-        success: false,
-        message: 'Cloudinary API secret is not configured',
-      });
-    }
-
-    const paramsToSign = { timestamp, folder };
-    const signature = cloudinary.utils.api_sign_request(paramsToSign, apiSecret);
-
-    return res.json({
-      success: true,
-      data: {
-        cloudName: cloudinaryConfig.cloud_name,
-        apiKey: cloudinaryConfig.api_key,
-        timestamp,
-        signature,
-        folder,
-      },
-    });
-  } catch (error) {
-    console.error('Error generating book PDF upload signature:', error);
-    return res.status(500).json({
-      success: false,
-      message: 'Failed to generate upload signature',
-      error: error.message,
-    });
-  }
-});
-
 // Upload e-library file (admin)
 router.post('/elibrary', upload.single('file'), async (req, res) => {
   try {
