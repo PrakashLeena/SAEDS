@@ -481,9 +481,9 @@ router.get('/:id/download-file', async (req, res) => {
     let downloadUrl = pdfUrl;
 
     // If it's a Cloudinary URL, add the attachment flag
-    if (pdfUrl.includes('cloudinary.com')) {
+    // Note: fl_attachment only works for image/video resources, not raw
+    if (pdfUrl.includes('cloudinary.com') && !pdfUrl.includes('/raw/')) {
       // Insert fl_attachment after /upload/
-      // Works for both image and raw resource types
       downloadUrl = pdfUrl.replace('/upload/', '/upload/fl_attachment/');
     }
 
