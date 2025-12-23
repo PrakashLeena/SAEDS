@@ -26,18 +26,13 @@ const BookCard = memo(({ book }) => {
     )
   ), [book.available]);
 
-  // Optimize URL resolution - cache the result
+  // Optimize URL resolution - cache the result (prefer direct file URL like before)
   const resolveBookUrl = useCallback(async () => {
     if (urlCacheRef.current) return urlCacheRef.current;
 
     try {
       const f = await api.book.getFile(book.id);
-      if (f?.data?.fileId) {
-        const proxyUrl = api.elibrary.downloadUrl(f.data.fileId);
-        urlCacheRef.current = proxyUrl;
-        return proxyUrl;
-      }
-      if (f?.data?.url && PDF_REGEX.test(f.data.url)) {
+      if (f?.data?.url) {
         urlCacheRef.current = f.data.url;
         return f.data.url;
       }
@@ -45,7 +40,7 @@ const BookCard = memo(({ book }) => {
       console.error('No file found', err);
     }
 
-    if (book.pdfUrl && PDF_REGEX.test(book.pdfUrl)) {
+    if (book.pdfUrl) {
       urlCacheRef.current = book.pdfUrl;
       return book.pdfUrl;
     }

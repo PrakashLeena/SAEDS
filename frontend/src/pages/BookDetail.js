@@ -105,18 +105,13 @@ const BookDetail = () => {
     ];
   }, [book]);
 
-  // Shared function to resolve PDF URL
+  // Shared function to resolve PDF URL (prefer direct file URL like before)
   const resolvePdfUrl = useCallback(async () => {
     if (urlCacheRef.current) return urlCacheRef.current;
 
     try {
       const f = await api.book.getFile(id);
-      if (f?.data?.fileId) {
-        const proxyUrl = api.elibrary.downloadUrl(f.data.fileId);
-        urlCacheRef.current = proxyUrl;
-        return proxyUrl;
-      }
-      if (f?.data?.url && PDF_REGEX.test(f.data.url)) {
+      if (f?.data?.url) {
         urlCacheRef.current = f.data.url;
         return f.data.url;
       }
@@ -124,7 +119,7 @@ const BookDetail = () => {
       console.error('No file found', err);
     }
 
-    if (book?.pdfUrl && PDF_REGEX.test(book.pdfUrl)) {
+    if (book?.pdfUrl) {
       urlCacheRef.current = book.pdfUrl;
       return book.pdfUrl;
     }
