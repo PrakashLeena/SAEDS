@@ -157,17 +157,20 @@ const BookForm = () => {
     setError('');
 
     try {
-      const result = await uploadAPI.uploadBookPDF(file);
-      if (result.success) {
-        setFormData((prev) => ({
-          ...prev,
-          pdfUrl: result.data.url,
-        }));
-        setSuccess('PDF uploaded successfully!');
-        setTimeout(() => setSuccess(''), 3000);
-      } else {
-        setError(result.message || 'Failed to upload PDF');
-      }
+      // 1. Get signature from backend
+      const sigResult = await uploadAPI.getSignature('saeds/book-pdfs');
+      if (!sigResult.success) throw new Error('Failed to get upload signature');
+
+      // 2. Upload directly to Cloudinary
+      const uploadResult = await uploadAPI.uploadDirect(file, sigResult);
+
+      // 3. Update state with the returned URL
+      setFormData((prev) => ({
+        ...prev,
+        pdfUrl: uploadResult.secure_url,
+      }));
+      setSuccess('PDF uploaded successfully!');
+      setTimeout(() => setSuccess(''), 3000);
     } catch (error) {
       console.error('Error uploading PDF:', error);
       setError('Failed to upload PDF. Please try again.');

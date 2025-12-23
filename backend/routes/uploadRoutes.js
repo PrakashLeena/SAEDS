@@ -639,4 +639,33 @@ router.get('/download/:id', async (req, res) => {
   }
 });
 
+// Generate Cloudinary signature for client-side upload
+router.get('/signature', (req, res) => {
+  try {
+    const timestamp = Math.round((new Date()).getTime() / 1000);
+    const folder = req.query.folder || 'saeds/book-pdfs';
+
+    // Parameters to sign
+    const params = {
+      timestamp: timestamp,
+      folder: folder,
+    };
+
+    // Generate signature
+    const signature = cloudinary.utils.api_sign_request(params, process.env.CLOUDINARY_API_SECRET);
+
+    res.json({
+      success: true,
+      signature,
+      timestamp,
+      cloudName: process.env.CLOUDINARY_CLOUD_NAME,
+      apiKey: process.env.CLOUDINARY_API_KEY,
+      folder
+    });
+  } catch (error) {
+    console.error('Error generating signature:', error);
+    res.status(500).json({ success: false, message: 'Failed to generate signature' });
+  }
+});
+
 module.exports = router;
