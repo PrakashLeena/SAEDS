@@ -3,6 +3,7 @@ const router = express.Router();
 const Book = require('../models/Book');
 const User = require('../models/User');
 const ElibraryFile = require('../models/ElibraryFile');
+const cloudinary = require('../config/cloudinary');
 
 // Get all books with optional filters
 router.get('/', async (req, res) => {
@@ -423,6 +424,8 @@ router.get('/meta/categories', async (req, res) => {
   }
 });
 
+const cloudinary = require('../config/cloudinary');
+
 // Proxy download endpoint to force file download
 router.get('/:id/download-file', async (req, res) => {
   try {
@@ -476,18 +479,28 @@ router.get('/:id/download-file', async (req, res) => {
       }
     }
 
-    // 4. Redirect to Cloudinary with fl_attachment to force download
-    // This bypasses the Vercel backend payload limits and timeouts
+    // 4. Redirect to Cloudinary with signed URL to bypass access restrictions
+    // This solves the 401 Unauthorized error for raw files
     let downloadUrl = pdfUrl;
 
-    // If it's a Cloudinary URL, add the attachment flag
-    // Note: fl_attachment only works for image/video resources, not raw
-    if (pdfUrl.includes('cloudinary.com') && !pdfUrl.includes('/raw/')) {
-      // Insert fl_attachment after /upload/
-      downloadUrl = pdfUrl.replace('/upload/', '/upload/fl_attachment/');
+    if (pdfUrl.includes('cloudinary.com')) {
+      const publicId = extractCloudinaryPublicId(pdfUrl);
+      if (publicId) {
+        // Generate a signed URL
+        // We use resource_type: 'raw' because that's how we uploaded it
+        // sign_url: true generates a signature to access authenticated/private resources
+        downloadUrl = cloudinary.url(publicId, {
+          resource_type: 'raw',
+          sign_url: true,
+          secure: true,
+          // Force attachment if it's NOT a raw file (images support it)
+          // For raw files, we just let it open/download naturally
+          flags: !pdfUrl.includes('/raw/') ? 'attachment' : undefined
+        });
+      }
     }
 
-    // Redirect the user to the direct download URL
+    // Redirect the user to the signed URL
     return res.redirect(downloadUrl);
 
   } catch (error) {
