@@ -9,12 +9,13 @@ const ElibraryFile = require('../models/ElibraryFile');
 const fetch = global.fetch || require('node-fetch');
 
 // Helper function to upload to Cloudinary
-const uploadToCloudinary = (buffer, folder, resourceType = 'image') => {
+const uploadToCloudinary = (buffer, folder, resourceType = 'image', options = {}) => {
   return new Promise((resolve, reject) => {
     const uploadStream = cloudinary.uploader.upload_stream(
       {
         folder: folder,
         resource_type: resourceType,
+        ...options
       },
       (error, result) => {
         if (error) {
@@ -133,10 +134,16 @@ router.post('/book-pdf', upload.single('pdfFile'), async (req, res) => {
       });
     }
 
+    // Generate a public ID with extension for raw files to ensure accessibility
+    const originalName = req.file.originalname.replace(/\.[^/.]+$/, "").replace(/[^a-z0-9]/gi, '_').toLowerCase();
+    const ext = req.file.originalname.split('.').pop();
+    const publicId = `${originalName}_${Date.now()}.${ext}`;
+
     const result = await uploadToCloudinary(
       req.file.buffer,
       'saeds/book-pdfs',
-      'raw' // Use 'raw' for PDFs
+      'raw', // Use 'raw' for PDFs
+      { public_id: publicId }
     );
 
     res.json({
@@ -181,7 +188,12 @@ router.post('/elibrary', upload.single('file'), async (req, res) => {
     }
 
     // Upload to cloudinary (raw)
-    const result = await uploadToCloudinary(req.file.buffer, 'saeds/elibrary', 'raw');
+    // Generate a public ID with extension
+    const originalName = req.file.originalname.replace(/\.[^/.]+$/, "").replace(/[^a-z0-9]/gi, '_').toLowerCase();
+    const ext = req.file.originalname.split('.').pop();
+    const publicId = `${originalName}_${Date.now()}.${ext}`;
+
+    const result = await uploadToCloudinary(req.file.buffer, 'saeds/elibrary', 'raw', { public_id: publicId });
 
     const fileDoc = new ElibraryFile({
       title: title || req.file.originalname || 'Untitled',
@@ -287,7 +299,7 @@ router.get('/elibrary/download/:id', async (req, res) => {
     } else if (typeof body.getReader === 'function') {
       // Web ReadableStream (undici/global fetch)
       const { Readable } = require('stream');
-      
+
       // Try using Readable.fromWeb if available (Node 16.5+)
       if (typeof Readable.fromWeb === 'function') {
         Readable.fromWeb(body).pipe(res);
@@ -308,7 +320,7 @@ router.get('/elibrary/download/:id', async (req, res) => {
             }
           }
         });
-        
+
         nodeStream.pipe(res);
       }
     } else {
@@ -321,8 +333,8 @@ router.get('/elibrary/download/:id', async (req, res) => {
   } catch (err) {
     console.error('Error downloading file:', err);
     if (!res.headersSent) {
-      return res.status(500).json({ 
-        success: false, 
+      return res.status(500).json({
+        success: false,
         message: 'Failed to download file',
         error: process.env.NODE_ENV === 'development' ? err.message : undefined
       });
@@ -532,7 +544,7 @@ router.delete('/gallery/:id', async (req, res) => {
 router.delete('/delete/:publicId', async (req, res) => {
   try {
     const publicId = req.params.publicId.replace(/_/g, '/'); // Convert back to proper format
-    
+
     const result = await cloudinary.uploader.destroy(publicId);
 
     res.json({
