@@ -267,43 +267,6 @@ export const uploadAPI = {
   uploadBookCover: (file) => uploadFile('book-cover', file),
   uploadBookPDF: (file) => uploadFile('book-pdf', file),
 
-  // Client-side upload helpers
-  getSignature: (folder, filename) => {
-    const query = filename ? `?folder=${folder}&filename=${encodeURIComponent(filename)}` : `?folder=${folder}`;
-    return apiCall(`/upload/signature${query}`);
-  },
-
-  uploadDirect: async (file, signatureData) => {
-    const formData = new FormData();
-    formData.append('file', file);
-    formData.append('api_key', signatureData.apiKey);
-    formData.append('timestamp', signatureData.timestamp);
-    formData.append('signature', signatureData.signature);
-    formData.append('folder', signatureData.folder);
-
-    if (signatureData.publicId) {
-      formData.append('public_id', signatureData.publicId);
-    }
-
-    // Determine resource type based on file
-    const resourceType = file.type.startsWith('image/') ? 'image' : 'raw';
-
-    const response = await fetch(
-      `https://api.cloudinary.com/v1_1/${signatureData.cloudName}/${resourceType}/upload`,
-      {
-        method: 'POST',
-        body: formData,
-      }
-    );
-
-    if (!response.ok) {
-      const err = await response.json();
-      throw new Error(err.error?.message || 'Cloudinary upload failed');
-    }
-
-    return response.json();
-  },
-
   uploadElibraryFile: (file, data = {}) => {
     clearCachePattern('/upload/elibrary');
     return uploadFile('elibrary', file, data);

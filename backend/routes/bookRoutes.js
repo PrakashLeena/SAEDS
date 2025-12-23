@@ -3,7 +3,6 @@ const router = express.Router();
 const Book = require('../models/Book');
 const User = require('../models/User');
 const ElibraryFile = require('../models/ElibraryFile');
-const cloudinary = require('../config/cloudinary');
 
 // Get all books with optional filters
 router.get('/', async (req, res) => {
@@ -424,8 +423,6 @@ router.get('/meta/categories', async (req, res) => {
   }
 });
 
-const cloudinary = require('../config/cloudinary');
-
 // Proxy download endpoint to force file download
 router.get('/:id/download-file', async (req, res) => {
   try {
@@ -479,32 +476,40 @@ router.get('/:id/download-file', async (req, res) => {
       }
     }
 
-    // 4. Redirect to Cloudinary with signed URL to bypass access restrictions
-    // This solves the 401 Unauthorized error for raw files
-    let downloadUrl = pdfUrl;
+    // 4. Fetch and stream the file
+    // Use global fetch (Node 18+) or require it if needed. 
+    // Assuming global fetch is available as per other routes.
+    const fetch = global.fetch || require('node-fetch');
+    const response = await fetch(pdfUrl);
 
-    if (pdfUrl.includes('cloudinary.com')) {
-      const publicId = extractCloudinaryPublicId(pdfUrl);
-      if (publicId) {
-        // Generate a signed URL
-        // We use resource_type: 'raw' because that's how we uploaded it
-        // sign_url: true generates a signature to access authenticated/private resources
-        downloadUrl = cloudinary.url(publicId, {
-          resource_type: 'raw',
-          sign_url: true,
-          secure: true,
-          // Force attachment if it's NOT a raw file (images support it)
-          // For raw files, we just let it open/download naturally
-          flags: !pdfUrl.includes('/raw/') ? 'attachment' : undefined
-        });
-      }
+    if (!response.ok) {
+      console.error(`Failed to fetch PDF from ${pdfUrl}: ${response.statusText}`);
+      return res.status(502).send('Failed to retrieve file from storage');
     }
 
-    // Redirect the user to the signed URL
-    return res.redirect(downloadUrl);
+    // Set headers for download
+    const filename = `${book.title.replace(/[^a-z0-9]/gi, '_')}.pdf`;
+    res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+    res.setHeader('Content-Type', 'application/pdf');
+
+    if (response.body && typeof response.body.pipe === 'function') {
+      response.body.pipe(res);
+    } else if (response.body) {
+      // Handle Web Streams (Node 18 native fetch)
+      const { Readable } = require('stream');
+      if (typeof Readable.fromWeb === 'function') {
+        Readable.fromWeb(response.body).pipe(res);
+      } else {
+        // Fallback for older Node versions or different fetch implementations
+        const arrayBuffer = await response.arrayBuffer();
+        res.send(Buffer.from(arrayBuffer));
+      }
+    } else {
+      res.status(500).send('No file content received');
+    }
 
   } catch (error) {
-    console.error('Download redirect error:', error);
+    console.error('Download proxy error:', error);
     if (!res.headersSent) {
       res.status(500).send('Server error during download');
     }

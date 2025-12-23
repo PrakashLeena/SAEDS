@@ -158,7 +158,7 @@ const BookForm = () => {
 
     try {
       // 1. Get signature from backend
-      const sigResult = await uploadAPI.getSignature('saeds/book-pdfs', file.name);
+      const sigResult = await uploadAPI.getSignature('saeds/book-pdfs');
       if (!sigResult.success) throw new Error('Failed to get upload signature');
 
       // 2. Upload directly to Cloudinary

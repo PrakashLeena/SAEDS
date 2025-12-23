@@ -651,15 +651,6 @@ router.get('/signature', (req, res) => {
       folder: folder,
     };
 
-    // If filename provided, generate public_id with extension for raw files
-    if (req.query.filename) {
-      const filename = req.query.filename;
-      const originalName = filename.replace(/\.[^/.]+$/, "").replace(/[^a-z0-9]/gi, '_').toLowerCase();
-      const ext = filename.split('.').pop();
-      // Ensure public_id has extension for raw files
-      params.public_id = `${originalName}_${timestamp}.${ext}`;
-    }
-
     // Generate signature
     const signature = cloudinary.utils.api_sign_request(params, process.env.CLOUDINARY_API_SECRET);
 
@@ -669,8 +660,7 @@ router.get('/signature', (req, res) => {
       timestamp,
       cloudName: process.env.CLOUDINARY_CLOUD_NAME,
       apiKey: process.env.CLOUDINARY_API_KEY,
-      folder,
-      publicId: params.public_id // Return generated public_id so frontend can use it
+      folder
     });
   } catch (error) {
     console.error('Error generating signature:', error);
