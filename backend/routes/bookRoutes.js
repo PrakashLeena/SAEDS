@@ -483,8 +483,8 @@ router.get('/:id/download-file', async (req, res) => {
     const response = await fetch(pdfUrl);
 
     if (!response.ok) {
-      console.error(`Failed to fetch PDF from ${pdfUrl}: ${response.statusText}`);
-      return res.status(502).send('Failed to retrieve file from storage');
+      console.error(`Failed to fetch PDF from ${pdfUrl}: ${response.status} ${response.statusText}`);
+      return res.status(502).send(`Failed to retrieve file from storage. Status: ${response.status} ${response.statusText}. URL: ${pdfUrl}`);
     }
 
     // Set headers for download
