@@ -268,7 +268,10 @@ export const uploadAPI = {
   uploadBookPDF: (file) => uploadFile('book-pdf', file),
 
   // Client-side upload helpers
-  getSignature: (folder) => apiCall(`/upload/signature?folder=${folder}`),
+  getSignature: (folder, filename) => {
+    const query = filename ? `?folder=${folder}&filename=${encodeURIComponent(filename)}` : `?folder=${folder}`;
+    return apiCall(`/upload/signature${query}`);
+  },
 
   uploadDirect: async (file, signatureData) => {
     const formData = new FormData();
@@ -277,6 +280,10 @@ export const uploadAPI = {
     formData.append('timestamp', signatureData.timestamp);
     formData.append('signature', signatureData.signature);
     formData.append('folder', signatureData.folder);
+
+    if (signatureData.publicId) {
+      formData.append('public_id', signatureData.publicId);
+    }
 
     // Determine resource type based on file
     const resourceType = file.type.startsWith('image/') ? 'image' : 'raw';

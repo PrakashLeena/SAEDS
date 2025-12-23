@@ -480,7 +480,11 @@ router.get('/:id/download-file', async (req, res) => {
     // Use global fetch (Node 18+) or require it if needed. 
     // Assuming global fetch is available as per other routes.
     const fetch = global.fetch || require('node-fetch');
-    const response = await fetch(pdfUrl);
+    const response = await fetch(pdfUrl, {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+      }
+    });
 
     if (!response.ok) {
       console.error(`Failed to fetch PDF from ${pdfUrl}: ${response.status} ${response.statusText}`);
