@@ -38,7 +38,7 @@ router.get('/', async (req, res) => {
     }
 
     const books = await booksQuery;
-  console.log(`GET /api/books returning ${books.length} books`);
+    console.log(`GET /api/books returning ${books.length} books`);
 
     res.json({
       success: true,
@@ -358,8 +358,8 @@ router.get('/:id/file', async (req, res) => {
 // Helper to check if a url looks like a PDF
 function isPdfUrl(url) {
   if (!url || typeof url !== 'string') return false;
-  // basic check - accept common PDF endings with optional query string
-  return /\.pdf(\?.*)?$/i.test(url);
+  // Allow any non-empty string to support external links (Google Drive, etc.)
+  return url.trim().length > 0;
 }
 
 async function ensureElibraryFileForBook(book) {
