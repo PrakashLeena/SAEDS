@@ -18,7 +18,7 @@ const fileFilter = (req, file, cb) => {
       cb(new Error('Only image files are allowed for photos!'));
     }
   }
-  
+
   // For PDFs
   if (file.fieldname === 'pdfFile') {
     const isPdf = file.mimetype === 'application/pdf';
@@ -37,7 +37,7 @@ const upload = multer({
   storage: storage,
   fileFilter: fileFilter,
   limits: {
-    fileSize: 100 * 1024 * 1024, // 100MB max file size
+    fileSize: 10 * 1024 * 1024, // 10MB max file size
   },
 });
 
