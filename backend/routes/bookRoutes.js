@@ -476,44 +476,22 @@ router.get('/:id/download-file', async (req, res) => {
       }
     }
 
-    // 4. Fetch and stream the file
-    // Use global fetch (Node 18+) or require it if needed. 
-    // Assuming global fetch is available as per other routes.
-    const fetch = global.fetch || require('node-fetch');
-    const response = await fetch(pdfUrl, {
-      headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
-      }
-    });
+    // 4. Redirect to Cloudinary with fl_attachment to force download
+    // This bypasses the Vercel backend payload limits and timeouts
+    let downloadUrl = pdfUrl;
 
-    if (!response.ok) {
-      console.error(`Failed to fetch PDF from ${pdfUrl}: ${response.status} ${response.statusText}`);
-      return res.status(502).send(`Failed to retrieve file from storage. Status: ${response.status} ${response.statusText}. URL: ${pdfUrl}`);
+    // If it's a Cloudinary URL, add the attachment flag
+    if (pdfUrl.includes('cloudinary.com')) {
+      // Insert fl_attachment after /upload/
+      // Works for both image and raw resource types
+      downloadUrl = pdfUrl.replace('/upload/', '/upload/fl_attachment/');
     }
 
-    // Set headers for download
-    const filename = `${book.title.replace(/[^a-z0-9]/gi, '_')}.pdf`;
-    res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
-    res.setHeader('Content-Type', 'application/pdf');
-
-    if (response.body && typeof response.body.pipe === 'function') {
-      response.body.pipe(res);
-    } else if (response.body) {
-      // Handle Web Streams (Node 18 native fetch)
-      const { Readable } = require('stream');
-      if (typeof Readable.fromWeb === 'function') {
-        Readable.fromWeb(response.body).pipe(res);
-      } else {
-        // Fallback for older Node versions or different fetch implementations
-        const arrayBuffer = await response.arrayBuffer();
-        res.send(Buffer.from(arrayBuffer));
-      }
-    } else {
-      res.status(500).send('No file content received');
-    }
+    // Redirect the user to the direct download URL
+    return res.redirect(downloadUrl);
 
   } catch (error) {
-    console.error('Download proxy error:', error);
+    console.error('Download redirect error:', error);
     if (!res.headersSent) {
       res.status(500).send('Server error during download');
     }
