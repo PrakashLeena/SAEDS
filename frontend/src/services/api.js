@@ -12,13 +12,13 @@ const getAuthToken = () => localStorage.getItem('token') || '';
 const getCached = (key) => {
   const cached = cache.get(key);
   if (!cached) return null;
-  
+
   const isExpired = Date.now() - cached.timestamp > CACHE_TTL;
   if (isExpired) {
     cache.delete(key);
     return null;
   }
-  
+
   return cached.data;
 };
 
@@ -49,72 +49,72 @@ const ERROR_MESSAGES = {
 const apiCall = async (endpoint, options = {}) => {
   const { skipCache = false, ...fetchOptions } = options;
   const token = getAuthToken();
-  
+
   // Cache key for GET requests
   const cacheKey = `${endpoint}${JSON.stringify(options.body || {})}`;
-  
+
   // Check cache for GET requests
   if (!skipCache && (!fetchOptions.method || fetchOptions.method === 'GET')) {
     const cached = getCached(cacheKey);
     if (cached) return cached;
   }
-  
+
   // Set default headers
   const headers = {
     'Content-Type': 'application/json',
     ...(token && { 'Authorization': `Bearer ${token}` }),
     ...(fetchOptions.headers || {})
   };
-  
+
   const config = {
     ...fetchOptions,
     headers,
     credentials: 'include'
   };
-  
+
   try {
     const response = await fetch(`${API_URL}${endpoint}`, config);
-    
+
     // Handle error statuses
     if (!response.ok) {
       const errorMessage = ERROR_MESSAGES[response.status];
-      
+
       // Handle 401 Unauthorized
       if (response.status === 401) {
         console.error('Authentication required');
         // Optional: Trigger logout or token refresh
         // window.dispatchEvent(new Event('unauthorized'));
       }
-      
+
       let errorData;
       try {
         errorData = await response.json();
       } catch {
         errorData = { message: errorMessage || response.statusText };
       }
-      
+
       throw new Error(errorData.message || errorMessage || 'Something went wrong');
     }
-    
+
     // Handle empty responses
     const contentType = response.headers.get('content-type');
     const result = contentType?.includes('application/json')
       ? await response.json()
       : await response.text();
-    
+
     // Cache successful GET requests
     if (!skipCache && (!fetchOptions.method || fetchOptions.method === 'GET')) {
       setCache(cacheKey, result);
     }
-    
+
     return result;
   } catch (error) {
     console.error('API call failed:', error);
-    
+
     if (error.name === 'TypeError' && error.message === 'Failed to fetch') {
       throw new Error('Unable to connect to the server. Please check your internet connection.');
     }
-    
+
     throw error;
   }
 };
@@ -125,9 +125,9 @@ const createAPI = (baseEndpoint, options = {}) => ({
     const query = new URLSearchParams(params).toString();
     return apiCall(`${baseEndpoint}${query ? '?' + query : ''}`, options);
   },
-  
+
   getById: (id) => apiCall(`${baseEndpoint}/${id}`, options),
-  
+
   create: (data) => {
     clearCachePattern(baseEndpoint);
     return apiCall(baseEndpoint, {
@@ -136,7 +136,7 @@ const createAPI = (baseEndpoint, options = {}) => ({
       ...options
     });
   },
-  
+
   update: (id, data) => {
     clearCachePattern(baseEndpoint);
     return apiCall(`${baseEndpoint}/${id}`, {
@@ -145,7 +145,7 @@ const createAPI = (baseEndpoint, options = {}) => ({
       ...options
     });
   },
-  
+
   delete: (id) => {
     clearCachePattern(baseEndpoint);
     return apiCall(`${baseEndpoint}/${id}`, {
@@ -158,9 +158,9 @@ const createAPI = (baseEndpoint, options = {}) => ({
 // User API
 export const userAPI = {
   ...createAPI('/users'),
-  
+
   getByFirebaseUid: (uid) => apiCall(`/users/firebase/${uid}`),
-  
+
   sync: (userData) => {
     clearCachePattern('/users');
     return apiCall('/users/sync', {
@@ -168,17 +168,17 @@ export const userAPI = {
       body: JSON.stringify(userData),
     });
   },
-  
+
   addFavorite: (userId, bookId) => {
     clearCachePattern('/users');
     return apiCall(`/users/${userId}/favorites/${bookId}`, { method: 'POST' });
   },
-  
+
   removeFavorite: (userId, bookId) => {
     clearCachePattern('/users');
     return apiCall(`/users/${userId}/favorites/${bookId}`, { method: 'DELETE' });
   },
-  
+
   // Admin methods
   getStats: () => apiCall('/users/admin/stats'),
   toggleRole: (userId) => apiCall(`/users/admin/toggle-role/${userId}`, { method: 'PUT' }),
@@ -193,11 +193,11 @@ export const userAPI = {
 // Book API
 export const bookAPI = {
   ...createAPI('/books'),
-  
+
   getStats: (id) => apiCall(`/books/${id}/stats`),
   getFile: (id) => apiCall(`/books/${id}/file`),
   getCategories: () => apiCall('/books/meta/categories'),
-  
+
   incrementDownload: (id, { firebaseUid } = {}) => {
     clearCachePattern(`/books/${id}`);
     return apiCall(`/books/${id}/download`, {
@@ -205,23 +205,25 @@ export const bookAPI = {
       body: JSON.stringify(firebaseUid ? { firebaseUid } : {}),
     });
   },
-  
+
   markRead: (id, { firebaseUid } = {}) => apiCall(`/books/${id}/read`, {
     method: 'POST',
     body: JSON.stringify(firebaseUid ? { firebaseUid } : {}),
   }),
+
+  getDownloadUrl: (id) => `${API_URL}/books/${id}/download-file`,
 };
 
 // Activity API
 export const activityAPI = {
   ...createAPI('/activities'),
-  
+
   getUpcoming: () => apiCall('/activities?upcoming=true'),
-  
+
   register: (activityId, userId) => apiCall(`/activities/${activityId}/register/${userId}`, {
     method: 'POST',
   }),
-  
+
   unregister: (activityId, userId) => apiCall(`/activities/${activityId}/register/${userId}`, {
     method: 'DELETE',
   }),
@@ -230,7 +232,7 @@ export const activityAPI = {
 // Upload helper function
 const uploadFile = async (endpoint, file, additionalData = {}) => {
   const formData = new FormData();
-  
+
   // Determine the file field name based on endpoint
   const fieldNames = {
     'profile-photo': 'profilePhoto',
@@ -240,22 +242,22 @@ const uploadFile = async (endpoint, file, additionalData = {}) => {
     'gallery': 'image',
     'activity-image': 'image',
   };
-  
+
   const fieldName = fieldNames[endpoint.split('/').pop()] || 'file';
   formData.append(fieldName, file);
-  
+
   // Append additional data
   Object.entries(additionalData).forEach(([key, value]) => {
     if (value !== undefined && value !== null) {
       formData.append(key, value);
     }
   });
-  
+
   const response = await fetch(`${API_URL}/upload/${endpoint}`, {
     method: 'POST',
     body: formData,
   });
-  
+
   return response.json();
 };
 
@@ -264,19 +266,19 @@ export const uploadAPI = {
   uploadProfilePhoto: (file) => uploadFile('profile-photo', file),
   uploadBookCover: (file) => uploadFile('book-cover', file),
   uploadBookPDF: (file) => uploadFile('book-pdf', file),
-  
+
   uploadElibraryFile: (file, data = {}) => {
     clearCachePattern('/upload/elibrary');
     return uploadFile('elibrary', file, data);
   },
-  
+
   uploadGalleryImage: (file, data = {}) => {
     clearCachePattern('/upload/gallery');
     return uploadFile('gallery', file, data);
   },
-  
+
   uploadActivityImage: (file) => uploadFile('activity-image', file),
-  
+
   deleteFile: (publicId) => {
     const encodedId = publicId.replace(/\//g, '_');
     return apiCall(`/upload/delete/${encodedId}`, { method: 'DELETE' });
@@ -289,7 +291,7 @@ export const galleryAPI = {
     const query = new URLSearchParams(params).toString();
     return apiCall(`/upload/gallery${query ? '?' + query : ''}`);
   },
-  
+
   delete: (id, firebaseUid) => {
     clearCachePattern('/upload/gallery');
     const headers = firebaseUid ? { 'x-firebase-uid': firebaseUid } : {};
@@ -304,7 +306,7 @@ export const galleryAPI = {
 // Album API
 export const albumAPI = {
   getAll: () => apiCall('/upload/albums'),
-  
+
   create: (title, description, firebaseUid) => {
     clearCachePattern('/upload/albums');
     return apiCall('/upload/albums', {
@@ -312,7 +314,7 @@ export const albumAPI = {
       body: JSON.stringify({ title, description, firebaseUid }),
     });
   },
-  
+
   delete: (id, firebaseUid) => {
     clearCachePattern('/upload/albums');
     const headers = firebaseUid ? { 'x-firebase-uid': firebaseUid } : {};
@@ -330,7 +332,7 @@ export const elibraryAPI = {
     const query = new URLSearchParams(params).toString();
     return apiCall(`/upload/elibrary${query ? '?' + query : ''}`);
   },
-  
+
   delete: (id, firebaseUid) => {
     clearCachePattern('/upload/elibrary');
     const headers = firebaseUid ? { 'x-firebase-uid': firebaseUid } : {};
@@ -340,7 +342,7 @@ export const elibraryAPI = {
       body: JSON.stringify({ firebaseUid }),
     });
   },
-  
+
   downloadUrl: (id) => `${API_URL}/upload/elibrary/download/${id}`,
 };
 

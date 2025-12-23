@@ -423,4 +423,97 @@ router.get('/meta/categories', async (req, res) => {
   }
 });
 
+// Proxy download endpoint to force file download
+router.get('/:id/download-file', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const firebaseUid = req.query.firebaseUid;
+
+    // 1. Find the book
+    const book = await Book.findById(id);
+    if (!book) {
+      return res.status(404).send('Book not found');
+    }
+
+    // 2. Resolve the PDF URL
+    let pdfUrl = null;
+    if (book.pdfUrl && isPdfUrl(book.pdfUrl)) {
+      pdfUrl = book.pdfUrl;
+    } else {
+      // Try to find associated ElibraryFile
+      const titleRegex = book.title ? new RegExp(book.title.replace(/[.*+?^${}()|[\\]\\]/g, '\\$&'), 'i') : null;
+      const filter = {};
+      if (book.folderId) filter.folderId = book.folderId;
+      if (titleRegex) filter.title = { $regex: titleRegex };
+
+      if (Object.keys(filter).length > 0) {
+        const file = await ElibraryFile.findOne({
+          ...filter,
+          $or: [
+            { fileType: { $regex: /pdf/i } },
+            { url: { $regex: /\.pdf(\?.*)?$/i } },
+          ],
+        }).sort({ createdAt: -1 }).exec();
+        if (file) pdfUrl = file.url;
+      }
+    }
+
+    if (!pdfUrl) {
+      return res.status(404).send('PDF not found for this book');
+    }
+
+    // 3. Increment download stats
+    await Book.findByIdAndUpdate(id, { $inc: { downloads: 1 } });
+    if (firebaseUid) {
+      try {
+        const User = require('../models/User');
+        await User.findOneAndUpdate(
+          { firebaseUid },
+          { $inc: { downloads: 1 } }
+        );
+      } catch (e) {
+        console.error('Failed to update user stats', e);
+      }
+    }
+
+    // 4. Fetch and stream the file
+    // Use global fetch (Node 18+) or require it if needed. 
+    // Assuming global fetch is available as per other routes.
+    const fetch = global.fetch || require('node-fetch');
+    const response = await fetch(pdfUrl);
+
+    if (!response.ok) {
+      console.error(`Failed to fetch PDF from ${pdfUrl}: ${response.statusText}`);
+      return res.status(502).send('Failed to retrieve file from storage');
+    }
+
+    // Set headers for download
+    const filename = `${book.title.replace(/[^a-z0-9]/gi, '_')}.pdf`;
+    res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+    res.setHeader('Content-Type', 'application/pdf');
+
+    if (response.body && typeof response.body.pipe === 'function') {
+      response.body.pipe(res);
+    } else if (response.body) {
+      // Handle Web Streams (Node 18 native fetch)
+      const { Readable } = require('stream');
+      if (typeof Readable.fromWeb === 'function') {
+        Readable.fromWeb(response.body).pipe(res);
+      } else {
+        // Fallback for older Node versions or different fetch implementations
+        const arrayBuffer = await response.arrayBuffer();
+        res.send(Buffer.from(arrayBuffer));
+      }
+    } else {
+      res.status(500).send('No file content received');
+    }
+
+  } catch (error) {
+    console.error('Download proxy error:', error);
+    if (!res.headersSent) {
+      res.status(500).send('Server error during download');
+    }
+  }
+});
+
 module.exports = router;

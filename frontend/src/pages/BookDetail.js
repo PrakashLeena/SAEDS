@@ -226,33 +226,18 @@ const BookDetail = () => {
 
   // Handle download
   const handleDownload = useCallback(async () => {
-    const url = await resolvePdfUrl();
-    if (!url) return;
+    // Use backend proxy to force download
+    const downloadUrl = `${api.book.getDownloadUrl(book._id || id)}?firebaseUid=${currentUser?.uid || ''}`;
 
-    try {
-      await api.book.incrementDownload(book._id || id, {
-        firebaseUid: currentUser?.uid
-      });
+    // Trigger download by navigating to the proxy URL
+    window.location.href = downloadUrl;
 
-      await Promise.all([
-        refreshStats(),
-        refreshUserProfile()
-      ]);
-    } catch (err) {
-      console.error('Failed to increment download count', err);
-    }
+    // Optimistically update stats locally
+    setDownloadsCount(prev => prev + 1);
 
-    try {
-      const a = document.createElement('a');
-      a.href = url;
-      a.target = '_blank';
-      a.rel = 'noopener noreferrer';
-      a.download = `${book.title}.pdf`;
-      a.click();
-    } catch (err) {
-      window.open(url, '_blank', 'noopener,noreferrer');
-    }
-  }, [book, id, currentUser, resolvePdfUrl, refreshStats, refreshUserProfile]);
+    // Refresh profile in background
+    refreshUserProfile();
+  }, [book, id, currentUser, refreshUserProfile]);
 
   // Handle read online
   const handleReadOnline = useCallback(async () => {

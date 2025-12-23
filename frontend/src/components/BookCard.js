@@ -9,10 +9,10 @@ const PDF_REGEX = /\.pdf(\?.*)?$/i;
 const BookCard = memo(({ book }) => {
   const { currentUser } = useAuth();
   const urlCacheRef = useRef(null);
-  
+
   // Memoize user UID to prevent unnecessary re-renders
   const userUid = useMemo(() => currentUser?.uid, [currentUser]);
-  
+
   // Memoize availability status
   const availabilityBadge = useMemo(() => (
     book.available ? (
@@ -52,64 +52,44 @@ const BookCard = memo(({ book }) => {
   const handleRead = useCallback(async (e) => {
     e.preventDefault();
     e.stopPropagation();
-    
+
     const url = await resolveBookUrl();
-    
+
     if (!url) {
       window.location.href = `/book/${book.id}`;
       return;
     }
-    
+
     window.open(url, '_blank', 'noopener,noreferrer');
   }, [resolveBookUrl, book.id]);
 
   // Optimized download handler
-  const handleDownload = useCallback(async (e) => {
+  const handleDownload = useCallback((e) => {
     e.preventDefault();
     e.stopPropagation();
-    
-    const url = await resolveBookUrl();
-    if (!url) return;
-    
-    // Run download increment and file download in parallel
-    const downloadPromises = [];
-    
-    // Increment download count
-    downloadPromises.push(
-      api.book.incrementDownload(book.id, { 
-        firebaseUid: userUid 
-      }).catch(err => console.error('Failed to increment download', err))
-    );
-    
-    // Refresh user profile if authenticated
+
+    // Use backend proxy to force download
+    const downloadUrl = `${api.book.getDownloadUrl(book.id)}?firebaseUid=${userUid || ''}`;
+
+    // Trigger download by navigating to the proxy URL
+    window.location.href = downloadUrl;
+
+    // Refresh user profile in background if authenticated
     if (userUid) {
-      downloadPromises.push(
-        api.user.getByFirebaseUid(userUid)
-          .then(ru => {
-            if (ru?.data) {
-              window.dispatchEvent(new CustomEvent('profile-updated', { 
-                detail: ru.data 
-              }));
-            }
-          })
-          .catch(e => console.error('Failed to refresh user', e))
-      );
+      api.user.getByFirebaseUid(userUid)
+        .then(ru => {
+          if (ru?.data) {
+            window.dispatchEvent(new CustomEvent('profile-updated', {
+              detail: ru.data
+            }));
+          }
+        })
+        .catch(e => console.error('Failed to refresh user', e));
     }
-    
-    // Execute API calls in parallel (non-blocking)
-    Promise.all(downloadPromises);
-    
-    // Trigger download immediately (don't wait for API)
-    const a = document.createElement('a');
-    a.href = url;
-    a.target = '_blank';
-    a.rel = 'noopener noreferrer';
-    a.download = `${book.title}.pdf`;
-    a.click();
-  }, [resolveBookUrl, book.id, book.title, userUid]);
+  }, [book.id, userUid]);
 
   // Memoize download count display
-  const downloadCount = useMemo(() => 
+  const downloadCount = useMemo(() =>
     (book.downloads || 0).toLocaleString(),
     [book.downloads]
   );
@@ -127,7 +107,7 @@ const BookCard = memo(({ book }) => {
           {availabilityBadge}
         </div>
       </Link>
-      
+
       <div className="p-2">
         <Link to={`/book/${book.id}`}>
           <h3 className="text-sm font-semibold text-gray-900 mb-0.5 hover:text-primary-600 transition-colors line-clamp-1">
@@ -135,7 +115,7 @@ const BookCard = memo(({ book }) => {
           </h3>
         </Link>
         <p className="text-[11px] text-gray-600 mb-1">{book.author}</p>
-        
+
         <div className="flex items-center justify-between mb-1">
           <span className="inline-block bg-primary-100 text-primary-800 text-[10px] px-2 py-0.5 rounded">
             {book.category}
