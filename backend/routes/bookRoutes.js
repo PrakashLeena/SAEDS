@@ -442,7 +442,7 @@ router.get('/:id/download-file', async (req, res) => {
       pdfUrl = book.pdfUrl;
     } else {
       // Try to find associated ElibraryFile
-      const titleRegex = book.title ? new RegExp(book.title.replace(/[.*+?^${}()|[\]\]/g, '\\$&'), 'i') : null;
+      const titleRegex = book.title ? new RegExp(book.title.replace(/[.*+?^${}()|[\\]\\]/g, '\\$&'), 'i') : null;
       const filter = {};
       if (book.folderId) filter.folderId = book.folderId;
       if (titleRegex) filter.title = { $regex: titleRegex };
