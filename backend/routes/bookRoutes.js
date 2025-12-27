@@ -3,6 +3,7 @@ const router = express.Router();
 const Book = require('../models/Book');
 const User = require('../models/User');
 const ElibraryFile = require('../models/ElibraryFile');
+const fetch = global.fetch || require('node-fetch');
 
 // Get all books with optional filters
 router.get('/', async (req, res) => {
@@ -441,7 +442,7 @@ router.get('/:id/download-file', async (req, res) => {
       pdfUrl = book.pdfUrl;
     } else {
       // Try to find associated ElibraryFile
-      const titleRegex = book.title ? new RegExp(book.title.replace(/[.*+?^${}()|[\\]\\]/g, '\\$&'), 'i') : null;
+      const titleRegex = book.title ? new RegExp(book.title.replace(/[.*+?^${}()|[\]\]/g, '\\$&'), 'i') : null;
       const filter = {};
       if (book.folderId) filter.folderId = book.folderId;
       if (titleRegex) filter.title = { $regex: titleRegex };
@@ -476,36 +477,75 @@ router.get('/:id/download-file', async (req, res) => {
       }
     }
 
-    // 4. Try to stream the PDF, fallback to redirect if it fails
+    // 4. Stream the PDF through the backend (no Cloudinary attachment param)
     try {
-      const axios = require('axios');
-
-      const response = await axios({
-        method: 'get',
-        url: pdfUrl,
-        responseType: 'stream',
-        timeout: 10000 // 10 second timeout
-      });
-
-      // Set headers to force download
-      const filename = `${book.title.replace(/[^a-z0-9\s]/gi, '_')}.pdf`;
-      res.setHeader('Content-Type', 'application/pdf');
-      res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
-
-      // Pipe the response directly to the client
-      response.data.pipe(res);
-
-    } catch (fetchError) {
-      console.error('Streaming failed, falling back to redirect:', fetchError.message);
-
-      // Fallback: redirect to Cloudinary with attachment parameter
-      if (pdfUrl.includes('cloudinary.com')) {
-        // For raw files (PDFs), use query parameter instead of transformation
-        const separator = pdfUrl.includes('?') ? '&' : '?';
-        pdfUrl = `${pdfUrl}${separator}attachment=true`;
+      const resp = await fetch(pdfUrl);
+      if (!resp.ok) {
+        console.error('Failed to fetch PDF from storage', pdfUrl, resp.status, resp.statusText);
+        return res.status(502).send('Failed to fetch file from storage');
       }
 
-      return res.redirect(pdfUrl);
+      // Create a safe filename with .pdf extension
+      const safeTitle = (book.title || 'document').replace(/[^a-z0-9.-_ ]/gi, '');
+      const filename = `${safeTitle || 'document'}.pdf`;
+
+      // Get content type/length
+      const contentType = resp.headers.get('content-type') || 'application/pdf';
+      const contentLength = resp.headers.get('content-length');
+
+      res.setHeader('Content-Type', contentType);
+      if (contentLength) {
+        res.setHeader('Content-Length', contentLength);
+      }
+      res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+      res.setHeader('Cache-Control', 'no-cache');
+
+      const body = resp.body;
+      if (!body) {
+        return res.status(500).send('No body in remote response');
+      }
+
+      // Handle Node.js Readable or Web ReadableStream
+      if (typeof body.pipe === 'function') {
+        // Node.js Readable (node-fetch v2)
+        body.pipe(res);
+      } else if (typeof body.getReader === 'function') {
+        // Web ReadableStream (undici/global fetch)
+        const { Readable } = require('stream');
+
+        if (typeof Readable.fromWeb === 'function') {
+          Readable.fromWeb(body).pipe(res);
+        } else {
+          const reader = body.getReader();
+          const nodeStream = new Readable({
+            async read() {
+              try {
+                const { done, value } = await reader.read();
+                if (done) {
+                  this.push(null);
+                } else {
+                  this.push(Buffer.from(value));
+                }
+              } catch (err) {
+                this.destroy(err);
+              }
+            }
+          });
+
+          nodeStream.pipe(res);
+        }
+      } else {
+        // Fallback: buffer the entire response
+        const arrayBuffer = await resp.arrayBuffer();
+        const buffer = Buffer.from(arrayBuffer);
+        res.send(buffer);
+      }
+
+    } catch (err) {
+      console.error('Error streaming PDF file:', err);
+      if (!res.headersSent) {
+        res.status(500).send('Failed to download file');
+      }
     }
 
   } catch (error) {
