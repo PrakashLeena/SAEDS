@@ -77,8 +77,7 @@ const BookCard = memo(({ book }) => {
 
       const link = document.createElement('a');
       link.href = url;
-      link.target = '_blank';
-      link.rel = 'noopener,noreferrer';
+      link.download = '';
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
