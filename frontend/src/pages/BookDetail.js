@@ -90,6 +90,7 @@ const BookDetail = () => {
   const [downloadsCount, setDownloadsCount] = useState(0);
   const [favoritesCount, setFavoritesCount] = useState(0);
   const [backendUser, setBackendUser] = useState(null);
+  const [downloading, setDownloading] = useState(false);
 
   const viewerRef = useRef(null);
   const urlCacheRef = useRef(null);
@@ -226,18 +227,58 @@ const BookDetail = () => {
 
   // Handle download
   const handleDownload = useCallback(async () => {
-    // Use backend proxy to force download
-    const downloadUrl = `${api.book.getDownloadUrl(book._id || id)}?firebaseUid=${currentUser?.uid || ''}`;
+    if (downloading) return;
 
-    // Trigger download by navigating to the proxy URL
-    window.location.href = downloadUrl;
+    try {
+      setDownloading(true);
+      // Use backend proxy to force download
+      const downloadUrl = `${api.book.getDownloadUrl(book._id || id)}?firebaseUid=${currentUser?.uid || ''}`;
 
-    // Optimistically update stats locally
-    setDownloadsCount(prev => prev + 1);
+      // Fetch the file as a blob
+      const response = await fetch(downloadUrl);
 
-    // Refresh profile in background
-    refreshUserProfile();
-  }, [book, id, currentUser, refreshUserProfile]);
+      if (!response.ok) {
+        throw new Error('Download failed');
+      }
+
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.style.display = 'none';
+      a.href = url;
+
+      // Try to get filename from header or default to book title
+      const contentDisposition = response.headers.get('Content-Disposition');
+      let filename = `${book.title}.pdf`;
+      if (contentDisposition) {
+        const filenameMatch = contentDisposition.match(/filename="?([^"]+)"?/);
+        if (filenameMatch && filenameMatch.length === 2)
+          filename = filenameMatch[1];
+      }
+
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+
+      // Cleanup
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+
+      // Optimistically update stats locally
+      setDownloadsCount(prev => prev + 1);
+
+      // Refresh profile in background
+      refreshUserProfile();
+    } catch (err) {
+      console.error('Download error:', err);
+      // Fallback to direct navigation if fetch fails (e.g. CORS issues)
+      // window.location.href = downloadUrl; 
+      // Commented out fallback to respect user request "don't redirect"
+      alert('Failed to download the file. Please try again.');
+    } finally {
+      setDownloading(false);
+    }
+  }, [book, id, currentUser, refreshUserProfile, downloading]);
 
   // Handle read online
   const handleReadOnline = useCallback(async () => {
@@ -404,10 +445,12 @@ const BookDetail = () => {
               <div className="space-y-3">
                 <button
                   onClick={handleDownload}
-                  className="w-full py-3 px-4 rounded-lg font-semibold flex items-center justify-center space-x-2 transition-colors bg-primary-600 text-white hover:bg-primary-700"
+                  disabled={downloading}
+                  className={`w-full py-3 px-4 rounded-lg font-semibold flex items-center justify-center space-x-2 transition-colors ${downloading ? 'bg-primary-400 cursor-not-allowed' : 'bg-primary-600 hover:bg-primary-700'
+                    } text-white`}
                 >
-                  <Download className="h-5 w-5" />
-                  <span>Download</span>
+                  <Download className={`h-5 w-5 ${downloading ? 'animate-bounce' : ''}`} />
+                  <span>{downloading ? 'Downloading...' : 'Download'}</span>
                 </button>
 
                 <button
