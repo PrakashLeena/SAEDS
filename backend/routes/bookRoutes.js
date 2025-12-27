@@ -477,9 +477,8 @@ router.get('/:id/download-file', async (req, res) => {
     }
 
     // 4. Fetch and stream the file
-    // Use global fetch (Node 18+) or require it if needed. 
-    // Assuming global fetch is available as per other routes.
-    const fetch = global.fetch || require('node-fetch');
+    // Import node-fetch for compatibility
+    const fetch = require('node-fetch');
     const response = await fetch(pdfUrl);
 
     if (!response.ok) {
