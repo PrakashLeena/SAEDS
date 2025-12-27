@@ -143,7 +143,11 @@ router.post('/book-pdf', upload.single('pdfFile'), async (req, res) => {
       req.file.buffer,
       'saeds/book-pdfs',
       'raw', // Use 'raw' for PDFs
-      { public_id: publicId }
+      {
+        public_id: publicId,
+        type: 'upload',
+        access_mode: 'public'
+      }
     );
 
     res.json({
@@ -193,7 +197,16 @@ router.post('/elibrary', upload.single('file'), async (req, res) => {
     const ext = req.file.originalname.split('.').pop();
     const publicId = `${originalName}_${Date.now()}.${ext}`;
 
-    const result = await uploadToCloudinary(req.file.buffer, 'saeds/elibrary', 'raw', { public_id: publicId });
+    const result = await uploadToCloudinary(
+      req.file.buffer,
+      'saeds/elibrary',
+      'raw',
+      {
+        public_id: publicId,
+        type: 'upload',
+        access_mode: 'public'
+      }
+    );
 
     const fileDoc = new ElibraryFile({
       title: title || req.file.originalname || 'Untitled',
