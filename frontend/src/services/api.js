@@ -1,5 +1,9 @@
 // API Configuration
-const API_URL = process.env.REACT_APP_API_URL || 'https://saeds-tau.vercel.app/api';
+// API Configuration
+const API_URL = process.env.REACT_APP_API_URL ||
+  (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+    ? 'http://localhost:5000/api'
+    : 'https://saeds-tau.vercel.app/api');
 
 // Cache for GET requests (5 minute TTL)
 const cache = new Map();
