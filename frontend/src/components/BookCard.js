@@ -64,29 +64,42 @@ const BookCard = memo(({ book }) => {
   }, [resolveBookUrl, book.id]);
 
   // Optimized download handler
-  const handleDownload = useCallback((e) => {
+  const handleDownload = useCallback(async (e) => {
     e.preventDefault();
     e.stopPropagation();
 
-    // Use backend proxy to force download
-    const downloadUrl = `${api.book.getDownloadUrl(book.id)}?firebaseUid=${userUid || ''}`;
+    try {
+      const url = await resolveBookUrl();
+      if (!url) {
+        window.location.href = `/book/${book.id}`;
+        return;
+      }
 
-    // Trigger download by navigating to the proxy URL
-    window.location.href = downloadUrl;
+      const link = document.createElement('a');
+      link.href = url;
+      link.target = '_blank';
+      link.rel = 'noopener,noreferrer';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
 
-    // Refresh user profile in background if authenticated
-    if (userUid) {
-      api.user.getByFirebaseUid(userUid)
-        .then(ru => {
-          if (ru?.data) {
-            window.dispatchEvent(new CustomEvent('profile-updated', {
-              detail: ru.data
-            }));
-          }
-        })
-        .catch(e => console.error('Failed to refresh user', e));
+      // Refresh user profile in background if authenticated
+      if (userUid) {
+        api.user.getByFirebaseUid(userUid)
+          .then(ru => {
+            if (ru?.data) {
+              window.dispatchEvent(new CustomEvent('profile-updated', {
+                detail: ru.data
+              }));
+            }
+          })
+          .catch(e => console.error('Failed to refresh user', e));
+      }
+    } catch (err) {
+      console.error('Failed to download book', err);
+      window.location.href = `/book/${book.id}`;
     }
-  }, [book.id, userUid]);
+  }, [book.id, userUid, resolveBookUrl]);
 
   // Memoize download count display
   const downloadCount = useMemo(() =>

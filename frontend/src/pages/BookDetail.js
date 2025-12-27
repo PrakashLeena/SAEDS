@@ -226,7 +226,7 @@ const BookDetail = () => {
   }, [currentUser, book, id]);
 
   // Handle download
-  const handleDownload = useCallback(() => {
+  const handleDownload = useCallback(async () => {
     if (downloading) return;
     if (!book?._id && !id) {
       alert('PDF not available for download');
@@ -235,21 +235,29 @@ const BookDetail = () => {
 
     setDownloading(true);
 
-    const bookId = book?._id || id;
-    const downloadUrl = api.book.getDownloadUrl(bookId);
-    const url = currentUser?.uid
-      ? `${downloadUrl}?firebaseUid=${encodeURIComponent(currentUser.uid)}`
-      : downloadUrl;
+    try {
+      const url = await resolvePdfUrl();
+      if (!url) {
+        alert('PDF not available for download');
+        return;
+      }
 
-    const link = document.createElement('a');
-    link.href = url;
-    link.target = '_blank';
-    link.rel = 'noopener noreferrer';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+      const link = document.createElement('a');
+      link.href = url;
+      link.target = '_blank';
+      link.rel = 'noopener noreferrer';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
 
-    setTimeout(async () => {
+      try {
+        await api.book.incrementDownload(book._id || id, {
+          firebaseUid: currentUser?.uid
+        });
+      } catch (err) {
+        console.error('Failed to increment download count', err);
+      }
+
       try {
         setDownloadsCount(prev => prev + 1);
         await Promise.all([
@@ -259,9 +267,10 @@ const BookDetail = () => {
       } catch (err) {
         console.error('Failed to refresh stats:', err);
       }
+    } finally {
       setDownloading(false);
-    }, 250);
-  }, [downloading, book?._id, id, currentUser?.uid, refreshStats, refreshUserProfile]);
+    }
+  }, [downloading, book?._id, id, currentUser?.uid, resolvePdfUrl, refreshStats, refreshUserProfile]);
 
   // Handle read online
   const handleReadOnline = useCallback(async () => {
