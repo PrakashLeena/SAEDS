@@ -231,54 +231,41 @@ const BookDetail = () => {
 
     try {
       setDownloading(true);
-      // Use backend proxy to force download
-      const downloadUrl = `${api.book.getDownloadUrl(book._id || id)}?firebaseUid=${currentUser?.uid || ''}`;
 
-      // Fetch the file as a blob
-      const response = await fetch(downloadUrl);
-
-      if (!response.ok) {
-        throw new Error('Download failed');
+      // Get the PDF URL
+      const pdfUrl = await resolvePdfUrl();
+      if (!pdfUrl) {
+        alert('PDF not available for download');
+        return;
       }
 
-      const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
+      // Create a temporary link and trigger download
       const a = document.createElement('a');
-      a.style.display = 'none';
-      a.href = url;
-
-      // Try to get filename from header or default to book title
-      const contentDisposition = response.headers.get('Content-Disposition');
-      let filename = `${book.title}.pdf`;
-      if (contentDisposition) {
-        const filenameMatch = contentDisposition.match(/filename="?([^"]+)"?/);
-        if (filenameMatch && filenameMatch.length === 2)
-          filename = filenameMatch[1];
-      }
-
-      a.download = filename;
+      a.href = pdfUrl;
+      a.download = `${book.title}.pdf`;
+      a.target = '_blank';
+      a.rel = 'noopener noreferrer';
       document.body.appendChild(a);
       a.click();
-
-      // Cleanup
-      window.URL.revokeObjectURL(url);
       document.body.removeChild(a);
 
-      // Optimistically update stats locally
-      setDownloadsCount(prev => prev + 1);
-
-      // Refresh profile in background
-      refreshUserProfile();
+      // Increment download count in background
+      try {
+        await api.book.incrementDownload(book._id || id, {
+          firebaseUid: currentUser?.uid
+        });
+        setDownloadsCount(prev => prev + 1);
+        refreshUserProfile();
+      } catch (err) {
+        console.error('Failed to update download count:', err);
+      }
     } catch (err) {
       console.error('Download error:', err);
-      // Fallback to direct navigation if fetch fails (e.g. CORS issues)
-      // window.location.href = downloadUrl; 
-      // Commented out fallback to respect user request "don't redirect"
       alert('Failed to download the file. Please try again.');
     } finally {
       setDownloading(false);
     }
-  }, [book, id, currentUser, refreshUserProfile, downloading]);
+  }, [book, id, currentUser, refreshUserProfile, downloading, resolvePdfUrl]);
 
   // Handle read online
   const handleReadOnline = useCallback(async () => {
