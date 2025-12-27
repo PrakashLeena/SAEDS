@@ -226,30 +226,28 @@ const BookDetail = () => {
   }, [currentUser, book, id]);
 
   // Handle download
-  const handleDownload = useCallback(async () => {
-    if (downloading) return;
-
-    try {
-      setDownloading(true);
-
-      // Get the PDF URL
-      const pdfUrl = await resolvePdfUrl();
-      if (!pdfUrl) {
+  const handleDownload = useCallback(() => {
+    if (downloading || !book?.pdfUrl) {
+      if (!book?.pdfUrl) {
         alert('PDF not available for download');
-        return;
       }
+      return;
+    }
 
-      // Create a temporary link and trigger download
-      const a = document.createElement('a');
-      a.href = pdfUrl;
-      a.download = `${book.title}.pdf`;
-      a.target = '_blank';
-      a.rel = 'noopener noreferrer';
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
+    setDownloading(true);
 
-      // Increment download count in background
+    // Create download link
+    const link = document.createElement('a');
+    link.href = book.pdfUrl;
+    link.download = `${book.title}.pdf`;
+    link.target = '_blank';
+    link.rel = 'noopener noreferrer';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+
+    // Update stats in background
+    setTimeout(async () => {
       try {
         await api.book.incrementDownload(book._id || id, {
           firebaseUid: currentUser?.uid
@@ -257,15 +255,11 @@ const BookDetail = () => {
         setDownloadsCount(prev => prev + 1);
         refreshUserProfile();
       } catch (err) {
-        console.error('Failed to update download count:', err);
+        console.error('Failed to update stats:', err);
       }
-    } catch (err) {
-      console.error('Download error:', err);
-      alert('Failed to download the file. Please try again.');
-    } finally {
       setDownloading(false);
-    }
-  }, [book, id, currentUser, refreshUserProfile, downloading, resolvePdfUrl]);
+    }, 100);
+  }, [book, id, currentUser, refreshUserProfile, downloading]);
 
   // Handle read online
   const handleReadOnline = useCallback(async () => {
