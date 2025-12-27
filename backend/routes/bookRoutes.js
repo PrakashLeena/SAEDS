@@ -476,19 +476,29 @@ router.get('/:id/download-file', async (req, res) => {
       }
     }
 
-    // 4. Transform Cloudinary URL to force download
-    // If it's a Cloudinary URL, add fl_attachment flag
-    if (pdfUrl.includes('cloudinary.com')) {
-      // Parse the URL and add fl_attachment transformation
-      const urlParts = pdfUrl.split('/upload/');
-      if (urlParts.length === 2) {
-        // Add fl_attachment flag to force download
-        pdfUrl = `${urlParts[0]}/upload/fl_attachment/${urlParts[1]}`;
-      }
-    }
+    // 4. Fetch the PDF and stream it with download headers
+    try {
+      // Use axios for better streaming support
+      const axios = require('axios');
 
-    // Redirect to the PDF URL (with download flag if Cloudinary)
-    res.redirect(pdfUrl);
+      const response = await axios({
+        method: 'get',
+        url: pdfUrl,
+        responseType: 'stream'
+      });
+
+      // Set headers to force download
+      const filename = `${book.title.replace(/[^a-z0-9\s]/gi, '_')}.pdf`;
+      res.setHeader('Content-Type', 'application/pdf');
+      res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+
+      // Pipe the response directly to the client
+      response.data.pipe(res);
+
+    } catch (fetchError) {
+      console.error('Failed to fetch PDF:', fetchError.message);
+      return res.status(502).send('Failed to retrieve file from storage');
+    }
 
   } catch (error) {
     console.error('Download proxy error:', error);
