@@ -498,12 +498,11 @@ router.get('/:id/download-file', async (req, res) => {
     } catch (fetchError) {
       console.error('Streaming failed, falling back to redirect:', fetchError.message);
 
-      // Fallback: redirect to Cloudinary with fl_attachment
+      // Fallback: redirect to Cloudinary with attachment parameter
       if (pdfUrl.includes('cloudinary.com')) {
-        const urlParts = pdfUrl.split('/upload/');
-        if (urlParts.length === 2) {
-          pdfUrl = `${urlParts[0]}/upload/fl_attachment/${urlParts[1]}`;
-        }
+        // For raw files (PDFs), use query parameter instead of transformation
+        const separator = pdfUrl.includes('?') ? '&' : '?';
+        pdfUrl = `${pdfUrl}${separator}attachment=true`;
       }
 
       return res.redirect(pdfUrl);
