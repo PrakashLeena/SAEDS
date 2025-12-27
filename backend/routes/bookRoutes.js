@@ -476,15 +476,15 @@ router.get('/:id/download-file', async (req, res) => {
       }
     }
 
-    // 4. Fetch the PDF and stream it with download headers
+    // 4. Try to stream the PDF, fallback to redirect if it fails
     try {
-      // Use axios for better streaming support
       const axios = require('axios');
 
       const response = await axios({
         method: 'get',
         url: pdfUrl,
-        responseType: 'stream'
+        responseType: 'stream',
+        timeout: 10000 // 10 second timeout
       });
 
       // Set headers to force download
@@ -496,8 +496,17 @@ router.get('/:id/download-file', async (req, res) => {
       response.data.pipe(res);
 
     } catch (fetchError) {
-      console.error('Failed to fetch PDF:', fetchError.message);
-      return res.status(502).send('Failed to retrieve file from storage');
+      console.error('Streaming failed, falling back to redirect:', fetchError.message);
+
+      // Fallback: redirect to Cloudinary with fl_attachment
+      if (pdfUrl.includes('cloudinary.com')) {
+        const urlParts = pdfUrl.split('/upload/');
+        if (urlParts.length === 2) {
+          pdfUrl = `${urlParts[0]}/upload/fl_attachment/${urlParts[1]}`;
+        }
+      }
+
+      return res.redirect(pdfUrl);
     }
 
   } catch (error) {
