@@ -476,36 +476,19 @@ router.get('/:id/download-file', async (req, res) => {
       }
     }
 
-    // 4. Fetch and stream the file
-    // Import node-fetch for compatibility
-    const fetch = require('node-fetch');
-    const response = await fetch(pdfUrl);
-
-    if (!response.ok) {
-      console.error(`Failed to fetch PDF from ${pdfUrl}: ${response.statusText}`);
-      return res.status(502).send('Failed to retrieve file from storage');
-    }
-
-    // Set headers for download
-    const filename = `${book.title.replace(/[^a-z0-9]/gi, '_')}.pdf`;
-    res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
-    res.setHeader('Content-Type', 'application/pdf');
-
-    if (response.body && typeof response.body.pipe === 'function') {
-      response.body.pipe(res);
-    } else if (response.body) {
-      // Handle Web Streams (Node 18 native fetch)
-      const { Readable } = require('stream');
-      if (typeof Readable.fromWeb === 'function') {
-        Readable.fromWeb(response.body).pipe(res);
-      } else {
-        // Fallback for older Node versions or different fetch implementations
-        const arrayBuffer = await response.arrayBuffer();
-        res.send(Buffer.from(arrayBuffer));
+    // 4. Transform Cloudinary URL to force download
+    // If it's a Cloudinary URL, add fl_attachment flag
+    if (pdfUrl.includes('cloudinary.com')) {
+      // Parse the URL and add fl_attachment transformation
+      const urlParts = pdfUrl.split('/upload/');
+      if (urlParts.length === 2) {
+        // Add fl_attachment flag to force download
+        pdfUrl = `${urlParts[0]}/upload/fl_attachment/${urlParts[1]}`;
       }
-    } else {
-      res.status(500).send('No file content received');
     }
+
+    // Redirect to the PDF URL (with download flag if Cloudinary)
+    res.redirect(pdfUrl);
 
   } catch (error) {
     console.error('Download proxy error:', error);
