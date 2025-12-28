@@ -437,8 +437,9 @@ router.get('/:id/download-file', async (req, res) => {
       return res.status(404).send('Book not found');
     }
 
-    // 2. Resolve the PDF URL
+    // 2. Resolve the PDF URL and Cloudinary publicId (if we have one)
     let pdfUrl = null;
+    let filePublicId = null;
     if (book.pdfUrl && isPdfUrl(book.pdfUrl)) {
       pdfUrl = book.pdfUrl;
     } else {
@@ -456,7 +457,12 @@ router.get('/:id/download-file', async (req, res) => {
             { url: { $regex: /\.pdf(\?.*)?$/i } },
           ],
         }).sort({ createdAt: -1 }).exec();
-        if (file) pdfUrl = file.url;
+        if (file) {
+          pdfUrl = file.url;
+          if (file.publicId) {
+            filePublicId = file.publicId;
+          }
+        }
       }
     }
 
@@ -490,18 +496,40 @@ router.get('/:id/download-file', async (req, res) => {
           // Expected structure: /<cloud_name>/<resource_type>/upload/v<version>/<publicId>.<ext>
           const resourceType = parts[1] || 'raw';
           const uploadIdx = parts.indexOf('upload');
+          let derivedPublicId = null;
+          let derivedFormat = 'pdf';
+
           if (uploadIdx !== -1 && parts[uploadIdx + 1]) {
             const afterUploadParts = parts.slice(uploadIdx + 2); // skip 'upload' and 'vNNN'
             const publicPath = afterUploadParts.join('/');
             const lastDot = publicPath.lastIndexOf('.');
-            const publicId = lastDot !== -1 ? publicPath.slice(0, lastDot) : publicPath;
-            const format = lastDot !== -1 ? publicPath.slice(lastDot + 1) : 'pdf';
+            if (lastDot !== -1) {
+              derivedPublicId = publicPath.slice(0, lastDot);
+              derivedFormat = publicPath.slice(lastDot + 1) || 'pdf';
+            } else {
+              derivedPublicId = publicPath;
+            }
+          }
 
+          const finalPublicId = filePublicId || derivedPublicId;
+          const finalFormat = derivedFormat || 'pdf';
+
+          if (finalPublicId) {
             // Use Cloudinary's private_download_url to generate a signed, downloadable URL
-            fetchUrl = cloudinary.utils.private_download_url(publicId, format, {
+            fetchUrl = cloudinary.utils.private_download_url(finalPublicId, finalFormat, {
               resource_type: resourceType,
               type: 'upload',
               attachment: true,
+            });
+
+            console.log('Using Cloudinary private download URL for PDF', {
+              finalPublicId,
+              finalFormat,
+              resourceType,
+            });
+          } else {
+            console.warn('Could not determine Cloudinary publicId from URL, falling back to direct URL', {
+              pdfUrl,
             });
           }
         }
@@ -511,8 +539,22 @@ router.get('/:id/download-file', async (req, res) => {
 
       const resp = await fetch(fetchUrl);
       if (!resp.ok) {
-        console.error('Failed to fetch PDF from storage', pdfUrl, resp.status, resp.statusText);
-        return res.status(502).send('Failed to fetch file from storage');
+        let errorBody = '';
+        try {
+          errorBody = await resp.text();
+        } catch (e) {
+          // ignore
+        }
+        console.error('Failed to fetch PDF from storage', {
+          sourceUrl: pdfUrl,
+          fetchUrl,
+          status: resp.status,
+          statusText: resp.statusText,
+          body: errorBody ? errorBody.slice(0, 500) : undefined,
+        });
+        return res
+          .status(502)
+          .send(`Failed to fetch file from storage (status ${resp.status || 'unknown'})`);
       }
 
       // Create a safe filename with .pdf extension
