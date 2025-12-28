@@ -225,8 +225,8 @@ const BookDetail = () => {
     return () => { mounted = false; };
   }, [currentUser, book, id]);
 
-  // Handle download
-  const handleDownload = useCallback(async () => {
+  // Handle download (via backend proxy to avoid Cloudinary redirects/401s)
+  const handleDownload = useCallback(() => {
     if (downloading) return;
     if (!book?._id && !id) {
       alert('PDF not available for download');
@@ -235,28 +235,19 @@ const BookDetail = () => {
 
     setDownloading(true);
 
-    try {
-      const url = await resolvePdfUrl();
-      if (!url) {
-        alert('PDF not available for download');
-        return;
-      }
+    const bookId = book?._id || id;
+    const downloadUrl = api.book.getDownloadUrl(bookId);
+    const url = currentUser?.uid
+      ? `${downloadUrl}?firebaseUid=${encodeURIComponent(currentUser.uid)}`
+      : downloadUrl;
 
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = '';
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
+    const link = document.createElement('a');
+    link.href = url;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
 
-      try {
-        await api.book.incrementDownload(book._id || id, {
-          firebaseUid: currentUser?.uid
-        });
-      } catch (err) {
-        console.error('Failed to increment download count', err);
-      }
-
+    setTimeout(async () => {
       try {
         setDownloadsCount(prev => prev + 1);
         await Promise.all([
@@ -266,10 +257,9 @@ const BookDetail = () => {
       } catch (err) {
         console.error('Failed to refresh stats:', err);
       }
-    } finally {
       setDownloading(false);
-    }
-  }, [downloading, book?._id, id, currentUser?.uid, resolvePdfUrl, refreshStats, refreshUserProfile]);
+    }, 250);
+  }, [downloading, book?._id, id, currentUser?.uid, refreshStats, refreshUserProfile]);
 
   // Handle read online
   const handleReadOnline = useCallback(async () => {

@@ -63,42 +63,27 @@ const BookCard = memo(({ book }) => {
     window.open(url, '_blank', 'noopener,noreferrer');
   }, [resolveBookUrl, book.id]);
 
-  // Optimized download handler
-  const handleDownload = useCallback(async (e) => {
+  // Optimized download handler (via backend proxy)
+  const handleDownload = useCallback((e) => {
     e.preventDefault();
     e.stopPropagation();
 
-    try {
-      const url = await resolveBookUrl();
-      if (!url) {
-        window.location.href = `/book/${book.id}`;
-        return;
-      }
+    const downloadUrl = `${api.book.getDownloadUrl(book.id)}?firebaseUid=${userUid || ''}`;
+    window.location.href = downloadUrl;
 
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = '';
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-
-      // Refresh user profile in background if authenticated
-      if (userUid) {
-        api.user.getByFirebaseUid(userUid)
-          .then(ru => {
-            if (ru?.data) {
-              window.dispatchEvent(new CustomEvent('profile-updated', {
-                detail: ru.data
-              }));
-            }
-          })
-          .catch(e => console.error('Failed to refresh user', e));
-      }
-    } catch (err) {
-      console.error('Failed to download book', err);
-      window.location.href = `/book/${book.id}`;
+    // Refresh user profile in background if authenticated
+    if (userUid) {
+      api.user.getByFirebaseUid(userUid)
+        .then(ru => {
+          if (ru?.data) {
+            window.dispatchEvent(new CustomEvent('profile-updated', {
+              detail: ru.data
+            }));
+          }
+        })
+        .catch(e => console.error('Failed to refresh user', e));
     }
-  }, [book.id, userUid, resolveBookUrl]);
+  }, [book.id, userUid]);
 
   // Memoize download count display
   const downloadCount = useMemo(() =>

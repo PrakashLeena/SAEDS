@@ -3,6 +3,7 @@ const router = express.Router();
 const Book = require('../models/Book');
 const User = require('../models/User');
 const ElibraryFile = require('../models/ElibraryFile');
+const cloudinary = require('../config/cloudinary');
 const fetch = global.fetch || require('node-fetch');
 
 // Get all books with optional filters
@@ -477,9 +478,39 @@ router.get('/:id/download-file', async (req, res) => {
       }
     }
 
-    // 4. Stream the PDF through the backend (no Cloudinary attachment param)
+    // 4. Stream the PDF through the backend (no Cloudinary redirect)
     try {
-      const resp = await fetch(pdfUrl);
+      let fetchUrl = pdfUrl;
+
+      // If this is a Cloudinary URL, generate a signed delivery URL to avoid 401s
+      try {
+        const urlObj = new URL(pdfUrl);
+        if (urlObj.hostname.includes('res.cloudinary.com')) {
+          const parts = urlObj.pathname.split('/').filter(Boolean);
+          // Expected structure: /<cloud_name>/<resource_type>/upload/v<version>/<publicId>.<ext>
+          const resourceType = parts[1] || 'raw';
+          const uploadIdx = parts.indexOf('upload');
+          if (uploadIdx !== -1 && parts[uploadIdx + 1]) {
+            const afterUploadParts = parts.slice(uploadIdx + 2); // skip 'upload' and 'vNNN'
+            const publicPath = afterUploadParts.join('/');
+            const lastDot = publicPath.lastIndexOf('.');
+            const publicId = lastDot !== -1 ? publicPath.slice(0, lastDot) : publicPath;
+            const format = lastDot !== -1 ? publicPath.slice(lastDot + 1) : undefined;
+
+            fetchUrl = cloudinary.url(publicId, {
+              resource_type: resourceType,
+              type: 'upload',
+              format,
+              sign_url: true,
+              secure: true,
+            });
+          }
+        }
+      } catch (parseErr) {
+        console.error('Failed to generate signed Cloudinary URL, falling back to direct URL', parseErr);
+      }
+
+      const resp = await fetch(fetchUrl);
       if (!resp.ok) {
         console.error('Failed to fetch PDF from storage', pdfUrl, resp.status, resp.statusText);
         return res.status(502).send('Failed to fetch file from storage');
