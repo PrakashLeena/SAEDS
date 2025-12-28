@@ -482,7 +482,7 @@ router.get('/:id/download-file', async (req, res) => {
     try {
       let fetchUrl = pdfUrl;
 
-      // If this is a Cloudinary URL, generate a signed delivery URL to avoid 401s
+      // If this is a Cloudinary URL, generate a private download URL
       try {
         const urlObj = new URL(pdfUrl);
         if (urlObj.hostname.includes('res.cloudinary.com')) {
@@ -495,19 +495,18 @@ router.get('/:id/download-file', async (req, res) => {
             const publicPath = afterUploadParts.join('/');
             const lastDot = publicPath.lastIndexOf('.');
             const publicId = lastDot !== -1 ? publicPath.slice(0, lastDot) : publicPath;
-            const format = lastDot !== -1 ? publicPath.slice(lastDot + 1) : undefined;
+            const format = lastDot !== -1 ? publicPath.slice(lastDot + 1) : 'pdf';
 
-            fetchUrl = cloudinary.url(publicId, {
+            // Use Cloudinary's private_download_url to generate a signed, downloadable URL
+            fetchUrl = cloudinary.utils.private_download_url(publicId, format, {
               resource_type: resourceType,
               type: 'upload',
-              format,
-              sign_url: true,
-              secure: true,
+              attachment: true,
             });
           }
         }
       } catch (parseErr) {
-        console.error('Failed to generate signed Cloudinary URL, falling back to direct URL', parseErr);
+        console.error('Failed to generate Cloudinary private download URL, falling back to direct URL', parseErr);
       }
 
       const resp = await fetch(fetchUrl);
