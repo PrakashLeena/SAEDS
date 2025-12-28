@@ -511,8 +511,24 @@ router.get('/:id/download-file', async (req, res) => {
             }
           }
 
-          const finalPublicId = filePublicId || derivedPublicId;
-          const finalFormat = derivedFormat || 'pdf';
+          let finalPublicId = filePublicId || derivedPublicId;
+          let finalFormat = derivedFormat || 'pdf';
+
+          // Normalize when publicId already includes extension (common for raw uploads)
+          // Cloudinary expects: private_download_url(<public_id_without_ext>, <format>)
+          if (finalPublicId && typeof finalPublicId === 'string') {
+            const lastSlash = finalPublicId.lastIndexOf('/');
+            const lastDot = finalPublicId.lastIndexOf('.');
+            if (lastDot !== -1 && lastDot > lastSlash) {
+              const ext = finalPublicId.slice(lastDot + 1);
+              const base = finalPublicId.slice(0, lastDot);
+              // Only treat as extension if it looks like a real one
+              if (ext && ext.length <= 5) {
+                finalPublicId = base;
+                finalFormat = ext;
+              }
+            }
+          }
 
           if (finalPublicId) {
             // Use Cloudinary's private_download_url to generate a signed, downloadable URL
