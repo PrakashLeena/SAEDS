@@ -490,6 +490,7 @@ router.get('/:id/download-file', async (req, res) => {
         label: 'direct',
         url: pdfUrl,
       }];
+      const attemptSummary = [];
 
       // If this is a Cloudinary URL, generate signed URLs and try them first
       try {
@@ -550,7 +551,7 @@ router.get('/:id/download-file', async (req, res) => {
             // Prefer signed URLs before direct URL
             candidates.unshift(
               { label: 'cloudinary_private_download', url: privateUrl },
-              { label: 'cloudinary_signed_delivery', url: signedDeliveryUrl },
+              { label: 'cloudinary_signed_delivery', url: signedDeliveryUrl }
             );
 
             console.log('Cloudinary download candidates prepared', {
@@ -568,6 +569,8 @@ router.get('/:id/download-file', async (req, res) => {
         console.error('Failed to generate Cloudinary candidate URLs; will try direct URL only', parseErr);
       }
 
+      console.log('PDF download candidate labels', candidates.map(c => c.label));
+
       let resp = null;
       let used = null;
       for (const c of candidates) {
@@ -584,6 +587,11 @@ router.get('/:id/download-file', async (req, res) => {
           } catch (e) {
             // ignore
           }
+          attemptSummary.push({
+            label: c.label,
+            status: r && r.status,
+            statusText: r && r.statusText,
+          });
           console.warn('PDF fetch attempt failed', {
             label: c.label,
             url: c.url,
@@ -592,6 +600,10 @@ router.get('/:id/download-file', async (req, res) => {
             body: errorBody ? errorBody.slice(0, 300) : undefined,
           });
         } catch (e) {
+          attemptSummary.push({
+            label: c.label,
+            error: e && e.message,
+          });
           console.warn('PDF fetch attempt threw error', {
             label: c.label,
             url: c.url,
@@ -601,7 +613,8 @@ router.get('/:id/download-file', async (req, res) => {
       }
 
       if (!resp) {
-        return res.status(502).send('Failed to fetch file from storage');
+        console.error('All PDF fetch attempts failed', attemptSummary);
+        return res.status(502).send(`Failed to fetch file from storage. Attempts: ${JSON.stringify(attemptSummary)}`);
       }
 
       if (used) {
