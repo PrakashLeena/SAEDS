@@ -486,9 +486,12 @@ router.get('/:id/download-file', async (req, res) => {
 
     // 4. Stream the PDF through the backend (no Cloudinary redirect)
     try {
-      let fetchUrl = pdfUrl;
+      const candidates = [{
+        label: 'direct',
+        url: pdfUrl,
+      }];
 
-      // If this is a Cloudinary URL, generate a private download URL
+      // If this is a Cloudinary URL, generate signed URLs and try them first
       try {
         const urlObj = new URL(pdfUrl);
         if (urlObj.hostname.includes('res.cloudinary.com')) {
@@ -515,14 +518,12 @@ router.get('/:id/download-file', async (req, res) => {
           let finalFormat = derivedFormat || 'pdf';
 
           // Normalize when publicId already includes extension (common for raw uploads)
-          // Cloudinary expects: private_download_url(<public_id_without_ext>, <format>)
           if (finalPublicId && typeof finalPublicId === 'string') {
             const lastSlash = finalPublicId.lastIndexOf('/');
             const lastDot = finalPublicId.lastIndexOf('.');
             if (lastDot !== -1 && lastDot > lastSlash) {
               const ext = finalPublicId.slice(lastDot + 1);
               const base = finalPublicId.slice(0, lastDot);
-              // Only treat as extension if it looks like a real one
               if (ext && ext.length <= 5) {
                 finalPublicId = base;
                 finalFormat = ext;
@@ -531,46 +532,80 @@ router.get('/:id/download-file', async (req, res) => {
           }
 
           if (finalPublicId) {
-            // Use Cloudinary's private_download_url to generate a signed, downloadable URL
-            fetchUrl = cloudinary.utils.private_download_url(finalPublicId, finalFormat, {
+            const privateUrl = cloudinary.utils.private_download_url(finalPublicId, finalFormat, {
               resource_type: resourceType,
               type: 'upload',
               attachment: true,
             });
 
-            console.log('Using Cloudinary private download URL for PDF', {
+            // Signed delivery URL as a fallback (some accounts/settings behave differently)
+            const signedDeliveryUrl = cloudinary.url(finalPublicId, {
+              resource_type: resourceType,
+              type: 'upload',
+              format: finalFormat,
+              sign_url: true,
+              secure: true,
+            });
+
+            // Prefer signed URLs before direct URL
+            candidates.unshift(
+              { label: 'cloudinary_private_download', url: privateUrl },
+              { label: 'cloudinary_signed_delivery', url: signedDeliveryUrl },
+            );
+
+            console.log('Cloudinary download candidates prepared', {
               finalPublicId,
               finalFormat,
               resourceType,
             });
           } else {
-            console.warn('Could not determine Cloudinary publicId from URL, falling back to direct URL', {
+            console.warn('Could not determine Cloudinary publicId from URL; will try direct URL only', {
               pdfUrl,
             });
           }
         }
       } catch (parseErr) {
-        console.error('Failed to generate Cloudinary private download URL, falling back to direct URL', parseErr);
+        console.error('Failed to generate Cloudinary candidate URLs; will try direct URL only', parseErr);
       }
 
-      const resp = await fetch(fetchUrl);
-      if (!resp.ok) {
-        let errorBody = '';
+      let resp = null;
+      let used = null;
+      for (const c of candidates) {
         try {
-          errorBody = await resp.text();
+          const r = await fetch(c.url);
+          if (r && r.ok) {
+            resp = r;
+            used = c;
+            break;
+          }
+          let errorBody = '';
+          try {
+            errorBody = r ? await r.text() : '';
+          } catch (e) {
+            // ignore
+          }
+          console.warn('PDF fetch attempt failed', {
+            label: c.label,
+            url: c.url,
+            status: r && r.status,
+            statusText: r && r.statusText,
+            body: errorBody ? errorBody.slice(0, 300) : undefined,
+          });
         } catch (e) {
-          // ignore
+          console.warn('PDF fetch attempt threw error', {
+            label: c.label,
+            url: c.url,
+            error: e && e.message,
+          });
         }
-        console.error('Failed to fetch PDF from storage', {
-          sourceUrl: pdfUrl,
-          fetchUrl,
-          status: resp.status,
-          statusText: resp.statusText,
-          body: errorBody ? errorBody.slice(0, 500) : undefined,
-        });
-        return res
-          .status(502)
-          .send(`Failed to fetch file from storage (status ${resp.status || 'unknown'})`);
+      }
+
+      if (!resp) {
+        return res.status(502).send('Failed to fetch file from storage');
+      }
+
+      if (used) {
+        console.log('PDF fetch succeeded', { label: used.label });
       }
 
       // Create a safe filename with .pdf extension
