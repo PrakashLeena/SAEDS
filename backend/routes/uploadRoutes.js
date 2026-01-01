@@ -2,6 +2,8 @@ const express = require('express');
 const router = express.Router();
 const cloudinary = require('../config/cloudinary');
 const upload = require('../middleware/upload');
+const drive = require('../config/googleDrive');
+const { Readable } = require('stream');
 const { isAdmin } = require('../middleware/adminAuth');
 const GalleryImage = require('../models/GalleryImage');
 const GalleryAlbum = require('../models/GalleryAlbum');
@@ -124,7 +126,7 @@ router.post('/book-cover', upload.single('coverImage'), async (req, res) => {
   }
 });
 
-// Upload book PDF
+// Upload book PDF (Google Drive)
 router.post('/book-pdf', upload.single('pdfFile'), async (req, res) => {
   try {
     if (!req.file) {
@@ -134,33 +136,63 @@ router.post('/book-pdf', upload.single('pdfFile'), async (req, res) => {
       });
     }
 
-    // Generate a public ID with extension for raw files to ensure accessibility
-    const originalName = req.file.originalname.replace(/\.[^/.]+$/, "").replace(/[^a-z0-9]/gi, '_').toLowerCase();
-    const ext = req.file.originalname.split('.').pop();
-    const publicId = `${originalName}_${Date.now()}.${ext}`;
+    // Generate a safe file name: originalName_timestamp.pdf
+    const baseName = req.file.originalname
+      .replace(/\.[^/.]+$/, '')
+      .replace(/[^a-z0-9]/gi, '_')
+      .toLowerCase();
+    const ext = req.file.originalname.split('.').pop() || 'pdf';
+    const fileName = `${baseName}_${Date.now()}.${ext}`;
 
-    const result = await uploadToCloudinary(
-      req.file.buffer,
-      'saeds/book-pdfs',
-      'raw', // Use 'raw' for PDFs
-      {
-        public_id: publicId,
-        type: 'upload',
-        access_mode: 'public'
-      }
-    );
+    const folderId = process.env.GOOGLE_DRIVE_BOOKS_FOLDER_ID || process.env.GOOGLE_DRIVE_FOLDER_ID;
 
-    res.json({
+    const fileMetadata = {
+      name: fileName,
+      ...(folderId ? { parents: [folderId] } : {}),
+    };
+
+    const media = {
+      mimeType: 'application/pdf',
+      body: Readable.from(req.file.buffer),
+    };
+
+    const response = await drive.files.create({
+      requestBody: fileMetadata,
+      media,
+      fields: 'id, webViewLink, webContentLink',
+    });
+
+    const fileId = response.data.id;
+
+    // Make the file publicly readable so it can be downloaded/viewed
+    try {
+      await drive.permissions.create({
+        fileId,
+        requestBody: {
+          role: 'reader',
+          type: 'anyone',
+        },
+      });
+    } catch (permErr) {
+      console.error('Failed to set public permission on Drive file', fileId, permErr);
+    }
+
+    const viewUrl = `https://drive.google.com/file/d/${fileId}/view`;
+
+    return res.json({
       success: true,
       message: 'Book PDF uploaded successfully',
       data: {
-        url: result.secure_url,
-        publicId: result.public_id,
+        url: viewUrl,
+        publicId: fileId,
+        driveFileId: fileId,
+        webViewLink: response.data.webViewLink || viewUrl,
+        webContentLink: response.data.webContentLink || null,
       },
     });
   } catch (error) {
-    console.error('Error uploading book PDF:', error);
-    res.status(500).json({
+    console.error('Error uploading book PDF to Google Drive:', error);
+    return res.status(500).json({
       success: false,
       message: 'Error uploading book PDF',
       error: error.message,
