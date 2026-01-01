@@ -515,49 +515,83 @@ router.get('/:id/download-file', async (req, res) => {
             }
           }
 
-          let finalPublicId = filePublicId || derivedPublicId;
-          let finalFormat = derivedFormat || 'pdf';
+          const rawPublicId = filePublicId || derivedPublicId;
 
-          // Normalize when publicId already includes extension (common for raw uploads)
-          if (finalPublicId && typeof finalPublicId === 'string') {
-            const lastSlash = finalPublicId.lastIndexOf('/');
-            const lastDot = finalPublicId.lastIndexOf('.');
+          let publicIdWithExt = rawPublicId;
+          let publicIdNoExt = rawPublicId;
+          let extFromPublicId = derivedFormat || 'pdf';
+
+          if (rawPublicId && typeof rawPublicId === 'string') {
+            const lastSlash = rawPublicId.lastIndexOf('/');
+            const lastDot = rawPublicId.lastIndexOf('.');
             if (lastDot !== -1 && lastDot > lastSlash) {
-              const ext = finalPublicId.slice(lastDot + 1);
-              const base = finalPublicId.slice(0, lastDot);
+              const ext = rawPublicId.slice(lastDot + 1);
+              const base = rawPublicId.slice(0, lastDot);
               if (ext && ext.length <= 5) {
-                finalPublicId = base;
-                finalFormat = ext;
+                publicIdWithExt = rawPublicId;
+                publicIdNoExt = base;
+                extFromPublicId = ext;
               }
             }
           }
 
-          if (finalPublicId) {
-            const privateUrl = cloudinary.utils.private_download_url(finalPublicId, finalFormat, {
+          if (rawPublicId) {
+            const privateUrlUpload = cloudinary.utils.private_download_url(publicIdNoExt, extFromPublicId, {
               resource_type: resourceType,
               type: 'upload',
               attachment: true,
             });
 
-            // Signed delivery URL as a fallback (some accounts/settings behave differently)
-            const signedDeliveryUrl = cloudinary.url(finalPublicId, {
+            const privateUrlAuthenticated = cloudinary.utils.private_download_url(publicIdNoExt, extFromPublicId, {
+              resource_type: resourceType,
+              type: 'authenticated',
+              attachment: true,
+            });
+
+            const signedDeliveryUploadWithExt = cloudinary.url(publicIdWithExt, {
               resource_type: resourceType,
               type: 'upload',
-              format: finalFormat,
               sign_url: true,
               secure: true,
             });
 
-            // Prefer signed URLs before direct URL
+            const signedDeliveryUploadNoExt = cloudinary.url(publicIdNoExt, {
+              resource_type: resourceType,
+              type: 'upload',
+              format: extFromPublicId,
+              sign_url: true,
+              secure: true,
+            });
+
+            const signedDeliveryAuthWithExt = cloudinary.url(publicIdWithExt, {
+              resource_type: resourceType,
+              type: 'authenticated',
+              sign_url: true,
+              secure: true,
+            });
+
+            const signedDeliveryAuthNoExt = cloudinary.url(publicIdNoExt, {
+              resource_type: resourceType,
+              type: 'authenticated',
+              format: extFromPublicId,
+              sign_url: true,
+              secure: true,
+            });
+
             candidates.unshift(
-              { label: 'cloudinary_private_download', url: privateUrl },
-              { label: 'cloudinary_signed_delivery', url: signedDeliveryUrl }
+              { label: 'cloudinary_private_download_upload', url: privateUrlUpload },
+              { label: 'cloudinary_private_download_authenticated', url: privateUrlAuthenticated },
+              { label: 'cloudinary_signed_delivery_upload_withext', url: signedDeliveryUploadWithExt },
+              { label: 'cloudinary_signed_delivery_upload_noext', url: signedDeliveryUploadNoExt },
+              { label: 'cloudinary_signed_delivery_authenticated_withext', url: signedDeliveryAuthWithExt },
+              { label: 'cloudinary_signed_delivery_authenticated_noext', url: signedDeliveryAuthNoExt }
             );
 
             console.log('Cloudinary download candidates prepared', {
-              finalPublicId,
-              finalFormat,
               resourceType,
+              publicIdWithExt,
+              publicIdNoExt,
+              extFromPublicId,
             });
           } else {
             console.warn('Could not determine Cloudinary publicId from URL; will try direct URL only', {
