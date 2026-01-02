@@ -26,6 +26,17 @@ const connectDB = async () => {
     return conn;
   } catch (error) {
     console.error(`❌ Error connecting to MongoDB: ${error.message}`);
+    if (!process.env.MONGODB_URI) {
+      console.error('ℹ️ MONGODB_URI is not set in the environment.');
+    } else {
+      let prefix = 'unknown';
+      if (process.env.MONGODB_URI.startsWith('mongodb+srv://')) {
+        prefix = 'mongodb+srv://';
+      } else if (process.env.MONGODB_URI.startsWith('mongodb://')) {
+        prefix = 'mongodb://';
+      }
+      console.error('ℹ️ MONGODB_URI appears to be set. Prefix detected:', prefix);
+    }
     throw error;
   }
 };

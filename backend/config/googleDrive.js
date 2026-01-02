@@ -7,6 +7,7 @@ const SCOPES = ['https://www.googleapis.com/auth/drive'];
 let auth;
 
 if (process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL && process.env.GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY) {
+  console.log('Google Drive config: using service account credentials from environment variables');
   const privateKey = process.env.GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY.replace(/\\n/g, '\n');
   auth = new google.auth.JWT(
     process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL,
@@ -15,8 +16,10 @@ if (process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL && process.env.GOOGLE_SERVICE_ACCOU
     SCOPES,
   );
 } else {
+  const keyFile = process.env.GOOGLE_SERVICE_ACCOUNT_KEY_FILE || 'elibrary-storage.json';
+  console.log('Google Drive config: using keyFile for credentials', { keyFile });
   auth = new google.auth.GoogleAuth({
-    keyFile: process.env.GOOGLE_SERVICE_ACCOUNT_KEY_FILE || 'elibrary-storage.json',
+    keyFile,
     scopes: SCOPES,
   });
 }
