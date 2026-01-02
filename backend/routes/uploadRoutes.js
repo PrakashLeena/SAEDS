@@ -35,20 +35,29 @@ const uploadToCloudinary = (buffer, folder, resourceType = 'image', options = {}
 const uploadPdfToBack4App = async (buffer, fileName, mimeType = 'application/pdf') => {
   const appId = process.env.BACK4APP_APP_ID;
   const restKey = process.env.BACK4APP_REST_API_KEY;
+  const masterKey = process.env.BACK4APP_MASTER_KEY;
   const baseUrl = (process.env.BACK4APP_BASE_URL || 'https://parseapi.back4app.com').replace(/\/$/, '');
 
-  if (!appId || !restKey) {
-    throw new Error('Back4App credentials are not configured (BACK4APP_APP_ID / BACK4APP_REST_API_KEY)');
+  if (!appId || (!restKey && !masterKey)) {
+    throw new Error('Back4App credentials are not configured (need BACK4APP_APP_ID and either BACK4APP_REST_API_KEY or BACK4APP_MASTER_KEY)');
   }
 
   const url = `${baseUrl}/files/${encodeURIComponent(fileName)}`;
 
+  const headers = {
+    'X-Parse-Application-Id': appId,
+    'Content-Type': mimeType || 'application/pdf',
+  };
+
+  if (restKey) {
+    headers['X-Parse-REST-API-Key'] = restKey;
+  }
+  if (masterKey) {
+    headers['X-Parse-Master-Key'] = masterKey;
+  }
+
   const response = await axios.post(url, buffer, {
-    headers: {
-      'X-Parse-Application-Id': appId,
-      'X-Parse-REST-API-Key': restKey,
-      'Content-Type': mimeType || 'application/pdf',
-    },
+    headers,
     // Allow large files
     maxBodyLength: Infinity,
     maxContentLength: Infinity,
