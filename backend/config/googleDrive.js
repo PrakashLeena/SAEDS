@@ -15,6 +15,15 @@ if (process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL && process.env.GOOGLE_SERVICE_ACCOU
     privateKey,
     SCOPES,
   );
+
+  // Proactively authorize so we see clear errors in logs if credentials are invalid
+  auth.authorize()
+    .then(() => {
+      console.log('Google Drive JWT authorization succeeded');
+    })
+    .catch(err => {
+      console.error('Google Drive JWT authorization error:', err && err.message);
+    });
 } else {
   const keyFile = process.env.GOOGLE_SERVICE_ACCOUNT_KEY_FILE || 'elibrary-storage.json';
   console.log('Google Drive config: using keyFile for credentials', { keyFile });
