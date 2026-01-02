@@ -233,7 +233,7 @@ export const activityAPI = {
   }),
 };
 
-// Upload helper function
+// Upload helper function for generic backend uploads
 const uploadFile = async (endpoint, file, additionalData = {}) => {
   const formData = new FormData();
 
@@ -265,11 +265,78 @@ const uploadFile = async (endpoint, file, additionalData = {}) => {
   return response.json();
 };
 
+// Helper to upload book PDFs directly to Back4App Files (bypasses backend size limits)
+const uploadBookPdfToBack4App = async (file) => {
+  const appId = process.env.REACT_APP_BACK4APP_APP_ID;
+  const jsKey = process.env.REACT_APP_BACK4APP_JS_KEY;
+  const baseUrl = (process.env.REACT_APP_BACK4APP_BASE_URL || 'https://parseapi.back4app.com').replace(/\/$/, '');
+
+  if (!appId || !jsKey) {
+    console.error('Back4App frontend env vars are not configured (REACT_APP_BACK4APP_APP_ID / REACT_APP_BACK4APP_JS_KEY)');
+    return {
+      success: false,
+      message: 'File storage is not configured. Please contact the administrator.',
+    };
+  }
+
+  const originalName = file.name || 'document.pdf';
+  const baseName = originalName
+    .replace(/\.[^/.]+$/, '')
+    .replace(/[^a-z0-9]/gi, '_')
+    .toLowerCase();
+  const ext = originalName.split('.').pop() || 'pdf';
+  const fileName = `${baseName}_${Date.now()}.${ext}`;
+
+  const url = `${baseUrl}/files/${encodeURIComponent(fileName)}`;
+
+  try {
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'X-Parse-Application-Id': appId,
+        'X-Parse-JavaScript-Key': jsKey,
+        'Content-Type': file.type || 'application/pdf',
+      },
+      body: file,
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      console.error('Back4App PDF upload failed:', data);
+      return {
+        success: false,
+        message: data.error || 'Failed to upload PDF',
+        error: data,
+      };
+    }
+
+    // Match the shape of the backend /upload/book-pdf response
+    return {
+      success: true,
+      message: 'Book PDF uploaded successfully',
+      data: {
+        url: data.url,
+        publicId: data.name,
+        back4appFileName: data.name,
+      },
+    };
+  } catch (error) {
+    console.error('Back4App PDF upload error:', error);
+    return {
+      success: false,
+      message: 'Network error while uploading PDF',
+      error: error.message,
+    };
+  }
+};
+
 // Upload API
 export const uploadAPI = {
   uploadProfilePhoto: (file) => uploadFile('profile-photo', file),
   uploadBookCover: (file) => uploadFile('book-cover', file),
-  uploadBookPDF: (file) => uploadFile('book-pdf', file),
+  // For book PDFs, upload directly to Back4App to bypass backend/Vercel size limits
+  uploadBookPDF: (file) => uploadBookPdfToBack4App(file),
 
   uploadElibraryFile: (file, data = {}) => {
     clearCachePattern('/upload/elibrary');
