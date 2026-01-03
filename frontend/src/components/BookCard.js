@@ -63,27 +63,49 @@ const BookCard = memo(({ book }) => {
     window.open(url, '_blank', 'noopener,noreferrer');
   }, [resolveBookUrl, book.id]);
 
-  // Optimized download handler (via backend proxy)
-  const handleDownload = useCallback((e) => {
+  // Optimized download handler – prefer direct file URL (e.g. Google Drive),
+  // fall back to backend proxy if no direct URL is available
+  const handleDownload = useCallback(async (e) => {
     e.preventDefault();
     e.stopPropagation();
 
-    const downloadUrl = `${api.book.getDownloadUrl(book.id)}?firebaseUid=${userUid || ''}`;
-    window.location.href = downloadUrl;
+    try {
+      const url = await resolveBookUrl();
 
-    // Refresh user profile in background if authenticated
-    if (userUid) {
-      api.user.getByFirebaseUid(userUid)
-        .then(ru => {
-          if (ru?.data) {
-            window.dispatchEvent(new CustomEvent('profile-updated', {
-              detail: ru.data
-            }));
-          }
-        })
-        .catch(e => console.error('Failed to refresh user', e));
+      if (url) {
+        // Try to increment download stats in background
+        try {
+          await api.book.incrementDownload(book._id || book.id, {
+            firebaseUid: userUid,
+          });
+        } catch (err) {
+          console.error('Failed to update download stats for direct URL from card:', err);
+        }
+
+        // Go directly to the stored PDF URL (Google Drive / Back4App / etc.)
+        window.location.href = url;
+      } else {
+        // Fallback: use backend download route
+        const downloadUrl = `${api.book.getDownloadUrl(book.id)}?firebaseUid=${userUid || ''}`;
+        window.location.href = downloadUrl;
+      }
+
+      // Refresh user profile in background if authenticated
+      if (userUid) {
+        api.user.getByFirebaseUid(userUid)
+          .then(ru => {
+            if (ru?.data) {
+              window.dispatchEvent(new CustomEvent('profile-updated', {
+                detail: ru.data
+              }));
+            }
+          })
+          .catch(err => console.error('Failed to refresh user', err));
+      }
+    } catch (err) {
+      console.error('Error handling download', err);
     }
-  }, [book.id, userUid]);
+  }, [resolveBookUrl, book.id, userUid]);
 
   // Memoize download count display
   const downloadCount = useMemo(() =>

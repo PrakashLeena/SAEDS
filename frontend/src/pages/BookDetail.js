@@ -225,8 +225,9 @@ const BookDetail = () => {
     return () => { mounted = false; };
   }, [currentUser, book, id]);
 
-  // Handle download (via backend proxy to avoid Cloudinary redirects/401s)
-  const handleDownload = useCallback(() => {
+  // Handle download – prefer direct PDF URL (e.g. Google Drive/Back4App),
+  // fall back to backend proxy if no direct URL is available
+  const handleDownload = useCallback(async () => {
     if (downloading) return;
     if (!book?._id && !id) {
       alert('PDF not available for download');
@@ -235,31 +236,58 @@ const BookDetail = () => {
 
     setDownloading(true);
 
-    const bookId = book?._id || id;
-    const downloadUrl = api.book.getDownloadUrl(bookId);
-    const url = currentUser?.uid
-      ? `${downloadUrl}?firebaseUid=${encodeURIComponent(currentUser.uid)}`
-      : downloadUrl;
+    try {
+      // Try to resolve a direct PDF URL first
+      const directUrl = await resolvePdfUrl();
 
-    const link = document.createElement('a');
-    link.href = url;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+      if (directUrl) {
+        try {
+          // Increment download stats in background
+          await api.book.incrementDownload(book._id || id, {
+            firebaseUid: currentUser?.uid,
+          });
+          await Promise.all([
+            refreshStats(),
+            refreshUserProfile(),
+          ]);
+        } catch (err) {
+          console.error('Failed to update download stats for direct URL:', err);
+        }
 
-    setTimeout(async () => {
-      try {
-        setDownloadsCount(prev => prev + 1);
-        await Promise.all([
-          refreshStats(),
-          refreshUserProfile(),
-        ]);
-      } catch (err) {
-        console.error('Failed to refresh stats:', err);
+        // Navigate directly to the stored PDF URL (Google Drive, etc.)
+        window.location.href = directUrl;
+      } else {
+        // Fallback: use backend proxy download route
+        const bookId = book?._id || id;
+        const downloadUrl = api.book.getDownloadUrl(bookId);
+        const url = currentUser?.uid
+          ? `${downloadUrl}?firebaseUid=${encodeURIComponent(currentUser.uid)}`
+          : downloadUrl;
+
+        const link = document.createElement('a');
+        link.href = url;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+
+        setTimeout(async () => {
+          try {
+            setDownloadsCount(prev => prev + 1);
+            await Promise.all([
+              refreshStats(),
+              refreshUserProfile(),
+            ]);
+          } catch (err) {
+            console.error('Failed to refresh stats:', err);
+          }
+        }, 250);
       }
+    } catch (err) {
+      console.error('Error handling download:', err);
+    } finally {
       setDownloading(false);
-    }, 250);
-  }, [downloading, book?._id, id, currentUser?.uid, refreshStats, refreshUserProfile]);
+    }
+  }, [downloading, book?._id, id, currentUser?.uid, resolvePdfUrl, refreshStats, refreshUserProfile]);
 
   // Handle read online
   const handleReadOnline = useCallback(async () => {

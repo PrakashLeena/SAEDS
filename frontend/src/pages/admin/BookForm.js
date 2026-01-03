@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { ArrowLeft, Save, Upload, X, FileText } from 'lucide-react';
+import { ArrowLeft, Save, Upload, X } from 'lucide-react';
 import { bookAPI, uploadAPI } from '../../services/api';
 import { elibraryFolders } from '../../data/elibrary';
 
@@ -67,7 +67,6 @@ const BookForm = () => {
   });
   const [loading, setLoading] = useState(false);
   const [uploadingCover, setUploadingCover] = useState(false);
-  const [uploadingPDF, setUploadingPDF] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [sections, setSections] = useState([]);
@@ -139,54 +138,10 @@ const BookForm = () => {
     }
   };
 
-  const handlePDFUpload = async (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-
-    if (file.type !== 'application/pdf') {
-      setError('Please select a PDF file');
-      return;
-    }
-
-    if (file.size > 100 * 1024 * 1024) {
-      setError('PDF size should be less than 100MB');
-      return;
-    }
-
-    setUploadingPDF(true);
-    setError('');
-
-    try {
-      const result = await uploadAPI.uploadBookPDF(file);
-      if (result.success) {
-        setFormData((prev) => ({
-          ...prev,
-          pdfUrl: result.data.url,
-        }));
-        setSuccess('PDF uploaded successfully!');
-        setTimeout(() => setSuccess(''), 3000);
-      } else {
-        setError(result.message || 'Failed to upload PDF');
-      }
-    } catch (error) {
-      console.error('Error uploading PDF:', error);
-      setError('Failed to upload PDF. Please try again.');
-    } finally {
-      setUploadingPDF(false);
-    }
-  };
-
   const removeCover = () => {
     setFormData((prev) => ({
       ...prev,
       coverImage: '',
-    }));
-  };
-
-  const removePDF = () => {
-    setFormData((prev) => ({
-      ...prev,
-      pdfUrl: '',
     }));
   };
 
@@ -393,84 +348,22 @@ const BookForm = () => {
               </div>
             </div>
 
-            {/* PDF Upload */}
+            {/* PDF URL only (Google Drive / external link) */}
             <div className="md:col-span-2">
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Book PDF (Optional)
+                PDF Link (Google Drive or any PDF URL)
               </label>
-
-              {formData.pdfUrl ? (
-                <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-3">
-                      <FileText className="h-8 w-8 text-green-600" />
-                      <div>
-                        <p className="text-sm font-medium text-green-900">PDF uploaded successfully</p>
-                        <a
-                          href={formData.pdfUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-xs text-green-700 hover:underline"
-                        >
-                          View PDF
-                        </a>
-                      </div>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <label className="cursor-pointer inline-flex items-center space-x-2 px-3 py-1.5 bg-white text-gray-700 rounded-lg hover:bg-gray-50 transition-colors text-sm">
-                        <Upload className="h-4 w-4" />
-                        <span>{uploadingPDF ? 'Uploading...' : 'Replace'}</span>
-                        <input
-                          type="file"
-                          accept="application/pdf"
-                          onChange={handlePDFUpload}
-                          className="hidden"
-                          disabled={uploadingPDF}
-                        />
-                      </label>
-                      <button
-                        type="button"
-                        onClick={removePDF}
-                        className="p-1.5 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
-                      >
-                        <X className="h-4 w-4" />
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              ) : (
-                <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-primary-500 transition-colors">
-                  <FileText className="h-12 w-12 text-gray-400 mx-auto mb-3" />
-                  <label className="cursor-pointer">
-                    <span className="text-primary-600 hover:text-primary-700 font-medium">
-                      {uploadingPDF ? 'Uploading PDF...' : 'Click to upload PDF'}
-                    </span>
-                    <input
-                      type="file"
-                      accept="application/pdf"
-                      onChange={handlePDFUpload}
-                      className="hidden"
-                      disabled={uploadingPDF}
-                    />
-                  </label>
-                  <p className="text-xs text-gray-500 mt-2">
-                    PDF up to 100MB
-                  </p>
-                </div>
-              )}
-
-              {/* Manual URL input */}
-              <div className="mt-3">
-                <label className="text-xs text-gray-600 mb-1 block">Or enter PDF URL:</label>
-                <input
-                  type="url"
-                  name="pdfUrl"
-                  value={formData.pdfUrl}
-                  onChange={handleChange}
-                  className="w-full px-4 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                  placeholder="https://example.com/book.pdf"
-                />
-              </div>
+              <input
+                type="url"
+                name="pdfUrl"
+                value={formData.pdfUrl}
+                onChange={handleChange}
+                className="w-full px-4 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                placeholder="Paste the Google Drive sharing link, e.g. https://drive.google.com/..."
+              />
+              <p className="text-xs text-gray-500 mt-1">
+                Upload your PDF to Google Drive, make it "Anyone with the link" can view, then paste the link here.
+              </p>
             </div>
 
             {/* Pages */}
