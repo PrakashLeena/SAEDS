@@ -106,12 +106,19 @@ const BookDetail = () => {
     ];
   }, [book]);
 
-  // Shared function to resolve PDF URL (prefer direct file URL like before)
+  // Shared function to resolve PDF URL (prefer book.pdfUrl e.g. Google Drive, then backend file URL)
   const resolvePdfUrl = useCallback(async () => {
     if (urlCacheRef.current) return urlCacheRef.current;
 
+    // Prefer the pdfUrl stored on the book first
+    if (book?.pdfUrl) {
+      urlCacheRef.current = book.pdfUrl;
+      return book.pdfUrl;
+    }
+
+    // Fallback: try the associated e-library file from backend
     try {
-      const f = await api.book.getFile(id);
+      const f = await api.book.getFile(book?._id || id);
       if (f?.data?.url) {
         urlCacheRef.current = f.data.url;
         return f.data.url;
@@ -120,13 +127,8 @@ const BookDetail = () => {
       console.error('No file found', err);
     }
 
-    if (book?.pdfUrl) {
-      urlCacheRef.current = book.pdfUrl;
-      return book.pdfUrl;
-    }
-
     return null;
-  }, [book?.pdfUrl, id]);
+  }, [book?.pdfUrl, book?._id, id]);
 
   // Shared function to refresh user profile
   const refreshUserProfile = useCallback(async () => {

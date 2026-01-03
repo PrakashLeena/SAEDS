@@ -26,12 +26,19 @@ const BookCard = memo(({ book }) => {
     )
   ), [book.available]);
 
-  // Optimize URL resolution - cache the result (prefer direct file URL like before)
+  // Optimize URL resolution - cache the result (prefer book.pdfUrl first, then backend file URL)
   const resolveBookUrl = useCallback(async () => {
     if (urlCacheRef.current) return urlCacheRef.current;
 
+    // Prefer the pdfUrl stored on the book (e.g. Google Drive link)
+    if (book.pdfUrl) {
+      urlCacheRef.current = book.pdfUrl;
+      return book.pdfUrl;
+    }
+
+    // Fallback: try to resolve from backend e-library file
     try {
-      const f = await api.book.getFile(book.id);
+      const f = await api.book.getFile(book._id || book.id);
       if (f?.data?.url) {
         urlCacheRef.current = f.data.url;
         return f.data.url;
@@ -40,13 +47,8 @@ const BookCard = memo(({ book }) => {
       console.error('No file found', err);
     }
 
-    if (book.pdfUrl) {
-      urlCacheRef.current = book.pdfUrl;
-      return book.pdfUrl;
-    }
-
     return null;
-  }, [book.id, book.pdfUrl]);
+  }, [book.pdfUrl, book._id, book.id]);
 
   // Optimized read handler
   const handleRead = useCallback(async (e) => {
