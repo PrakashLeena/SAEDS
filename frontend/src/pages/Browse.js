@@ -548,6 +548,15 @@ const Browse = () => {
               <strong>Technology</strong> stream, our digital library provides easy access to the tools you need to succeed.
               Our platform is designed to support students from Mannar to Colombo, ensuring that every student has the opportunity to excel in their exams.
             </p>
+            <p className="mb-4">
+              For Tamil medium students, we offer a growing collection of subject-wise resources including
+              <strong> physics pastpapers tamil medium</strong>,
+              <strong> physics elaborations tamil medium</strong>,
+              <strong> chemistry pastpapers tamil medium</strong>,
+              <strong> chemistry elaborations tamil medium</strong>,
+              <strong> maths pastpapers tamil medium</strong>, and
+              <strong> biology pastpapers tamil medium</strong> to support your exam preparation.
+            </p>
             <p>
               Explore our vast collection of reference books, teacher guides, and term test papers.
               Join the <strong>SAEDS student community</strong> today and take advantage of these free resources to prepare for your future.

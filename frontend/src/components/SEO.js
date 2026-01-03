@@ -5,13 +5,21 @@ const SEO = ({ title, description, name, type, image, url, structuredData }) => 
   const siteTitle = "SAEDS Community Hub";
   const defaultDescription = "Join the Student Association for Environmental Development & Sustainability. Explore our library, activities, and community events.";
   const defaultImage = "/logo.png"; // Ensure this exists in public folder
-  const siteUrl = "https://saeds.org"; // Replace with actual domain if known, or use window.location.origin
+  const defaultKeywords = [
+    'physics pastpapers tamil medium',
+    'physics elaborations tamil medium',
+    'chemistry pastpapers tamil medium',
+    'chemistry elaborations tamil medium',
+    'maths pastpapers tamil medium',
+    'biology pastpapers tamil medium',
+  ].join(', ');
 
   return (
     <Helmet>
       {/* Standard metadata tags */}
       <title>{title ? `${title} | ${siteTitle}` : siteTitle}</title>
       <meta name='description' content={description || defaultDescription} />
+      <meta name='keywords' content={defaultKeywords} />
       <meta name="robots" content="index,follow" />
 
       {/* Facebook tags */}
